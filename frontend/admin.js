@@ -1,0 +1,421 @@
+(function () {
+  var STORAGE_API_BASE = "eep_api_base";
+  var STORAGE_TOKEN = "eep_token";
+  var STORAGE_USER = "eep_user";
+
+  function $(sel) {
+    return document.querySelector(sel);
+  }
+
+  function setMsg(el, text, kind) {
+    if (!el) return;
+    el.textContent = text || "";
+    el.classList.remove("is-error", "is-ok");
+    if (kind === "error") el.classList.add("is-error");
+    if (kind === "ok") el.classList.add("is-ok");
+  }
+
+  function getApiBase() {
+    var saved = localStorage.getItem(STORAGE_API_BASE);
+    return saved || "http://localhost:4000/api";
+  }
+
+  function setApiBase(v) {
+    localStorage.setItem(STORAGE_API_BASE, v);
+  }
+
+  function getToken() {
+    return localStorage.getItem(STORAGE_TOKEN) || "";
+  }
+
+  function setToken(t) {
+    localStorage.setItem(STORAGE_TOKEN, t || "");
+  }
+
+  function getUser() {
+    var raw = localStorage.getItem(STORAGE_USER);
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function setUser(u) {
+    if (!u) {
+      localStorage.removeItem(STORAGE_USER);
+      return;
+    }
+    localStorage.setItem(STORAGE_USER, JSON.stringify(u));
+  }
+
+  async function api(path, opts) {
+    var base = getApiBase().replace(/\/$/, "");
+    var url = base + path;
+    var token = getToken();
+    var headers = Object.assign(
+      { "Content-Type": "application/json" },
+      (opts && opts.headers) || {},
+      token ? { Authorization: "Bearer " + token } : {}
+    );
+    var res = await fetch(url, Object.assign({}, opts || {}, { headers: headers }));
+    var text = await res.text();
+    var data;
+    try {
+      data = text ? JSON.parse(text) : null;
+    } catch (e) {
+      data = { raw: text };
+    }
+    if (!res.ok) {
+      var msg = (data && (data.message || data.error)) || res.statusText || "Request failed";
+      var err = new Error(msg);
+      err.status = res.status;
+      err.data = data;
+      throw err;
+    }
+    return data;
+  }
+
+  function syncSessionUI() {
+    var tokenEl = $("#token");
+    var stateEl = $("#sessionState");
+    var userEl = $("#sessionUser");
+    var roleEl = $("#sessionRole");
+
+    var token = getToken();
+    var user = getUser();
+
+    if (tokenEl) tokenEl.value = token;
+
+    if (token && user) {
+      if (stateEl) stateEl.textContent = "Autenticado";
+      if (userEl) userEl.textContent = user.email || user.nombre || "-";
+      if (roleEl) roleEl.textContent = user.role || "-";
+    } else {
+      if (stateEl) stateEl.textContent = "No autenticado";
+      if (userEl) userEl.textContent = "-";
+      if (roleEl) roleEl.textContent = "-";
+    }
+  }
+
+  function renderStaffRows(users) {
+    var tbody = $("#staffTbody");
+    if (!tbody) return;
+    tbody.innerHTML = "";
+
+    if (!users || !users.length) {
+      var trEmpty = document.createElement("tr");
+      var tdEmpty = document.createElement("td");
+      tdEmpty.colSpan = 6;
+      tdEmpty.className = "table-empty";
+      tdEmpty.textContent = "Sin resultados";
+      trEmpty.appendChild(tdEmpty);
+      tbody.appendChild(trEmpty);
+      return;
+    }
+
+    users.forEach(function (u) {
+      var tr = document.createElement("tr");
+
+      var tdNombre = document.createElement("td");
+      tdNombre.textContent = u.nombre || "-";
+      tr.appendChild(tdNombre);
+
+      var tdApellido = document.createElement("td");
+      tdApellido.textContent = u.apellido || "-";
+      tr.appendChild(tdApellido);
+
+      var tdNac = document.createElement("td");
+      tdNac.textContent = formatFecha(u.fechaNacimiento);
+      tr.appendChild(tdNac);
+
+      var tdEmail = document.createElement("td");
+      tdEmail.textContent = u.email || "-";
+      tr.appendChild(tdEmail);
+
+      var tdRole = document.createElement("td");
+      tdRole.textContent = u.role || "-";
+      tr.appendChild(tdRole);
+
+      var tdActions = document.createElement("td");
+      var actions = document.createElement("div");
+      actions.className = "row-actions";
+
+      var btnEdit = document.createElement("button");
+      btnEdit.type = "button";
+      btnEdit.className = "btn btn-ghost btn-sm";
+      btnEdit.textContent = "Editar";
+      btnEdit.addEventListener("click", function () {
+        openEditPrompt(u);
+      });
+
+      var btnDel = document.createElement("button");
+      btnDel.type = "button";
+      btnDel.className = "btn btn-secondary btn-sm";
+      btnDel.textContent = "Eliminar";
+      btnDel.addEventListener("click", function () {
+        deleteStaff(u);
+      });
+
+      actions.appendChild(btnEdit);
+      actions.appendChild(btnDel);
+      tdActions.appendChild(actions);
+      tr.appendChild(tdActions);
+
+      tbody.appendChild(tr);
+    });
+  }
+
+  function formatFecha(v) {
+    if (!v) return "-";
+    var d = v instanceof Date ? v : new Date(v);
+    if (isNaN(d.getTime())) return "-";
+    var dd = String(d.getDate()).padStart(2, "0");
+    var mm = String(d.getMonth() + 1).padStart(2, "0");
+    var yyyy = String(d.getFullYear());
+    return dd + "/" + mm + "/" + yyyy;
+  }
+
+  async function loadStaff() {
+    var msgEl = $("#listMsg");
+    setMsg(msgEl, "Cargando...", "");
+    try {
+      var filter = $("#filterRole");
+      var q = filter && filter.value ? "?role=" + encodeURIComponent(filter.value) : "";
+      var data = await api("/users/staff" + q, { method: "GET" });
+      renderStaffRows(data);
+      setMsg(msgEl, "OK", "ok");
+    } catch (err) {
+      setMsg(msgEl, err.message || "Error", "error");
+    }
+  }
+
+  async function deleteStaff(user) {
+    var msgEl = $("#listMsg");
+    if (!user || !user._id) {
+      setMsg(msgEl, "ID invalido", "error");
+      return;
+    }
+    if (!confirm("Eliminar a " + (user.email || user.nombre || "este usuario") + "?")) return;
+    setMsg(msgEl, "Eliminando...", "");
+    try {
+      await api("/users/staff/" + encodeURIComponent(user._id), { method: "DELETE" });
+      await loadStaff();
+      setMsg(msgEl, "Eliminado", "ok");
+    } catch (err) {
+      setMsg(msgEl, err.message || "Error", "error");
+    }
+  }
+
+  async function openEditPrompt(user) {
+    openEditModal(user);
+  }
+
+  function openEditModal(user) {
+    var modal = $("#editModal");
+    if (!modal || !user || !user._id) return;
+
+    $("#editId").value = user._id;
+    $("#editEmail").value = user.email || "";
+    $("#editNombre").value = user.nombre || "";
+    $("#editApellido").value = user.apellido || "";
+    $("#editFechaNac").value = toDateInputValue(user.fechaNacimiento);
+    $("#editRole").value = user.role === "docente" ? "docente" : "directivo";
+    setMsg($("#editMsg"), "", "");
+
+    modal.classList.add("is-open");
+    modal.setAttribute("aria-hidden", "false");
+
+    // Focus first editable field
+    setTimeout(function () {
+      var el = $("#editNombre");
+      if (el) el.focus();
+    }, 0);
+  }
+
+  function toDateInputValue(v) {
+    if (!v) return "";
+    var d = v instanceof Date ? v : new Date(v);
+    if (isNaN(d.getTime())) return "";
+    var y = d.getFullYear();
+    var m = String(d.getMonth() + 1).padStart(2, "0");
+    var day = String(d.getDate()).padStart(2, "0");
+    return y + "-" + m + "-" + day;
+  }
+
+  function closeEditModal() {
+    var modal = $("#editModal");
+    if (!modal) return;
+    modal.classList.remove("is-open");
+    modal.setAttribute("aria-hidden", "true");
+  }
+
+  function initEditModal() {
+    var modal = $("#editModal");
+    var closeBtn = $("#closeEdit");
+    var cancelBtn = $("#cancelEdit");
+    var form = $("#editForm");
+    var msgEl = $("#editMsg");
+    if (!modal || !form) return;
+
+    if (closeBtn) closeBtn.addEventListener("click", closeEditModal);
+    if (cancelBtn) cancelBtn.addEventListener("click", closeEditModal);
+
+    modal.addEventListener("click", function (e) {
+      var t = e.target;
+      if (!(t instanceof Element)) return;
+      if (t && t.getAttribute("data-close") === "true") closeEditModal();
+    });
+
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") closeEditModal();
+    });
+
+    form.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      setMsg(msgEl, "Guardando...", "");
+      try {
+        var id = $("#editId").value;
+        var nombre = String($("#editNombre").value || "").trim();
+        var apellido = String($("#editApellido").value || "").trim();
+        var fechaNacimiento = String($("#editFechaNac").value || "").trim();
+        var role = $("#editRole").value;
+
+        if (!nombre) return setMsg(msgEl, "Nombre requerido", "error");
+        if (role !== "directivo" && role !== "docente") return setMsg(msgEl, "Rol invalido", "error");
+
+        var payload = { nombre: nombre, role: role };
+        if (apellido) payload.apellido = apellido;
+        if (fechaNacimiento) payload.fechaNacimiento = fechaNacimiento;
+
+        await api("/users/staff/" + encodeURIComponent(id), {
+          method: "PUT",
+          body: JSON.stringify(payload)
+        });
+        await loadStaff();
+        setMsg(msgEl, "Actualizado", "ok");
+        closeEditModal();
+      } catch (err) {
+        setMsg(msgEl, err.message || "Error", "error");
+      }
+    });
+  }
+
+  function initApiBaseUI() {
+    var apiBaseEl = $("#apiBase");
+    var btnSave = $("#saveApi");
+    if (!apiBaseEl || !btnSave) return;
+
+    apiBaseEl.value = getApiBase();
+    btnSave.addEventListener("click", function () {
+      var v = String(apiBaseEl.value || "").trim();
+      if (!v) return;
+      setApiBase(v);
+      syncSessionUI();
+    });
+  }
+
+  function initLogin() {
+    var form = $("#loginForm");
+    var msgEl = $("#loginMsg");
+    if (!form) return;
+
+    form.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      setMsg(msgEl, "Ingresando...", "");
+      try {
+        var email = $("#loginEmail").value;
+        var password = $("#loginPassword").value;
+
+        var data = await api("/auth/login", {
+          method: "POST",
+          body: JSON.stringify({ email: email, password: password })
+        });
+
+        setToken(data.token);
+        setUser(data.user);
+        syncSessionUI();
+        setMsg(msgEl, "OK", "ok");
+        loadStaff();
+      } catch (err) {
+        setMsg(msgEl, err.message || "Error", "error");
+      }
+    });
+  }
+
+  function initLogout() {
+    var btn = $("#logout");
+    if (!btn) return;
+    btn.addEventListener("click", function () {
+      setToken("");
+      setUser(null);
+      syncSessionUI();
+      renderStaffRows([]);
+      setMsg($("#loginMsg"), "Sesion cerrada", "ok");
+    });
+  }
+
+  function initCopyToken() {
+    var btn = $("#copyToken");
+    var tokenEl = $("#token");
+    if (!btn || !tokenEl) return;
+    btn.addEventListener("click", async function () {
+      if (!tokenEl.value) return;
+      try {
+        await navigator.clipboard.writeText(tokenEl.value);
+        setMsg($("#loginMsg"), "Token copiado", "ok");
+      } catch (e) {
+        tokenEl.focus();
+        tokenEl.select();
+      }
+    });
+  }
+
+  function initCreateStaff() {
+    var form = $("#createStaffForm");
+    var msgEl = $("#createMsg");
+    if (!form) return;
+
+    form.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      setMsg(msgEl, "Creando...", "");
+      try {
+        var payload = {
+          nombre: $("#staffNombre").value,
+          apellido: $("#staffApellido").value,
+          fechaNacimiento: $("#staffFechaNac").value,
+          email: $("#staffEmail").value,
+          password: $("#staffPassword").value,
+          role: $("#staffRole").value
+        };
+        if (!payload.apellido) delete payload.apellido;
+        if (!payload.fechaNacimiento) delete payload.fechaNacimiento;
+        await api("/users/staff", { method: "POST", body: JSON.stringify(payload) });
+        form.reset();
+        setMsg(msgEl, "Creado", "ok");
+        loadStaff();
+      } catch (err) {
+        setMsg(msgEl, err.message || "Error", "error");
+      }
+    });
+  }
+
+  function initListControls() {
+    var refresh = $("#refresh");
+    var filter = $("#filterRole");
+    if (refresh) refresh.addEventListener("click", loadStaff);
+    if (filter) filter.addEventListener("change", loadStaff);
+  }
+
+  initApiBaseUI();
+  initLogin();
+  initLogout();
+  initCopyToken();
+  initCreateStaff();
+  initListControls();
+  initEditModal();
+  syncSessionUI();
+
+  
+})();

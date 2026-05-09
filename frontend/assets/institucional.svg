@@ -1,0 +1,65 @@
+<svg width="960" height="720" viewBox="0 0 960 720" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="88" y1="62" x2="900" y2="700" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF" />
+      <stop offset="0.55" stop-color="#E7E0FF" />
+      <stop offset="1" stop-color="#C9B7FF" />
+    </linearGradient>
+    <linearGradient id="vio" x1="218" y1="140" x2="760" y2="610" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2E1550" />
+      <stop offset="0.55" stop-color="#6D2CCF" />
+      <stop offset="1" stop-color="#A98BFF" />
+    </linearGradient>
+    <linearGradient id="screen" x1="420" y1="234" x2="718" y2="460" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF" stop-opacity="0.95" />
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0.55" />
+    </linearGradient>
+    <filter id="soft" x="-40%" y="-40%" width="180%" height="180%" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="14" />
+    </filter>
+  </defs>
+
+  <rect x="40" y="40" width="880" height="640" rx="44" fill="url(#bg)" />
+  <path d="M110 172c68-64 156-96 264-96 166 0 244 106 402 106 48 0 91-9 129-27v129c-42 19-92 29-150 29-166 0-236-106-392-106-123 0-215 35-253 80V172Z" fill="#6D2CCF" fill-opacity="0.12" />
+  <path d="M132 560c86-94 210-152 366-152 188 0 272 100 388 100 26 0 50-3 72-9v115c-24 7-53 10-86 10-178 0-254-100-382-100-142 0-258 48-314 122H132V560Z" fill="#2E1550" fill-opacity="0.10" />
+
+  <g filter="url(#soft)" opacity="0.55">
+    <circle cx="238" cy="240" r="86" fill="#A98BFF" />
+    <circle cx="720" cy="220" r="96" fill="#6D2CCF" />
+  </g>
+
+  <rect x="140" y="130" width="680" height="440" rx="34" fill="#FFFFFF" fill-opacity="0.70" />
+  <rect x="140" y="130" width="680" height="440" rx="34" stroke="#171320" stroke-opacity="0.12" stroke-width="3" />
+
+  <rect x="178" y="170" width="604" height="58" rx="22" fill="#FFFFFF" fill-opacity="0.72" />
+  <rect x="178" y="170" width="604" height="58" rx="22" stroke="#171320" stroke-opacity="0.10" stroke-width="3" />
+  <circle cx="212" cy="199" r="10" fill="#6D2CCF" fill-opacity="0.55" />
+  <circle cx="244" cy="199" r="10" fill="#A98BFF" fill-opacity="0.70" />
+  <circle cx="276" cy="199" r="10" fill="#2E1550" fill-opacity="0.35" />
+  <rect x="322" y="186" width="170" height="26" rx="13" fill="#171320" fill-opacity="0.08" />
+
+  <rect x="210" y="270" width="540" height="250" rx="30" fill="url(#vio)" fill-opacity="0.14" />
+  <rect x="210" y="270" width="540" height="250" rx="30" stroke="#171320" stroke-opacity="0.10" stroke-width="3" />
+
+  <rect x="250" y="308" width="320" height="176" rx="22" fill="url(#screen)" />
+  <rect x="250" y="308" width="320" height="176" rx="22" stroke="#FFFFFF" stroke-opacity="0.52" stroke-width="3" />
+  <path d="M280 358h140" stroke="#2E1550" stroke-opacity="0.55" stroke-width="10" stroke-linecap="round" />
+  <path d="M280 392h210" stroke="#2E1550" stroke-opacity="0.40" stroke-width="10" stroke-linecap="round" />
+  <path d="M280 426h110" stroke="#2E1550" stroke-opacity="0.40" stroke-width="10" stroke-linecap="round" />
+
+  <g>
+    <rect x="602" y="308" width="118" height="60" rx="18" fill="#FFFFFF" fill-opacity="0.78" />
+    <rect x="602" y="308" width="118" height="60" rx="18" stroke="#171320" stroke-opacity="0.10" stroke-width="3" />
+    <path d="M628 338h66" stroke="#6D2CCF" stroke-opacity="0.75" stroke-width="10" stroke-linecap="round" />
+  </g>
+
+  <g>
+    <rect x="602" y="390" width="118" height="94" rx="18" fill="#FFFFFF" fill-opacity="0.78" />
+    <rect x="602" y="390" width="118" height="94" rx="18" stroke="#171320" stroke-opacity="0.10" stroke-width="3" />
+    <circle cx="638" cy="422" r="12" fill="#A98BFF" fill-opacity="0.85" />
+    <path d="M662 422h32" stroke="#2E1550" stroke-opacity="0.45" stroke-width="10" stroke-linecap="round" />
+    <path d="M624 454h70" stroke="#2E1550" stroke-opacity="0.35" stroke-width="10" stroke-linecap="round" />
+  </g>
+
+  <path d="M360 566c40-46 78-68 120-68 66 0 106 54 184 54 42 0 80-12 116-36" stroke="#2E1550" stroke-opacity="0.24" stroke-width="10" stroke-linecap="round" />
+</svg>

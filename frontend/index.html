@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Escuela Experimental Porteña</title>
+    <meta
+      name="description"
+      content="Sitio institucional de la Escuela Experimental Porteña: novedades, propuesta educativa y accesos rápidos."
+    />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#contenido">Saltar al contenido</a>
+
+    <header class="site-header" role="banner">
+      <div class="container header-inner">
+        <a class="brand" href="#" aria-label="Inicio">
+          <img
+            class="brand-logo"
+            src="assets/logo.svg"
+            alt="Logo Escuela Experimental Porteña"
+            width="44"
+            height="44"
+            loading="eager"
+          />
+          <div class="brand-text">
+            <span class="brand-name">Escuela Experimental Porteña</span>
+            <span class="brand-tag">Institucional · Innovación · Comunidad</span>
+          </div>
+        </a>
+
+        <nav class="nav" aria-label="Navegación principal">
+          <button
+            class="nav-toggle"
+            type="button"
+            aria-controls="nav-menu"
+            aria-expanded="false"
+          >
+            <span class="nav-toggle-lines" aria-hidden="true"></span>
+            <span class="sr-only">Abrir menú</span>
+          </button>
+
+          <ul id="nav-menu" class="nav-menu">
+            <li><a class="nav-link" href="#novedades">Novedades</a></li>
+            <li><a class="nav-link" href="#accesos">Accesos</a></li>
+            <li><a class="nav-link" href="#escuela">Nuestra escuela</a></li>
+            <li><a class="nav-link" href="#contacto">Contacto</a></li>
+            <li><a class="nav-link" href="admin.html">Panel</a></li>
+          </ul>
+        </nav>
+
+        <div class="header-actions">
+          <a class="btn btn-ghost" href="#accesos">Campus</a>
+          <a class="btn btn-primary" href="#contacto">Inscripciones</a>
+        </div>
+      </div>
+    </header>
+
+    <main id="contenido" class="main" role="main">
+      <section class="hero" aria-label="Portada">
+        <div class="hero-bg" aria-hidden="true">
+          <div class="hero-orb orb-1"></div>
+          <div class="hero-orb orb-2"></div>
+          <div class="hero-grid"></div>
+        </div>
+
+        <div class="container hero-inner">
+          <div class="hero-copy reveal">
+            <div class="badge">
+              <span class="badge-dot" aria-hidden="true"></span>
+              Educación pública con enfoque experimental
+            </div>
+            <h1 class="hero-title">
+              Tecnología y humanidad
+              <span class="hero-title-accent">en una misma aula</span>
+            </h1>
+            <p class="hero-lead">
+              Un proyecto institucional que integra ciencias, arte y pensamiento crítico con
+              herramientas digitales, acompañando trayectorias diversas en un entorno seguro y
+              colaborativo.
+            </p>
+            <div class="hero-cta">
+              <a class="btn btn-primary" href="#escuela">Conocé la propuesta</a>
+              <a class="btn btn-secondary" href="#novedades">Ver novedades</a>
+            </div>
+
+            <div class="hero-metrics" role="list">
+              <div class="metric" role="listitem">
+                <div class="metric-value">+25</div>
+                <div class="metric-label">proyectos interdisciplinarios</div>
+              </div>
+              <div class="metric" role="listitem">
+                <div class="metric-value">1:1</div>
+                <div class="metric-label">acompañamiento pedagógico</div>
+              </div>
+              <div class="metric" role="listitem">
+                <div class="metric-value">STEM</div>
+                <div class="metric-label">laboratorios y talleres</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="hero-media reveal" style="--reveal-delay: 120ms">
+            <figure class="media-card">
+              <img
+                src="assets/institucional.svg"
+                alt="Imagen institucional: aula con tecnología y comunidad"
+                width="680"
+                height="520"
+                loading="eager"
+              />
+              <figcaption class="media-caption">
+                <span class="media-caption-title">Aprendizaje activo</span>
+                <span class="media-caption-sub">Aulas con recursos digitales y enfoque por proyectos</span>
+              </figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <section id="novedades" class="section section-news" aria-label="Novedades">
+        <div class="container">
+          <div class="section-head reveal">
+            <div>
+              <h2 class="section-title">Novedades y noticias</h2>
+              <p class="section-subtitle">
+                Información institucional, actividades y anuncios importantes.
+              </p>
+            </div>
+            <a class="link-pill" href="#">Ver todas</a>
+          </div>
+
+          <div class="cards-grid">
+            <article class="card reveal" style="--reveal-delay: 60ms">
+              <div class="card-top">
+                <div class="chip">Institucional</div>
+                <time class="card-date" datetime="2026-05-09">9 mayo 2026</time>
+              </div>
+              <h3 class="card-title">Apertura de inscripciones 2026</h3>
+              <p class="card-text">
+                Conocé fechas, documentación y criterios de admisión para los distintos niveles.
+              </p>
+              <a class="card-link" href="#contacto">Consultar requisitos</a>
+            </article>
+
+            <article class="card reveal" style="--reveal-delay: 120ms">
+              <div class="card-top">
+                <div class="chip">Proyectos</div>
+                <time class="card-date" datetime="2026-05-02">2 mayo 2026</time>
+              </div>
+              <h3 class="card-title">Semana de ciencia y tecnología</h3>
+              <p class="card-text">
+                Muestras, laboratorios abiertos y charlas con especialistas para toda la comunidad.
+              </p>
+              <a class="card-link" href="#escuela">Ver propuesta</a>
+            </article>
+
+            <article class="card reveal" style="--reveal-delay: 180ms">
+              <div class="card-top">
+                <div class="chip">Comunidad</div>
+                <time class="card-date" datetime="2026-04-20">20 abril 2026</time>
+              </div>
+              <h3 class="card-title">Encuentro con familias y equipo docente</h3>
+              <p class="card-text">
+                Un espacio de escucha para fortalecer acuerdos de convivencia y acompañamiento.
+              </p>
+              <a class="card-link" href="#contacto">Agendar visita</a>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="accesos" class="section section-access" aria-label="Accesos rápidos">
+        <div class="container">
+          <div class="section-head reveal">
+            <div>
+              <h2 class="section-title">Accesos rápidos</h2>
+              <p class="section-subtitle">
+                Entradas directas a recursos y servicios para estudiantes, familias y docentes.
+              </p>
+            </div>
+          </div>
+
+          <div class="access-grid">
+            <a class="access" href="#" aria-label="Acceso: Aula virtual">
+              <div class="access-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M4 7.5C4 6.12 5.12 5 6.5 5h11C19.88 5 21 6.12 21 7.5v9c0 1.38-1.12 2.5-2.5 2.5h-11C5.12 19 4 17.88 4 16.5v-9Z" stroke="currentColor" stroke-width="1.7" />
+                  <path d="M8 15.5h8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+                  <path d="M8 12h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+                </svg>
+              </div>
+              <div class="access-body">
+                <div class="access-title">Aula virtual</div>
+                <div class="access-sub">Materiales, tareas y comunicaciones</div>
+              </div>
+              <span class="access-arrow" aria-hidden="true">→</span>
+            </a>
+
+            <a class="access" href="#" aria-label="Acceso: Calendario">
+              <div class="access-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M7 3.5v3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+                  <path d="M17 3.5v3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+                  <path d="M4.5 8.5h15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+                  <path d="M6.5 6.5h11c1.1 0 2 .9 2 2v10c0 1.1-.9 2-2 2h-11c-1.1 0-2-.9-2-2v-10c0-1.1.9-2 2-2Z" stroke="currentColor" stroke-width="1.7" />
+                  <path d="M8 12h3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+                  <path d="M8 15.5h6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+                </svg>
+              </div>
+              <div class="access-body">
+                <div class="access-title">Calendario</div>
+                <div class="access-sub">Actos, evaluaciones y eventos</div>
+              </div>
+              <span class="access-arrow" aria-hidden="true">→</span>
+            </a>
+
+            <a class="access" href="#" aria-label="Acceso: Biblioteca">
+              <div class="access-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M7 4.5h10a2 2 0 0 1 2 2V19.5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2V6.5a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.7" />
+                  <path d="M7.5 8h7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+                  <path d="M7.5 11.5h7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+                </svg>
+              </div>
+              <div class="access-body">
+                <div class="access-title">Biblioteca</div>
+                <div class="access-sub">Catálogo y recursos digitales</div>
+              </div>
+              <span class="access-arrow" aria-hidden="true">→</span>
+            </a>
+
+            <a class="access" href="#" aria-label="Acceso: Trámites">
+              <div class="access-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M7 3.8h7l3 3V20.2c0 .99-.81 1.8-1.8 1.8H7.8c-.99 0-1.8-.81-1.8-1.8V5.6c0-.99.81-1.8 1.8-1.8Z" stroke="currentColor" stroke-width="1.7" />
+                  <path d="M14 3.8v3.4h3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+                  <path d="M8.5 12h6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+                  <path d="M8.5 15.5h4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+                </svg>
+              </div>
+              <div class="access-body">
+                <div class="access-title">Trámites</div>
+                <div class="access-sub">Certificados y solicitudes</div>
+              </div>
+              <span class="access-arrow" aria-hidden="true">→</span>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <section id="escuela" class="section section-about" aria-label="Nuestra escuela">
+        <div class="container about-grid">
+          <div class="about-copy reveal">
+            <h2 class="section-title">Nuestra escuela</h2>
+            <p class="section-subtitle">
+              Una institución que combina tradición porteña con metodologías activas y cultura digital.
+            </p>
+
+            <div class="about-cards">
+              <div class="info-card">
+                <div class="info-kicker">Misión</div>
+                <div class="info-title">Aprender haciendo, con sentido</div>
+                <p class="info-text">
+                  Promovemos experiencias auténticas: investigación, producción, debate y trabajo en equipo.
+                </p>
+              </div>
+              <div class="info-card">
+                <div class="info-kicker">Enfoque</div>
+                <div class="info-title">Institucional y tecnológico</div>
+                <p class="info-text">
+                  Integración de plataformas educativas, robótica, pensamiento computacional y ciudadanía digital.
+                </p>
+              </div>
+            </div>
+
+            <div class="pill-row" role="list" aria-label="Fortalezas">
+              <div class="pill" role="listitem">Acompañamiento tutorial</div>
+              <div class="pill" role="listitem">Convivencia y cuidado</div>
+              <div class="pill" role="listitem">Laboratorios y talleres</div>
+              <div class="pill" role="listitem">Vinculación con la comunidad</div>
+            </div>
+
+            <div class="about-actions">
+              <a class="btn btn-primary" href="#contacto">Contactar a secretaría</a>
+              <a class="btn btn-ghost" href="#novedades">Ver agenda</a>
+            </div>
+          </div>
+
+          <div class="about-panel reveal" style="--reveal-delay: 120ms">
+            <div class="panel">
+              <div class="panel-head">
+                <div class="panel-title">Indicadores institucionales</div>
+                <div class="panel-sub">Datos orientativos y actualización periódica</div>
+              </div>
+              <div class="panel-stats">
+                <div class="stat">
+                  <div class="stat-value">3</div>
+                  <div class="stat-label">niveles educativos</div>
+                </div>
+                <div class="stat">
+                  <div class="stat-value">12</div>
+                  <div class="stat-label">talleres anuales</div>
+                </div>
+                <div class="stat">
+                  <div class="stat-value">100%</div>
+                  <div class="stat-label">trayectorias acompañadas</div>
+                </div>
+              </div>
+              <div class="panel-divider" role="separator"></div>
+              <div class="panel-list">
+                <div class="panel-item">
+                  <span class="panel-bullet" aria-hidden="true"></span>
+                  <div>
+                    <div class="panel-item-title">Orientación a proyectos</div>
+                    <div class="panel-item-text">Desafíos trimestrales con evidencias de aprendizaje.</div>
+                  </div>
+                </div>
+                <div class="panel-item">
+                  <span class="panel-bullet" aria-hidden="true"></span>
+                  <div>
+                    <div class="panel-item-title">Comunicación clara</div>
+                    <div class="panel-item-text">Canales institucionales y seguimiento continuo.</div>
+                  </div>
+                </div>
+                <div class="panel-item">
+                  <span class="panel-bullet" aria-hidden="true"></span>
+                  <div>
+                    <div class="panel-item-title">Entorno inclusivo</div>
+                    <div class="panel-item-text">Acuerdos de convivencia y perspectiva de cuidado.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="contacto" class="section section-contact" aria-label="Contacto">
+        <div class="container contact">
+          <div class="contact-card reveal">
+            <div class="contact-copy">
+              <h2 class="section-title">Contacto institucional</h2>
+              <p class="section-subtitle">
+                Para consultas, visitas, inscripciones y certificaciones. Respondemos por canales oficiales.
+              </p>
+              <div class="contact-items" role="list">
+                <div class="contact-item" role="listitem">
+                  <div class="contact-key">Dirección</div>
+                  <div class="contact-val">Av. Ejemplo 1234, CABA</div>
+                </div>
+                <div class="contact-item" role="listitem">
+                  <div class="contact-key">Horarios</div>
+                  <div class="contact-val">Lun a Vie · 8:00 a 16:00</div>
+                </div>
+                <div class="contact-item" role="listitem">
+                  <div class="contact-key">Correo</div>
+                  <div class="contact-val"><a href="mailto:secretaria@eexp-por.edu.ar">secretaria@eexp-por.edu.ar</a></div>
+                </div>
+                <div class="contact-item" role="listitem">
+                  <div class="contact-key">Teléfono</div>
+                  <div class="contact-val"><a href="tel:+541100000000">+54 11 0000-0000</a></div>
+                </div>
+              </div>
+            </div>
+
+            <form class="contact-form" action="#" method="post" aria-label="Formulario de consulta">
+              <div class="field">
+                <label for="nombre">Nombre y apellido</label>
+                <input id="nombre" name="nombre" type="text" autocomplete="name" placeholder="Tu nombre" required />
+              </div>
+              <div class="field">
+                <label for="email">Correo</label>
+                <input id="email" name="email" type="email" autocomplete="email" placeholder="tu@correo.com" required />
+              </div>
+              <div class="field">
+                <label for="motivo">Motivo</label>
+                <select id="motivo" name="motivo" required>
+                  <option value="" selected disabled>Seleccionar</option>
+                  <option>Inscripción</option>
+                  <option>Certificados</option>
+                  <option>Visita institucional</option>
+                  <option>Consulta general</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="mensaje">Mensaje</label>
+                <textarea id="mensaje" name="mensaje" rows="4" placeholder="Contanos en qué podemos ayudarte" required></textarea>
+              </div>
+              <button class="btn btn-primary" type="submit">Enviar consulta</button>
+              <p class="form-note">
+                Este formulario es de muestra. Podés conectarlo a tu backend o servicio de formularios.
+              </p>
+            </form>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer" role="contentinfo">
+      <div class="container footer-grid">
+        <div class="footer-brand">
+          <img
+            src="assets/logo.svg"
+            class="footer-logo"
+            alt="Logo Escuela Experimental Porteña"
+            width="42"
+            height="42"
+            loading="lazy"
+          />
+          <div>
+            <div class="footer-name">Escuela Experimental Porteña</div>
+            <div class="footer-sub">Educación · Innovación · Ciudadanía digital</div>
+          </div>
+        </div>
+
+        <div class="footer-cols" aria-label="Enlaces institucionales">
+          <div class="footer-col">
+            <div class="footer-col-title">Institucional</div>
+            <a href="#escuela">Nuestra escuela</a>
+            <a href="#novedades">Novedades</a>
+            <a href="#contacto">Contacto</a>
+          </div>
+          <div class="footer-col">
+            <div class="footer-col-title">Accesos</div>
+            <a href="#accesos">Campus</a>
+            <a href="#accesos">Calendario</a>
+            <a href="#accesos">Trámites</a>
+          </div>
+        </div>
+
+        <div class="footer-social" aria-label="Redes sociales">
+          <div class="footer-col-title">Redes</div>
+          <div class="social-row">
+            <a class="social" href="#" aria-label="Instagram">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M7.5 3.8h9A3.7 3.7 0 0 1 20.2 7.5v9a3.7 3.7 0 0 1-3.7 3.7h-9A3.7 3.7 0 0 1 3.8 16.5v-9A3.7 3.7 0 0 1 7.5 3.8Z" stroke="currentColor" stroke-width="1.7" />
+                <path d="M12 16.2a4.2 4.2 0 1 0 0-8.4 4.2 4.2 0 0 0 0 8.4Z" stroke="currentColor" stroke-width="1.7" />
+                <path d="M17.2 6.8h.01" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+              </svg>
+            </a>
+            <a class="social" href="#" aria-label="YouTube">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M20.3 8.3a2.6 2.6 0 0 0-1.8-1.9C16.8 6 12 6 12 6s-4.8 0-6.5.4A2.6 2.6 0 0 0 3.7 8.3 27 27 0 0 0 3.4 12c0 1.2.1 2.5.3 3.7a2.6 2.6 0 0 0 1.8 1.9C7.2 18 12 18 12 18s4.8 0 6.5-.4a2.6 2.6 0 0 0 1.8-1.9c.2-1.2.3-2.5.3-3.7 0-1.2-.1-2.5-.3-3.7Z" stroke="currentColor" stroke-width="1.7" />
+                <path d="M10.5 9.8 15 12l-4.5 2.2V9.8Z" fill="currentColor" />
+              </svg>
+            </a>
+            <a class="social" href="#" aria-label="Facebook">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M14 9h2.2V6.6c0-1-.4-1.8-1.8-1.8H12c-2.1 0-3.2 1.3-3.2 3.4V9H7v3h1.8v7H12v-7h2.6l.4-3H12V8.5c0-.7.2-1.2 1.1-1.2H14Z" fill="currentColor" />
+              </svg>
+            </a>
+          </div>
+          <div class="footer-note">
+            Canales oficiales. Publicaciones y comunicados se informan por la institución.
+          </div>
+        </div>
+      </div>
+
+      <div class="container footer-bottom">
+        <div>© <span id="year"></span> Escuela Experimental Porteña. Todos los derechos reservados.</div>
+        <div class="footer-bottom-links">
+          <a href="#">Privacidad</a>
+          <a href="#">Términos</a>
+        </div>
+      </div>
+    </footer>
+
+    <script src="script.js" defer></script>
+  </body>
+</html>

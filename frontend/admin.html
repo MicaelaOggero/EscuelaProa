@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Panel Superadmin - Escuela Experimental Porteña</title>
+    <meta name="description" content="Panel de prueba para rutas del backend (superadmin)." />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="admin.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#contenido">Saltar al contenido</a>
+
+    <header class="site-header" role="banner">
+      <div class="container header-inner">
+        <a class="brand" href="index.html" aria-label="Volver al inicio">
+          <img
+            class="brand-logo"
+            src="assets/logo.svg"
+            alt="Logo Escuela Experimental Porteña"
+            width="44"
+            height="44"
+            loading="eager"
+          />
+          <div class="brand-text">
+            <span class="brand-name">Escuela Experimental Porteña</span>
+            <span class="brand-tag">Panel · Superadmin · Pruebas</span>
+          </div>
+        </a>
+
+        <nav class="nav" aria-label="Navegación del panel">
+          <ul class="nav-menu nav-menu--panel">
+            <li><a class="nav-link" href="#login">Login</a></li>
+            <li><a class="nav-link" href="#staff">Directivos/Docentes</a></li>
+            <li><a class="nav-link" href="#ayuda">Ayuda</a></li>
+          </ul>
+        </nav>
+
+        <div class="header-actions">
+          <a class="btn btn-ghost" href="index.html">Volver</a>
+        </div>
+      </div>
+    </header>
+
+    <main id="contenido" class="main" role="main">
+      <section class="panel-hero" aria-label="Panel">
+        <div class="container">
+          <div class="panel-hero-card reveal">
+            <div class="panel-hero-left">
+              <div class="badge">
+                <span class="badge-dot" aria-hidden="true"></span>
+                Prueba de rutas backend
+              </div>
+              <h1 class="panel-title">Panel Superadmin</h1>
+              <p class="panel-lead">
+                Usá este panel para probar las rutas protegidas: crear, listar, editar y eliminar
+                usuarios con rol <strong>directivo</strong> o <strong>docente</strong>.
+              </p>
+            </div>
+            <div class="panel-hero-right">
+              <div class="api-box">
+                <div class="api-box-title">API base</div>
+                <div class="api-box-row">
+                  <input id="apiBase" class="api-input" type="url" placeholder="http://localhost:4000/api" />
+                  <button id="saveApi" class="btn btn-secondary" type="button">Guardar</button>
+                </div>
+                <div class="api-hint">Tip: si tu backend corre en otro puerto, cambialo aca.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="login" class="section" aria-label="Login">
+        <div class="container">
+          <div class="section-head reveal">
+            <div>
+              <h2 class="section-title">Login (superadmin)</h2>
+              <p class="section-subtitle">
+                Inicia sesion para obtener el token y habilitar las acciones del panel.
+              </p>
+            </div>
+          </div>
+
+          <div class="panel-grid">
+            <form id="loginForm" class="panel-card reveal" aria-label="Formulario de login">
+              <div class="panel-card-head">
+                <div class="panel-card-title">Credenciales</div>
+                <div class="panel-card-sub">POST <span class="mono">/auth/login</span></div>
+              </div>
+
+              <div class="field">
+                <label for="loginEmail">Email</label>
+                <input id="loginEmail" name="email" type="email" autocomplete="email" required />
+              </div>
+              <div class="field">
+                <label for="loginPassword">Password</label>
+                <input id="loginPassword" name="password" type="password" autocomplete="current-password" required />
+              </div>
+              <button class="btn btn-primary" type="submit">Ingresar</button>
+              <div class="panel-note">
+                El token se guarda en tu navegador (localStorage) solo para pruebas.
+              </div>
+            </form>
+
+            <div class="panel-card reveal" style="--reveal-delay: 90ms" aria-label="Estado de sesion">
+              <div class="panel-card-head">
+                <div class="panel-card-title">Sesion</div>
+                <div class="panel-card-sub">Token y usuario</div>
+              </div>
+
+              <div class="kv">
+                <div class="kv-key">Estado</div>
+                <div id="sessionState" class="kv-val">No autenticado</div>
+              </div>
+              <div class="kv">
+                <div class="kv-key">Usuario</div>
+                <div id="sessionUser" class="kv-val">-</div>
+              </div>
+              <div class="kv">
+                <div class="kv-key">Role</div>
+                <div id="sessionRole" class="kv-val">-</div>
+              </div>
+
+              <div class="token-box" aria-label="Token">
+                <div class="token-head">
+                  <div class="token-title">JWT</div>
+                  <div class="token-actions">
+                    <button id="copyToken" class="btn btn-ghost" type="button">Copiar</button>
+                    <button id="logout" class="btn btn-secondary" type="button">Salir</button>
+                  </div>
+                </div>
+                <textarea id="token" class="token" rows="6" readonly placeholder="(sin token)"></textarea>
+              </div>
+
+              <div id="loginMsg" class="msg" role="status" aria-live="polite"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="staff" class="section" aria-label="Directivos y docentes">
+        <div class="container">
+          <div class="section-head reveal">
+            <div>
+              <h2 class="section-title">Gestion de directivos y docentes</h2>
+              <p class="section-subtitle">
+                CRUD sobre <span class="mono">/users/staff</span>. Solo superadmin.
+              </p>
+            </div>
+          </div>
+
+          <div class="staff-grid">
+            <form id="createStaffForm" class="panel-card reveal" aria-label="Crear usuario staff">
+              <div class="panel-card-head">
+                <div class="panel-card-title">Crear usuario</div>
+                <div class="panel-card-sub">POST <span class="mono">/users/staff</span></div>
+              </div>
+
+              <div class="field">
+                <label for="staffNombre">Nombre</label>
+                <input id="staffNombre" name="nombre" type="text" autocomplete="name" required />
+              </div>
+              <div class="field">
+                <label for="staffApellido">Apellido</label>
+                <input id="staffApellido" name="apellido" type="text" autocomplete="family-name" />
+              </div>
+              <div class="field">
+                <label for="staffFechaNac">Fecha de nacimiento</label>
+                <input id="staffFechaNac" name="fechaNacimiento" type="date" />
+              </div>
+              <div class="field">
+                <label for="staffEmail">Email</label>
+                <input id="staffEmail" name="email" type="email" autocomplete="email" required />
+              </div>
+              <div class="field">
+                <label for="staffPassword">Password</label>
+                <input id="staffPassword" name="password" type="password" autocomplete="new-password" required />
+              </div>
+              <div class="field">
+                <label for="staffRole">Rol</label>
+                <select id="staffRole" name="role" required>
+                  <option value="directivo">Directivo</option>
+                  <option value="docente">Docente</option>
+                </select>
+              </div>
+
+              <button class="btn btn-primary" type="submit">Crear</button>
+              <div id="createMsg" class="msg" role="status" aria-live="polite"></div>
+            </form>
+
+            <div class="panel-card reveal" style="--reveal-delay: 90ms" aria-label="Listado staff">
+              <div class="panel-card-head">
+                <div class="panel-card-title">Listado</div>
+                <div class="panel-card-sub">GET <span class="mono">/users/staff</span></div>
+              </div>
+
+              <div class="toolbar" aria-label="Filtros y acciones">
+                <div class="toolbar-left">
+                  <label class="toolbar-label" for="filterRole">Filtrar</label>
+                  <select id="filterRole" class="toolbar-select">
+                    <option value="">Todos</option>
+                    <option value="directivo">Directivos</option>
+                    <option value="docente">Docentes</option>
+                  </select>
+                </div>
+                <div class="toolbar-right">
+                  <button id="refresh" class="btn btn-secondary" type="button">Actualizar</button>
+                </div>
+              </div>
+
+              <div class="table-wrap">
+                <table class="table" aria-label="Tabla de staff">
+                  <thead>
+                    <tr>
+                      <th>Nombre</th>
+                      <th>Apellido</th>
+                      <th>Fecha nac.</th>
+                      <th>Email</th>
+                      <th>Rol</th>
+                      <th>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody id="staffTbody">
+                    <tr>
+                      <td colspan="6" class="table-empty">Sin datos (inicia sesion y actualiza)</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div id="listMsg" class="msg" role="status" aria-live="polite"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div id="editModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="editTitle">
+        <div class="modal-backdrop" data-close="true"></div>
+        <div class="modal-panel" role="document">
+          <div class="modal-head">
+            <div>
+              <div id="editTitle" class="modal-title">Editar usuario</div>
+              <div class="modal-sub">PUT <span class="mono">/users/staff/:id</span></div>
+            </div>
+            <button id="closeEdit" class="btn btn-ghost btn-sm" type="button">Cerrar</button>
+          </div>
+
+          <form id="editForm" class="modal-body" aria-label="Editar usuario">
+            <input id="editId" type="hidden" />
+
+            <div class="field">
+              <label for="editEmail">Email (solo lectura)</label>
+              <input id="editEmail" type="email" readonly />
+            </div>
+
+            <div class="field">
+              <label for="editNombre">Nombre</label>
+              <input id="editNombre" type="text" required />
+            </div>
+
+            <div class="field">
+              <label for="editApellido">Apellido</label>
+              <input id="editApellido" type="text" />
+            </div>
+
+            <div class="field">
+              <label for="editFechaNac">Fecha de nacimiento</label>
+              <input id="editFechaNac" type="date" />
+            </div>
+
+            <div class="field">
+              <label for="editRole">Rol</label>
+              <select id="editRole" required>
+                <option value="directivo">Directivo</option>
+                <option value="docente">Docente</option>
+              </select>
+            </div>
+
+            <div class="modal-actions">
+              <button class="btn btn-primary" type="submit">Guardar cambios</button>
+              <button id="cancelEdit" class="btn btn-secondary" type="button">Cancelar</button>
+            </div>
+            <div id="editMsg" class="msg" role="status" aria-live="polite"></div>
+          </form>
+        </div>
+      </div>
+
+      <section id="ayuda" class="section" aria-label="Ayuda">
+        <div class="container">
+          <div class="panel-card reveal">
+            <div class="panel-card-head">
+              <div class="panel-card-title">Ayuda rapida</div>
+              <div class="panel-card-sub">Rutas y ejemplos</div>
+            </div>
+            <div class="help">
+              <div class="help-item">
+                <div class="help-key">Login</div>
+                <div class="help-val"><span class="mono">POST /api/auth/login</span></div>
+              </div>
+              <div class="help-item">
+                <div class="help-key">Crear staff</div>
+                <div class="help-val"><span class="mono">POST /api/users/staff</span></div>
+              </div>
+              <div class="help-item">
+                <div class="help-key">Listar staff</div>
+                <div class="help-val"><span class="mono">GET /api/users/staff?role=docente</span></div>
+              </div>
+              <div class="help-item">
+                <div class="help-key">Editar staff</div>
+                <div class="help-val"><span class="mono">PUT /api/users/staff/:id</span></div>
+              </div>
+              <div class="help-item">
+                <div class="help-key">Eliminar staff</div>
+                <div class="help-val"><span class="mono">DELETE /api/users/staff/:id</span></div>
+              </div>
+            </div>
+            <div class="panel-note">
+              Si estas abriendo este HTML directo desde disco (file://), el navegador puede bloquear
+              requests por CORS. Lo ideal es servir el frontend con un server local.
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer" role="contentinfo">
+      <div class="container footer-bottom">
+        <div>Panel de pruebas · © <span id="year"></span> Escuela Experimental Porteña</div>
+        <div class="footer-bottom-links">
+          <a href="index.html">Inicio</a>
+        </div>
+      </div>
+    </footer>
+
+    <script src="script.js" defer></script>
+    <script src="admin.js" defer></script>
+  </body>
+</html>
