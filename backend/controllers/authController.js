@@ -6,7 +6,21 @@ function signToken(user) {
   const secret = process.env.JWT_SECRET;
   if (!secret) throw new Error("JWT_SECRET not set");
   const expiresIn = process.env.JWT_EXPIRES_IN || "7d";
-  return jwt.sign({ id: user._id, role: user.role }, secret, { expiresIn });
+  var roles = user.roles && user.roles.length ? user.roles : user.role ? [user.role] : [];
+  return jwt.sign({ id: user._id, roles: roles }, secret, { expiresIn });
+}
+
+function toUserResponse(user) {
+  var roles = user.roles && user.roles.length ? user.roles : user.role ? [user.role] : [];
+  return {
+    id: user._id,
+    nombre: user.nombre,
+    apellido: user.apellido,
+    fechaNacimiento: user.fechaNacimiento,
+    email: user.email,
+    roles: roles,
+    role: roles[0] || user.role
+  };
 }
 
 exports.register = async (req, res, next) => {
@@ -23,21 +37,11 @@ exports.register = async (req, res, next) => {
       fechaNacimiento,
       email,
       passwordHash,
-      role: "comunidad-estudiantes"
+      roles: ["comunidad-estudiantes"]
     });
     const token = signToken(user);
 
-    res.status(201).json({
-      token,
-      user: {
-        id: user._id,
-        nombre: user.nombre,
-        apellido: user.apellido,
-        fechaNacimiento: user.fechaNacimiento,
-        email: user.email,
-        role: user.role
-      }
-    });
+    res.status(201).json({ token, user: toUserResponse(user) });
   } catch (err) {
     next(err);
   }
@@ -53,17 +57,27 @@ exports.login = async (req, res, next) => {
     if (!ok) return res.status(401).json({ message: "Invalid credentials" });
 
     const token = signToken(user);
-    res.json({
-      token,
-      user: {
-        id: user._id,
-        nombre: user.nombre,
-        apellido: user.apellido,
-        fechaNacimiento: user.fechaNacimiento,
-        email: user.email,
-        role: user.role
-      }
-    });
+    res.json({ token, user: toUserResponse(user) });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.loginStaff = async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+    const user = await Usuario.findOne({ email });
+    if (!user) return res.status(401).json({ message: "Invalid credentials" });
+
+    const ok = await bcrypt.compare(password, user.passwordHash);
+    if (!ok) return res.status(401).json({ message: "Invalid credentials" });
+
+    var roles = user.roles && user.roles.length ? user.roles : user.role ? [user.role] : [];
+    const isStaff = roles.indexOf("superadmin") !== -1 || roles.indexOf("directivo") !== -1 || roles.indexOf("docente") !== -1;
+    if (!isStaff) return res.status(403).json({ message: "Staff only" });
+
+    const token = signToken(user);
+    res.json({ token, user: toUserResponse(user) });
   } catch (err) {
     next(err);
   }
@@ -103,22 +117,11 @@ exports.bootstrapSuperadmin = async (req, res, next) => {
       fechaNacimiento,
       email,
       passwordHash,
-      role: "superadmin"
+      roles: ["superadmin"]
     });
     const token = signToken(user);
 
-    res.status(201).json({
-      message: "Superadmin created",
-      token,
-      user: {
-        id: user._id,
-        nombre: user.nombre,
-        apellido: user.apellido,
-        fechaNacimiento: user.fechaNacimiento,
-        email: user.email,
-        role: user.role
-      }
-    });
+    res.status(201).json({ message: "Superadmin created", token, user: toUserResponse(user) });
   } catch (err) {
     next(err);
   }

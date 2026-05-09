@@ -64,6 +64,43 @@ function initReveal() {
   });
 }
 
+function initAuthHeader() {
+  var STORAGE_TOKEN = "eep_token";
+  var STORAGE_USER = "eep_user";
+  var token = localStorage.getItem(STORAGE_TOKEN) || "";
+  var userRaw = localStorage.getItem(STORAGE_USER);
+  var user = null;
+  try {
+    user = userRaw ? JSON.parse(userRaw) : null;
+  } catch (e) {
+    user = null;
+  }
+
+  var loginLink = document.getElementById("loginLink");
+  var panelLink = document.getElementById("panelLink");
+  var logoutBtn = document.getElementById("logoutBtn");
+
+  var isLoggedIn = Boolean(token && user);
+  var roles = (user && (user.roles || (user.role ? [user.role] : []))) || [];
+  if (!Array.isArray(roles)) roles = [];
+  var isStaff = roles.indexOf("superadmin") !== -1 || roles.indexOf("directivo") !== -1 || roles.indexOf("docente") !== -1;
+
+  if (loginLink) loginLink.hidden = isLoggedIn;
+  if (logoutBtn) logoutBtn.hidden = !isLoggedIn;
+  if (panelLink) panelLink.hidden = !isStaff;
+
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", function () {
+      localStorage.removeItem(STORAGE_TOKEN);
+      localStorage.removeItem(STORAGE_USER);
+      if (loginLink) loginLink.hidden = false;
+      if (panelLink) panelLink.hidden = true;
+      logoutBtn.hidden = true;
+    });
+  }
+}
+
 initYear();
 initNavToggle();
 initReveal();
+initAuthHeader();

@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Panel Docente - Escuela Experimental Porteña</title>
+    <meta name="description" content="Panel administrativo para docentes." />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="docente.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#contenido">Saltar al contenido</a>
+
+    <div class="app">
+      <aside class="sidebar" aria-label="Sidebar">
+        <a class="side-brand" href="index.html" aria-label="Inicio">
+          <img src="assets/logo.svg" alt="Logo" width="40" height="40" />
+          <div>
+            <div class="side-title">Panel Docente</div>
+            <div class="side-sub">Escuela Experimental Porteña</div>
+          </div>
+        </a>
+
+        <nav class="side-nav" aria-label="Navegacion docente">
+          <a class="side-link is-active" href="#inicio" data-view="inicio">
+            <span class="ico" aria-hidden="true">{home}</span>
+            Inicio
+          </a>
+          <a class="side-link" href="#publicaciones" data-view="publicaciones">
+            <span class="ico" aria-hidden="true">{posts}</span>
+            Mis publicaciones
+          </a>
+          <a class="side-link" href="#materiales" data-view="materiales">
+            <span class="ico" aria-hidden="true">{files}</span>
+            Materiales
+          </a>
+          <a class="side-link" href="#actividades" data-view="actividades">
+            <span class="ico" aria-hidden="true">{tasks}</span>
+            Actividades
+          </a>
+          <a class="side-link" href="#calendario" data-view="calendario">
+            <span class="ico" aria-hidden="true">{calendar}</span>
+            Calendario
+          </a>
+          <a class="side-link" href="#perfil" data-view="perfil">
+            <span class="ico" aria-hidden="true">{user}</span>
+            Perfil
+          </a>
+          <button id="logout" class="side-link side-link--danger" type="button">
+            <span class="ico" aria-hidden="true">{logout}</span>
+            Cerrar sesion
+          </button>
+        </nav>
+
+        <div class="side-footer">
+          <div class="pill">Institucional</div>
+          <div class="pill">Tecnologico</div>
+          <div class="pill">Seguro</div>
+        </div>
+      </aside>
+
+      <div class="main">
+        <header class="topbar" role="banner">
+          <button id="sideToggle" class="icon-btn" type="button" aria-label="Abrir menu">
+            <span class="hamb" aria-hidden="true"></span>
+          </button>
+          <div class="topbar-title">
+            <div class="topbar-kicker">Docente</div>
+            <div id="docenteNombre" class="topbar-name">-</div>
+          </div>
+          <div class="topbar-actions">
+            <a class="btn btn-ghost" href="index.html">Sitio publico</a>
+            <a class="btn btn-secondary" href="admin.html" id="superLink" hidden>Panel superadmin</a>
+          </div>
+        </header>
+
+        <main id="contenido" class="content" role="main">
+          <section id="inicio" class="view is-visible" data-view="inicio" aria-label="Inicio">
+            <div class="view-head">
+              <div>
+                <h1 class="view-title">Resumen</h1>
+                <p class="view-sub">Accesos rapidos y ultimos movimientos.</p>
+              </div>
+              <div class="view-cta">
+                <button id="openCrearPub" class="btn btn-primary" type="button">Crear publicacion</button>
+                <button id="openSubirMat" class="btn btn-secondary" type="button">Subir material</button>
+              </div>
+            </div>
+
+            <div class="cards">
+              <div class="kpi">
+                <div class="kpi-top">
+                  <div class="kpi-label">Publicaciones realizadas</div>
+                  <div class="kpi-ico" aria-hidden="true">{posts}</div>
+                </div>
+                <div id="kpiPosts" class="kpi-value">-</div>
+                <div class="kpi-foot">Ultimos 90 dias (local)</div>
+              </div>
+              <div class="kpi">
+                <div class="kpi-top">
+                  <div class="kpi-label">Actividades cargadas</div>
+                  <div class="kpi-ico" aria-hidden="true">{tasks}</div>
+                </div>
+                <div id="kpiActs" class="kpi-value">-</div>
+                <div class="kpi-foot">Proximas 4 semanas (local)</div>
+              </div>
+              <div class="kpi">
+                <div class="kpi-top">
+                  <div class="kpi-label">Materiales subidos</div>
+                  <div class="kpi-ico" aria-hidden="true">{files}</div>
+                </div>
+                <div id="kpiMats" class="kpi-value">-</div>
+                <div class="kpi-foot">Archivos en borrador (local)</div>
+              </div>
+            </div>
+
+            <div class="grid-2">
+              <section class="panel" aria-label="Publicaciones recientes">
+                <div class="panel-head">
+                  <div>
+                    <div class="panel-title">Publicaciones recientes</div>
+                    <div class="panel-sub">Ultimas 5 (local + backend si disponible)</div>
+                  </div>
+                  <a class="link-pill" href="#publicaciones" data-viewlink="publicaciones">Ver todas</a>
+                </div>
+                <div class="table-wrap">
+                  <table class="table" aria-label="Tabla publicaciones">
+                    <thead>
+                      <tr>
+                        <th>Titulo</th>
+                        <th>Categoria</th>
+                        <th>Fecha</th>
+                      </tr>
+                    </thead>
+                    <tbody id="recentTbody">
+                      <tr><td colspan="3" class="table-empty">Sin publicaciones aun</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+
+              <section class="panel" aria-label="Proximas actividades">
+                <div class="panel-head">
+                  <div>
+                    <div class="panel-title">Calendario</div>
+                    <div class="panel-sub">Actividades proximas</div>
+                  </div>
+                  <a class="link-pill" href="#calendario" data-viewlink="calendario">Abrir</a>
+                </div>
+                <div id="upcoming" class="upcoming" aria-label="Lista de actividades">
+                  <div class="empty">Crea actividades desde la seccion Actividades.</div>
+                </div>
+              </section>
+            </div>
+          </section>
+
+          <section id="publicaciones" class="view" data-view="publicaciones" aria-label="Mis publicaciones">
+            <div class="view-head">
+              <div>
+                <h2 class="view-title">Mis publicaciones</h2>
+                <p class="view-sub">Gestiona tus entradas visibles en la web.</p>
+              </div>
+              <div class="view-cta">
+                <button class="btn btn-primary" type="button" data-open="crear">Crear publicacion</button>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-head">
+                <div>
+                  <div class="panel-title">Listado</div>
+                  <div class="panel-sub">Guardadas localmente (y opcionalmente replicadas al backend)</div>
+                </div>
+                <button id="refreshPosts" class="btn btn-secondary" type="button">Actualizar</button>
+              </div>
+              <div class="table-wrap">
+                <table class="table" aria-label="Tabla mis publicaciones">
+                  <thead>
+                    <tr>
+                      <th>Titulo</th>
+                      <th>Categoria</th>
+                      <th>Fecha</th>
+                      <th>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody id="postsTbody">
+                    <tr><td colspan="4" class="table-empty">Sin publicaciones</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div id="postsMsg" class="msg" role="status" aria-live="polite"></div>
+            </div>
+          </section>
+
+          <section id="materiales" class="view" data-view="materiales" aria-label="Materiales">
+            <div class="view-head">
+              <div>
+                <h2 class="view-title">Materiales</h2>
+                <p class="view-sub">Sube archivos para compartir con tus cursos.</p>
+              </div>
+              <div class="view-cta">
+                <button class="btn btn-secondary" type="button" data-open="material">Subir material</button>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-head">
+                <div>
+                  <div class="panel-title">Borradores</div>
+                  <div class="panel-sub">Guardado local para pruebas (sin backend de materiales aun)</div>
+                </div>
+              </div>
+              <div id="materialsList" class="list" aria-label="Lista de materiales">
+                <div class="empty">Aun no hay materiales.</div>
+              </div>
+            </div>
+          </section>
+
+          <section id="actividades" class="view" data-view="actividades" aria-label="Actividades">
+            <div class="view-head">
+              <div>
+                <h2 class="view-title">Actividades</h2>
+                <p class="view-sub">Crea actividades y fechas importantes.</p>
+              </div>
+              <div class="view-cta">
+                <button class="btn btn-secondary" type="button" data-open="actividad">Crear actividad</button>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-head">
+                <div>
+                  <div class="panel-title">Proximas</div>
+                  <div class="panel-sub">Se ven tambien en el inicio.</div>
+                </div>
+              </div>
+              <div id="activitiesList" class="list" aria-label="Lista de actividades">
+                <div class="empty">Aun no hay actividades.</div>
+              </div>
+            </div>
+          </section>
+
+          <section id="calendario" class="view" data-view="calendario" aria-label="Calendario">
+            <div class="view-head">
+              <div>
+                <h2 class="view-title">Calendario</h2>
+                <p class="view-sub">Vista de proximos eventos (local + backend si disponible).</p>
+              </div>
+              <div class="view-cta">
+                <button id="syncBackendEvents" class="btn btn-secondary" type="button">Sincronizar</button>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-head">
+                <div>
+                  <div class="panel-title">Proximos</div>
+                  <div class="panel-sub">Ordenados por fecha</div>
+                </div>
+              </div>
+              <div id="calendarList" class="list" aria-label="Lista calendario">
+                <div class="empty">Sin eventos.</div>
+              </div>
+              <div id="calMsg" class="msg" role="status" aria-live="polite"></div>
+            </div>
+          </section>
+
+          <section id="perfil" class="view" data-view="perfil" aria-label="Perfil">
+            <div class="view-head">
+              <div>
+                <h2 class="view-title">Perfil</h2>
+                <p class="view-sub">Datos de la sesion actual.</p>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="profile" role="list">
+                <div class="kv" role="listitem"><div class="kv-k">Nombre</div><div id="pNombre" class="kv-v">-</div></div>
+                <div class="kv" role="listitem"><div class="kv-k">Apellido</div><div id="pApellido" class="kv-v">-</div></div>
+                <div class="kv" role="listitem"><div class="kv-k">Email</div><div id="pEmail" class="kv-v">-</div></div>
+                <div class="kv" role="listitem"><div class="kv-k">Rol</div><div id="pRole" class="kv-v">-</div></div>
+              </div>
+              <div class="panel-note">
+                Para editar datos personales, por ahora debe hacerlo un superadmin desde el panel.
+              </div>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <!-- Modal: Crear publicacion -->
+    <div id="modalCrear" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="crearTitle">
+      <div class="modal-backdrop" data-close="true"></div>
+      <div class="modal-panel" role="document">
+        <div class="modal-head">
+          <div>
+            <div id="crearTitle" class="modal-title">Crear publicacion</div>
+            <div class="modal-sub">POST <span class="mono">/noticias</span></div>
+          </div>
+          <button class="btn btn-ghost btn-sm" type="button" data-close="true">Cerrar</button>
+        </div>
+        <form id="crearForm" class="modal-body" aria-label="Formulario crear publicacion">
+          <div class="field">
+            <label for="pubTitulo">Titulo</label>
+            <input id="pubTitulo" type="text" required />
+          </div>
+          <div class="field">
+            <label for="pubCategoria">Categoria</label>
+            <select id="pubCategoria" required>
+              <option value="Institucional">Institucional</option>
+              <option value="Proyectos">Proyectos</option>
+              <option value="Comunidad">Comunidad</option>
+              <option value="Actividades">Actividades</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="pubResumen">Resumen</label>
+            <input id="pubResumen" type="text" placeholder="Breve descripcion" />
+          </div>
+          <div class="field">
+            <label for="pubContenido">Contenido</label>
+            <textarea id="pubContenido" rows="5" placeholder="Escribe el contenido"></textarea>
+          </div>
+          <div class="field">
+            <label for="pubAdjunto">Imagen/archivo (opcional)</label>
+            <input id="pubAdjunto" type="file" />
+          </div>
+          <div class="modal-actions">
+            <button class="btn btn-primary" type="submit">Publicar</button>
+            <button class="btn btn-secondary" type="button" data-close="true">Cancelar</button>
+          </div>
+          <div id="crearMsg" class="msg" role="status" aria-live="polite"></div>
+          <div class="panel-note">La carga de archivos es de prueba (se guarda localmente).</div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal: Subir material -->
+    <div id="modalMaterial" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="matTitle">
+      <div class="modal-backdrop" data-close="true"></div>
+      <div class="modal-panel" role="document">
+        <div class="modal-head">
+          <div>
+            <div id="matTitle" class="modal-title">Subir material</div>
+            <div class="modal-sub">(Borrador local)</div>
+          </div>
+          <button class="btn btn-ghost btn-sm" type="button" data-close="true">Cerrar</button>
+        </div>
+        <form id="matForm" class="modal-body" aria-label="Formulario subir material">
+          <div class="field">
+            <label for="matTitulo">Titulo</label>
+            <input id="matTitulo" type="text" required />
+          </div>
+          <div class="field">
+            <label for="matDesc">Descripcion</label>
+            <textarea id="matDesc" rows="4" placeholder="Tema, curso, observaciones"></textarea>
+          </div>
+          <div class="field">
+            <label for="matFile">Archivo</label>
+            <input id="matFile" type="file" required />
+          </div>
+          <div class="modal-actions">
+            <button class="btn btn-primary" type="submit">Guardar</button>
+            <button class="btn btn-secondary" type="button" data-close="true">Cancelar</button>
+          </div>
+          <div id="matMsg" class="msg" role="status" aria-live="polite"></div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal: Crear actividad -->
+    <div id="modalActividad" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="actTitle">
+      <div class="modal-backdrop" data-close="true"></div>
+      <div class="modal-panel" role="document">
+        <div class="modal-head">
+          <div>
+            <div id="actTitle" class="modal-title">Crear actividad</div>
+            <div class="modal-sub">(Borrador local)</div>
+          </div>
+          <button class="btn btn-ghost btn-sm" type="button" data-close="true">Cerrar</button>
+        </div>
+        <form id="actForm" class="modal-body" aria-label="Formulario crear actividad">
+          <div class="field">
+            <label for="actTitulo">Titulo</label>
+            <input id="actTitulo" type="text" required />
+          </div>
+          <div class="field">
+            <label for="actInicio">Fecha y hora</label>
+            <input id="actInicio" type="datetime-local" required />
+          </div>
+          <div class="field">
+            <label for="actDesc">Descripcion</label>
+            <textarea id="actDesc" rows="4" placeholder="Detalle de la actividad"></textarea>
+          </div>
+          <div class="field">
+            <label for="actAdjunto">Adjunto (opcional)</label>
+            <input id="actAdjunto" type="file" />
+          </div>
+          <div class="modal-actions">
+            <button class="btn btn-primary" type="submit">Guardar</button>
+            <button class="btn btn-secondary" type="button" data-close="true">Cancelar</button>
+          </div>
+          <div id="actMsg" class="msg" role="status" aria-live="polite"></div>
+        </form>
+      </div>
+    </div>
+
+    <script src="script.js" defer></script>
+    <script src="docente.js" defer></script>
+  </body>
+</html>

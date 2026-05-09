@@ -93,7 +93,7 @@
             <form id="loginForm" class="panel-card reveal" aria-label="Formulario de login">
               <div class="panel-card-head">
                 <div class="panel-card-title">Credenciales</div>
-                <div class="panel-card-sub">POST <span class="mono">/auth/login</span></div>
+                <div class="panel-card-sub">POST <span class="mono">/auth/login-staff</span></div>
               </div>
 
               <div class="field">
@@ -186,10 +186,16 @@
               </div>
               <div class="field">
                 <label for="staffRole">Rol</label>
-                <select id="staffRole" name="role" required>
-                  <option value="directivo">Directivo</option>
-                  <option value="docente">Docente</option>
-                </select>
+                <div class="checks" role="group" aria-label="Roles">
+                  <label class="check">
+                    <input id="staffRoleDirectivo" type="checkbox" />
+                    <span>Directivo</span>
+                  </label>
+                  <label class="check">
+                    <input id="staffRoleDocente" type="checkbox" checked />
+                    <span>Docente</span>
+                  </label>
+                </div>
               </div>
 
               <button class="btn btn-primary" type="submit">Crear</button>
@@ -278,10 +284,16 @@
 
             <div class="field">
               <label for="editRole">Rol</label>
-              <select id="editRole" required>
-                <option value="directivo">Directivo</option>
-                <option value="docente">Docente</option>
-              </select>
+              <div class="checks" role="group" aria-label="Roles">
+                <label class="check">
+                  <input id="editRoleDirectivo" type="checkbox" />
+                  <span>Directivo</span>
+                </label>
+                <label class="check">
+                  <input id="editRoleDocente" type="checkbox" />
+                  <span>Docente</span>
+                </label>
+              </div>
             </div>
 
             <div class="modal-actions">

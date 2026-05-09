@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Iniciar sesion - Escuela Experimental Porteña</title>
+    <meta name="description" content="Ingreso institucional para directivos, docentes y superadmin." />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="login.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#contenido">Saltar al contenido</a>
+
+    <header class="site-header" role="banner">
+      <div class="container header-inner">
+        <a class="brand" href="index.html" aria-label="Volver al inicio">
+          <img
+            class="brand-logo"
+            src="assets/logo.svg"
+            alt="Logo Escuela Experimental Porteña"
+            width="44"
+            height="44"
+            loading="eager"
+          />
+          <div class="brand-text">
+            <span class="brand-name">Escuela Experimental Porteña</span>
+            <span class="brand-tag">Ingreso institucional</span>
+          </div>
+        </a>
+        <div class="header-actions">
+          <a class="btn btn-ghost" href="index.html">Inicio</a>
+        </div>
+      </div>
+    </header>
+
+    <main id="contenido" class="main" role="main">
+      <section class="login" aria-label="Iniciar sesion">
+        <div class="container">
+          <div class="login-grid">
+            <div class="login-card reveal">
+              <div class="badge">
+                <span class="badge-dot" aria-hidden="true"></span>
+                Acceso para directivos y docentes
+              </div>
+              <h1 class="login-title">Iniciar sesion</h1>
+              <p class="login-lead">
+                Usa tus credenciales institucionales. Esta pantalla autentica roles
+                <strong>directivo</strong>, <strong>docente</strong> o <strong>superadmin</strong>.
+              </p>
+
+              <div class="api-box">
+                <div class="api-box-title">API base</div>
+                <div class="api-box-row">
+                  <input id="apiBase" class="api-input" type="url" placeholder="http://localhost:4000/api" />
+                  <button id="saveApi" class="btn btn-secondary" type="button">Guardar</button>
+                </div>
+                <div class="api-hint">Debe coincidir con donde corre el backend.</div>
+              </div>
+            </div>
+
+            <form id="loginForm" class="login-form reveal" style="--reveal-delay: 90ms" aria-label="Formulario de ingreso">
+              <div class="panel-card-head">
+                <div class="panel-card-title">Credenciales</div>
+                <div class="panel-card-sub">POST <span class="mono">/auth/login-staff</span></div>
+              </div>
+
+              <div class="field">
+                <label for="email">Email</label>
+                <input id="email" name="email" type="email" autocomplete="email" required />
+              </div>
+
+              <div class="field">
+                <label for="password">Password</label>
+                <input id="password" name="password" type="password" autocomplete="current-password" required />
+              </div>
+
+              <button class="btn btn-primary" type="submit">Ingresar</button>
+              <div id="msg" class="msg" role="status" aria-live="polite"></div>
+              <div class="login-links">
+                <a class="link" href="index.html">Volver al inicio</a>
+                <a class="link" href="admin.html">Ir al panel</a>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer" role="contentinfo">
+      <div class="container footer-bottom">
+        <div>© <span id="year"></span> Escuela Experimental Porteña</div>
+        <div class="footer-bottom-links">
+          <a href="index.html">Inicio</a>
+        </div>
+      </div>
+    </footer>
+
+    <script src="script.js" defer></script>
+    <script src="login.js" defer></script>
+  </body>
+</html>

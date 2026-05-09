@@ -319,6 +319,30 @@
   margin-top: 0.2rem;
 }
 
+.checks {
+  display: flex;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+  padding: 0.35rem 0;
+}
+
+.check {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid rgba(23, 19, 32, 0.12);
+  background: rgba(255, 255, 255, 0.72);
+  font-weight: 850;
+  color: rgba(23, 19, 32, 0.82);
+}
+
+.check input {
+  width: 16px;
+  height: 16px;
+}
+
 .help {
   display: grid;
   grid-template-columns: 1fr 1fr;

@@ -4,7 +4,7 @@ const bcrypt = require("bcryptjs");
 exports.me = async (req, res, next) => {
   try {
     const user = await Usuario.findById(req.user.id).select(
-      "nombre apellido fechaNacimiento email role createdAt"
+      "nombre apellido fechaNacimiento email role roles createdAt"
     );
     if (!user) return res.status(404).json({ message: "User not found" });
     res.json(user);
@@ -16,7 +16,7 @@ exports.me = async (req, res, next) => {
 exports.list = async (req, res, next) => {
   try {
     const users = await Usuario.find()
-      .select("nombre apellido fechaNacimiento email role createdAt")
+      .select("nombre apellido fechaNacimiento email role roles createdAt")
       .sort({ createdAt: -1 });
     res.json(users);
   } catch (err) {
@@ -26,27 +26,35 @@ exports.list = async (req, res, next) => {
 
 exports.create = async (req, res, next) => {
   try {
-    const { nombre, apellido, fechaNacimiento, email, password, role } = req.body;
-    if (!nombre || !email || !password || !role) {
-      return res.status(400).json({ message: "nombre, email, password y role son requeridos" });
+    const { nombre, apellido, fechaNacimiento, email, password } = req.body;
+    var roles = req.body.roles;
+    var role = req.body.role;
+
+    if (!nombre || !email || !password || (!roles && !role)) {
+      return res.status(400).json({ message: "nombre, email, password y roles/role son requeridos" });
     }
 
     var allowed = ["superadmin", "directivo", "docente", "comunidad-estudiantes"];
-    if (allowed.indexOf(role) === -1) {
-      return res.status(400).json({ message: "Rol invalido" });
-    }
+    if (!Array.isArray(roles)) roles = role ? [role] : [];
+    roles = roles.map((r) => String(r).trim()).filter(Boolean);
+    var invalid = roles.find(function (r) {
+      return allowed.indexOf(r) === -1;
+    });
+    if (invalid) return res.status(400).json({ message: "Rol invalido" });
+    if (!roles.length) return res.status(400).json({ message: "Debe incluir al menos un rol" });
 
     const existing = await Usuario.findOne({ email });
     if (existing) return res.status(409).json({ message: "Email already in use" });
 
     const passwordHash = await bcrypt.hash(password, 10);
-    const user = await Usuario.create({ nombre, apellido, fechaNacimiento, email, passwordHash, role });
+    const user = await Usuario.create({ nombre, apellido, fechaNacimiento, email, passwordHash, roles });
     res.status(201).json({
       id: user._id,
       nombre: user.nombre,
       apellido: user.apellido,
       fechaNacimiento: user.fechaNacimiento,
       email: user.email,
+      roles: user.roles,
       role: user.role,
       createdAt: user.createdAt
     });
@@ -55,31 +63,47 @@ exports.create = async (req, res, next) => {
   }
 };
 
-function isStaffRole(role) {
-  return role === "directivo" || role === "docente";
+function normalizeRoles(input) {
+  if (Array.isArray(input)) return input.map((r) => String(r).trim()).filter(Boolean);
+  if (typeof input === "string" && input.trim()) return [input.trim()];
+  return [];
+}
+
+function isStaffRoles(roles) {
+  return roles.indexOf("directivo") !== -1 || roles.indexOf("docente") !== -1;
 }
 
 exports.createStaff = async (req, res, next) => {
   try {
-    const { nombre, apellido, fechaNacimiento, email, password, role } = req.body;
-    if (!nombre || !email || !password || !role) {
-      return res.status(400).json({ message: "nombre, email, password y role son requeridos" });
+    const { nombre, apellido, fechaNacimiento, email, password } = req.body;
+    var roles = normalizeRoles(req.body.roles || req.body.role);
+    if (!nombre || !email || !password || !roles.length) {
+      return res.status(400).json({ message: "nombre, email, password y roles/role son requeridos" });
     }
-    if (!isStaffRole(role)) {
-      return res.status(400).json({ message: "Solo se permite crear roles directivo o docente" });
+
+    roles = Array.from(new Set(roles));
+    var invalid = roles.find(function (r) {
+      return r !== "directivo" && r !== "docente";
+    });
+    if (invalid) {
+      return res.status(400).json({ message: "Solo se permite roles directivo/docente" });
+    }
+    if (!isStaffRoles(roles)) {
+      return res.status(400).json({ message: "Debe incluir directivo y/o docente" });
     }
 
     const existing = await Usuario.findOne({ email });
     if (existing) return res.status(409).json({ message: "Email already in use" });
 
     const passwordHash = await bcrypt.hash(password, 10);
-    const user = await Usuario.create({ nombre, apellido, fechaNacimiento, email, passwordHash, role });
+    const user = await Usuario.create({ nombre, apellido, fechaNacimiento, email, passwordHash, roles });
     res.status(201).json({
       id: user._id,
       nombre: user.nombre,
       apellido: user.apellido,
       fechaNacimiento: user.fechaNacimiento,
       email: user.email,
+      roles: user.roles,
       role: user.role,
       createdAt: user.createdAt
     });
@@ -94,14 +118,14 @@ exports.listStaff = async (req, res, next) => {
     const filter = {};
 
     if (role) {
-      if (!isStaffRole(role)) return res.status(400).json({ message: "Filtro role invalido" });
-      filter.role = role;
+      if (role !== "directivo" && role !== "docente") return res.status(400).json({ message: "Filtro role invalido" });
+      filter.roles = role;
     } else {
-      filter.role = { $in: ["directivo", "docente"] };
+      filter.roles = { $in: ["directivo", "docente"] };
     }
 
     const users = await Usuario.find(filter)
-      .select("nombre apellido fechaNacimiento email role createdAt")
+      .select("nombre apellido fechaNacimiento email role roles createdAt")
       .sort({ createdAt: -1 });
     res.json(users);
   } catch (err) {
@@ -113,20 +137,26 @@ exports.updateStaff = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { nombre, apellido, fechaNacimiento, email, password, role } = req.body;
+    var roles = normalizeRoles(req.body.roles || role);
 
     const user = await Usuario.findById(id);
     if (!user) return res.status(404).json({ message: "User not found" });
-    if (!isStaffRole(user.role)) return res.status(400).json({ message: "Solo se puede editar directivos y docentes" });
+    var currentRoles = user.roles && user.roles.length ? user.roles : user.role ? [user.role] : [];
+    if (!isStaffRoles(currentRoles)) return res.status(400).json({ message: "Solo se puede editar directivos y docentes" });
 
-    if (role && !isStaffRole(role)) {
-      return res.status(400).json({ message: "Solo se permite role directivo o docente" });
+    if (roles.length) {
+      roles = Array.from(new Set(roles));
+      var invalid = roles.find(function (r) {
+        return r !== "directivo" && r !== "docente";
+      });
+      if (invalid) return res.status(400).json({ message: "Solo se permite roles directivo/docente" });
     }
 
     if (typeof nombre === "string" && nombre.trim()) user.nombre = nombre.trim();
     if (typeof apellido === "string") user.apellido = apellido.trim();
     if (typeof fechaNacimiento !== "undefined") user.fechaNacimiento = fechaNacimiento;
     if (typeof email === "string" && email.trim()) user.email = email.trim().toLowerCase();
-    if (role) user.role = role;
+    if (roles.length) user.roles = roles;
     if (typeof password === "string" && password) user.passwordHash = await bcrypt.hash(password, 10);
 
     await user.save();
@@ -136,6 +166,7 @@ exports.updateStaff = async (req, res, next) => {
       apellido: user.apellido,
       fechaNacimiento: user.fechaNacimiento,
       email: user.email,
+      roles: user.roles,
       role: user.role,
       createdAt: user.createdAt
     });
@@ -151,7 +182,8 @@ exports.deleteStaff = async (req, res, next) => {
     const { id } = req.params;
     const user = await Usuario.findById(id);
     if (!user) return res.status(404).json({ message: "User not found" });
-    if (!isStaffRole(user.role)) return res.status(400).json({ message: "Solo se puede eliminar directivos y docentes" });
+    var roles = user.roles && user.roles.length ? user.roles : user.role ? [user.role] : [];
+    if (!isStaffRoles(roles)) return res.status(400).json({ message: "Solo se puede eliminar directivos y docentes" });
 
     await Usuario.deleteOne({ _id: id });
     res.json({ message: "User deleted" });

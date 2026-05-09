@@ -91,12 +91,25 @@
     if (token && user) {
       if (stateEl) stateEl.textContent = "Autenticado";
       if (userEl) userEl.textContent = user.email || user.nombre || "-";
-      if (roleEl) roleEl.textContent = user.role || "-";
+      if (roleEl) roleEl.textContent = formatRoles(user);
     } else {
       if (stateEl) stateEl.textContent = "No autenticado";
       if (userEl) userEl.textContent = "-";
       if (roleEl) roleEl.textContent = "-";
     }
+
+    var roles = (user && (user.roles || (user.role ? [user.role] : []))) || [];
+    if (!Array.isArray(roles)) roles = [];
+    var isLoggedIn = Boolean(token && user);
+    var isSuperadmin = roles.indexOf("superadmin") !== -1;
+    var staffSection = document.getElementById("staff");
+    if (staffSection) staffSection.hidden = isLoggedIn && !isSuperadmin;
+  }
+
+  function formatRoles(user) {
+    var roles = (user && (user.roles || (user.role ? [user.role] : []))) || [];
+    if (!Array.isArray(roles)) roles = [];
+    return roles.length ? roles.join(", ") : "-";
   }
 
   function renderStaffRows(users) {
@@ -135,7 +148,7 @@
       tr.appendChild(tdEmail);
 
       var tdRole = document.createElement("td");
-      tdRole.textContent = u.role || "-";
+      tdRole.textContent = (u.roles && u.roles.length ? u.roles.join(", ") : u.role) || "-";
       tr.appendChild(tdRole);
 
       var tdActions = document.createElement("td");
@@ -221,7 +234,9 @@
     $("#editNombre").value = user.nombre || "";
     $("#editApellido").value = user.apellido || "";
     $("#editFechaNac").value = toDateInputValue(user.fechaNacimiento);
-    $("#editRole").value = user.role === "docente" ? "docente" : "directivo";
+    var roles = user.roles && user.roles.length ? user.roles : user.role ? [user.role] : [];
+    $("#editRoleDirectivo").checked = roles.indexOf("directivo") !== -1;
+    $("#editRoleDocente").checked = roles.indexOf("docente") !== -1;
     setMsg($("#editMsg"), "", "");
 
     modal.classList.add("is-open");
@@ -280,12 +295,14 @@
         var nombre = String($("#editNombre").value || "").trim();
         var apellido = String($("#editApellido").value || "").trim();
         var fechaNacimiento = String($("#editFechaNac").value || "").trim();
-        var role = $("#editRole").value;
+        var roles = [];
+        if ($("#editRoleDirectivo").checked) roles.push("directivo");
+        if ($("#editRoleDocente").checked) roles.push("docente");
 
         if (!nombre) return setMsg(msgEl, "Nombre requerido", "error");
-        if (role !== "directivo" && role !== "docente") return setMsg(msgEl, "Rol invalido", "error");
+        if (!roles.length) return setMsg(msgEl, "Selecciona al menos un rol", "error");
 
-        var payload = { nombre: nombre, role: role };
+        var payload = { nombre: nombre, roles: roles };
         if (apellido) payload.apellido = apellido;
         if (fechaNacimiento) payload.fechaNacimiento = fechaNacimiento;
 
@@ -328,7 +345,7 @@
         var email = $("#loginEmail").value;
         var password = $("#loginPassword").value;
 
-        var data = await api("/auth/login", {
+        var data = await api("/auth/login-staff", {
           method: "POST",
           body: JSON.stringify({ email: email, password: password })
         });
@@ -381,18 +398,27 @@
       e.preventDefault();
       setMsg(msgEl, "Creando...", "");
       try {
+        var roles = [];
+        if ($("#staffRoleDirectivo").checked) roles.push("directivo");
+        if ($("#staffRoleDocente").checked) roles.push("docente");
+        if (!roles.length) {
+          setMsg(msgEl, "Selecciona al menos un rol", "error");
+          return;
+        }
         var payload = {
           nombre: $("#staffNombre").value,
           apellido: $("#staffApellido").value,
           fechaNacimiento: $("#staffFechaNac").value,
           email: $("#staffEmail").value,
           password: $("#staffPassword").value,
-          role: $("#staffRole").value
+          roles: roles
         };
         if (!payload.apellido) delete payload.apellido;
         if (!payload.fechaNacimiento) delete payload.fechaNacimiento;
         await api("/users/staff", { method: "POST", body: JSON.stringify(payload) });
         form.reset();
+        // default back to docente checked
+        $("#staffRoleDocente").checked = true;
         setMsg(msgEl, "Creado", "ok");
         loadStaff();
       } catch (err) {
