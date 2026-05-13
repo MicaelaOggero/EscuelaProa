@@ -73,7 +73,10 @@ exports.loginStaff = async (req, res, next) => {
     if (!ok) return res.status(401).json({ message: "Invalid credentials" });
 
     var roles = user.roles && user.roles.length ? user.roles : user.role ? [user.role] : [];
-    const isStaff = roles.indexOf("superadmin") !== -1 || roles.indexOf("directivo") !== -1 || roles.indexOf("docente") !== -1;
+    const isStaff =
+      roles.indexOf("superadmin") !== -1 ||
+      roles.indexOf("directivo") !== -1 ||
+      roles.indexOf("docente") !== -1;
     if (!isStaff) return res.status(403).json({ message: "Staff only" });
 
     const token = signToken(user);

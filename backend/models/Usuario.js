@@ -12,9 +12,13 @@ const UsuarioSchema = new mongoose.Schema(
     // New multi-role support
     roles: {
       type: [String],
-      enum: ["superadmin", "directivo", "docente", "comunidad-estudiantes"],
+      enum: ["superadmin", "directivo", "docente", "estudiante", "comunidad-estudiantes"],
       default: ["comunidad-estudiantes"]
     }
+    ,
+    // Estudiante: anio/curso actual (opcional)
+    anioId: { type: mongoose.Schema.Types.ObjectId, ref: "Anio" },
+    division: { type: String, default: "", trim: true }
   },
   { timestamps: true }
 );

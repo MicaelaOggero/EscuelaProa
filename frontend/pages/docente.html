@@ -13,8 +13,8 @@
       rel="stylesheet"
     />
 
-    <link rel="stylesheet" href="styles.css" />
-    <link rel="stylesheet" href="docente.css" />
+    <link rel="stylesheet" href="../css/styles.css" />
+    <link rel="stylesheet" href="../css/docente.css" />
   </head>
   <body>
     <a class="skip-link" href="#contenido">Saltar al contenido</a>
@@ -22,7 +22,7 @@
     <div class="app">
       <aside class="sidebar" aria-label="Sidebar">
         <a class="side-brand" href="index.html" aria-label="Inicio">
-          <img src="assets/logo.svg" alt="Logo" width="40" height="40" />
+          <img src="../assets/logo.svg" alt="Logo" width="40" height="40" />
           <div>
             <div class="side-title">Panel Docente</div>
             <div class="side-sub">Escuela Experimental Porteña</div>
@@ -76,11 +76,12 @@
             <div class="topbar-kicker">Docente</div>
             <div id="docenteNombre" class="topbar-name">-</div>
           </div>
-          <div class="topbar-actions">
-            <a class="btn btn-ghost" href="index.html">Sitio publico</a>
-            <a class="btn btn-secondary" href="admin.html" id="superLink" hidden>Panel superadmin</a>
-          </div>
-        </header>
+            <div class="topbar-actions">
+        <a class="btn btn-ghost" href="../index.html">Sitio publico</a>
+        <a class="btn btn-secondary" href="directivo.html" id="dirLink" hidden>Panel directivo</a>
+        <a class="btn btn-secondary" href="admin.html" id="superLink" hidden>Panel superadmin</a>
+            </div>
+          </header>
 
         <main id="contenido" class="content" role="main">
           <section id="inicio" class="view is-visible" data-view="inicio" aria-label="Inicio">
@@ -310,6 +311,12 @@
         </div>
         <form id="crearForm" class="modal-body" aria-label="Formulario crear publicacion">
           <div class="field">
+            <label for="pubAsignacion">Materia y anio</label>
+            <select id="pubAsignacion" required>
+              <option value="" selected disabled>Seleccionar</option>
+            </select>
+          </div>
+          <div class="field">
             <label for="pubTitulo">Titulo</label>
             <input id="pubTitulo" type="text" required />
           </div>
@@ -414,7 +421,7 @@
       </div>
     </div>
 
-    <script src="script.js" defer></script>
-    <script src="docente.js" defer></script>
+    <script src="../js/script.js" defer></script>
+    <script src="../js/docente.js" defer></script>
   </body>
 </html>

@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Aula - Estudiantes - Escuela Experimental Porteña</title>
+    <meta name="description" content="Contenidos por materia segun el anio del estudiante." />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="../css/styles.css" />
+    <link rel="stylesheet" href="../css/estudiante.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#contenido">Saltar al contenido</a>
+
+    <header class="site-header" role="banner">
+      <div class="container header-inner">
+        <a class="brand" href="../index.html" aria-label="Volver al inicio">
+          <img class="brand-logo" src="../assets/logo.svg" alt="Logo" width="44" height="44" />
+          <div class="brand-text">
+            <span class="brand-name">Escuela Experimental Porteña</span>
+            <span class="brand-tag">Aula · Estudiantes</span>
+          </div>
+        </a>
+        <div class="header-actions">
+          <a class="btn btn-ghost" href="../index.html">Sitio publico</a>
+          <button id="logout" class="btn btn-primary" type="button">Cerrar sesion</button>
+        </div>
+      </div>
+    </header>
+
+    <main id="contenido" class="main" role="main">
+      <section class="section" aria-label="Aula">
+        <div class="container">
+          <div class="section-head reveal">
+            <div>
+              <h1 class="section-title">Contenidos por materia</h1>
+              <p id="anioLabel" class="section-subtitle">-</p>
+            </div>
+          </div>
+
+          <div class="panel reveal">
+            <div class="panel-head">
+              <div>
+                <div class="panel-title">Filtros</div>
+                <div class="panel-sub">El contenido se filtra automaticamente por tu anio.</div>
+              </div>
+              <button id="refresh" class="btn btn-secondary" type="button">Actualizar</button>
+            </div>
+
+            <div class="filters">
+              <div class="field">
+                <label for="materia">Materia</label>
+                <select id="materia">
+                  <option value="">Todas</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="tipo">Tipo</label>
+                <select id="tipo">
+                  <option value="">Todos</option>
+                  <option value="publicacion">Publicaciones</option>
+                  <option value="material">Materiales</option>
+                  <option value="actividad">Actividades</option>
+                </select>
+              </div>
+            </div>
+
+            <div id="msg" class="msg" role="status" aria-live="polite"></div>
+          </div>
+
+          <div id="cards" class="cards reveal" style="--reveal-delay: 90ms" aria-label="Listado contenidos"></div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer" role="contentinfo">
+      <div class="container footer-bottom">
+        <div>© <span id="year"></span> Escuela Experimental Porteña</div>
+        <div class="footer-bottom-links"><a href="../index.html">Inicio</a></div>
+      </div>
+    </footer>
+
+    <script src="../js/script.js" defer></script>
+    <script src="../js/estudiante.js" defer></script>
+  </body>
+</html>

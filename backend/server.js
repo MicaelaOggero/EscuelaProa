@@ -10,6 +10,9 @@ const userRoutes = require("./routes/userRoutes");
 const noticiaRoutes = require("./routes/noticiaRoutes");
 const calendarioRoutes = require("./routes/calendarioRoutes");
 const contactoRoutes = require("./routes/contactoRoutes");
+const anioRoutes = require("./routes/anioRoutes");
+const materiaAnioRoutes = require("./routes/materiaAnioRoutes");
+const contenidoRoutes = require("./routes/contenidoRoutes");
 
 const app = express();
 
@@ -36,6 +39,9 @@ app.use("/api/users", userRoutes);
 app.use("/api/noticias", noticiaRoutes);
 app.use("/api/calendario", calendarioRoutes);
 app.use("/api/contacto", contactoRoutes);
+app.use("/api/anios", anioRoutes);
+app.use("/api/materias-anio", materiaAnioRoutes);
+app.use("/api/contenidos", contenidoRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ message: "Not found" });

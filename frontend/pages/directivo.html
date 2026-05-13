@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Gestion Academica - Escuela Experimental Porteña</title>
+    <meta name="description" content="Gestion de anios, materias y asignaciones docentes." />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="../css/styles.css" />
+    <link rel="stylesheet" href="../css/directivo.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#contenido">Saltar al contenido</a>
+
+    <header class="site-header" role="banner">
+      <div class="container header-inner">
+        <a class="brand" href="../index.html" aria-label="Volver al inicio">
+          <img class="brand-logo" src="../assets/logo.svg" alt="Logo" width="44" height="44" />
+          <div class="brand-text">
+            <span class="brand-name">Escuela Experimental Porteña</span>
+            <span class="brand-tag">Gestion academica</span>
+          </div>
+        </a>
+        <div class="header-actions">
+          <a class="btn btn-ghost" href="../index.html">Sitio publico</a>
+          <a id="superPanel" class="btn btn-secondary" href="admin.html" hidden>Panel superadmin</a>
+          <button id="logout" class="btn btn-primary" type="button">Cerrar sesion</button>
+        </div>
+      </div>
+    </header>
+
+    <main id="contenido" class="main" role="main">
+      <section class="section" aria-label="Gestion">
+        <div class="container">
+          <div class="section-head reveal">
+            <div>
+              <h1 class="section-title">Anios, materias y asignaciones</h1>
+              <p class="section-subtitle">
+                Crea anos/materias y asigna materias a docentes por ano. Roles: directivo o superadmin.
+              </p>
+            </div>
+          </div>
+
+          <div class="grid">
+            <form id="anioForm" class="panel reveal" aria-label="Crear anio">
+              <div class="panel-head">
+                <div>
+                  <div class="panel-title">Crear anio</div>
+                  <div class="panel-sub">POST <span class="mono">/anios</span></div>
+                </div>
+              </div>
+              <div class="cols">
+                <div class="field">
+                  <label for="anioNumero">Numero</label>
+                  <input id="anioNumero" type="number" min="1" required />
+                </div>
+                <div class="field">
+                  <label for="anioNombre">Nombre</label>
+                  <input id="anioNombre" type="text" placeholder="1ro" required />
+                </div>
+              </div>
+              <div class="cols">
+                <div class="field">
+                  <label for="anioDivision">Division (opcional)</label>
+                  <input id="anioDivision" type="text" placeholder="A" />
+                </div>
+                <div class="field">
+                  <label for="anioTurno">Turno (opcional)</label>
+                  <input id="anioTurno" type="text" placeholder="Manana" />
+                </div>
+              </div>
+              <button class="btn btn-primary" type="submit">Crear</button>
+              <div id="anioMsg" class="msg" role="status" aria-live="polite"></div>
+            </form>
+            <form id="maForm" class="panel reveal" style="--reveal-delay: 80ms" aria-label="Crear materia por anio">
+              <div class="panel-head">
+                <div>
+                  <div class="panel-title">Crear materia por anio</div>
+                  <div class="panel-sub">POST <span class="mono">/materias-anio</span></div>
+                </div>
+              </div>
+              <div class="cols">
+                <div class="field">
+                  <label for="maMateria">Materia</label>
+                  <input id="maMateria" type="text" placeholder="Matematica" required />
+                </div>
+                <div class="field">
+                  <label for="maDocente">Docente</label>
+                  <select id="maDocente" required>
+                    <option value="" selected disabled>Seleccionar</option>
+                  </select>
+                </div>
+              </div>
+              <div class="cols">
+                <div class="field">
+                  <label for="maAnio">Anio</label>
+                  <select id="maAnio" required>
+                    <option value="" selected disabled>Seleccionar</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label>Estado</label>
+                  <input value="Activo" readonly />
+                </div>
+              </div>
+              <button class="btn btn-primary" type="submit">Crear</button>
+              <div id="maMsg" class="msg" role="status" aria-live="polite"></div>
+            </form>
+          </div>
+
+          <div class="panel reveal" style="--reveal-delay: 120ms" aria-label="Materias por anio">
+            <div class="panel-head">
+              <div>
+                <div class="panel-title">Materias por anio</div>
+                <div class="panel-sub">Listado y eliminacion · <span class="mono">/materias-anio</span></div>
+              </div>
+              <button id="refresh" class="btn btn-secondary" type="button">Actualizar datos</button>
+            </div>
+
+            <div id="asigMsg" class="msg" role="status" aria-live="polite"></div>
+
+            <div class="table-wrap">
+              <table class="table" aria-label="Tabla asignaciones">
+                <thead>
+                  <tr>
+                    <th>Docente</th>
+                    <th>Materia</th>
+                    <th>Anio</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="asigTbody">
+                  <tr><td colspan="4" class="table-empty">Sin asignaciones</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div id="editModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="editTitle">
+            <div class="modal-backdrop" data-close="true"></div>
+            <div class="modal-panel" role="document">
+              <div class="modal-head">
+                <div>
+                  <div id="editTitle" class="modal-title">Editar materia por anio</div>
+                  <div class="modal-sub">PUT <span class="mono">/materias-anio/:id</span></div>
+                </div>
+                <button class="btn btn-ghost btn-sm" type="button" data-close="true">Cerrar</button>
+              </div>
+              <form id="editForm" class="modal-body" aria-label="Editar materia por anio">
+                <input id="editId" type="hidden" />
+                <div class="field">
+                  <label for="editMateria">Materia</label>
+                  <input id="editMateria" type="text" required />
+                </div>
+                <div class="cols">
+                  <div class="field">
+                    <label for="editDocente">Docente</label>
+                    <select id="editDocente" required>
+                      <option value="" selected disabled>Seleccionar</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label for="editAnio">Anio</label>
+                    <select id="editAnio" required>
+                      <option value="" selected disabled>Seleccionar</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="field">
+                  <label class="switch">
+                    <input id="editActivo" type="checkbox" />
+                    <span>Activo</span>
+                  </label>
+                </div>
+                <div class="modal-actions">
+                  <button class="btn btn-primary" type="submit">Guardar cambios</button>
+                  <button class="btn btn-secondary" type="button" data-close="true">Cancelar</button>
+                </div>
+                <div id="editMsg" class="msg" role="status" aria-live="polite"></div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer" role="contentinfo">
+      <div class="container footer-bottom">
+        <div>© <span id="year"></span> Escuela Experimental Porteña</div>
+        <div class="footer-bottom-links"><a href="../index.html">Inicio</a></div>
+      </div>
+    </footer>
+
+    <script src="../js/script.js" defer></script>
+    <script src="../js/directivo.js" defer></script>
+  </body>
+</html>

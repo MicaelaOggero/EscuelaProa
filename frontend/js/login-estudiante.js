@@ -40,7 +40,6 @@
       method: "GET",
       headers: { "Content-Type": "application/json" }
     }, opts || {}));
-
     var text = await res.text();
     var data;
     try {
@@ -71,36 +70,20 @@
     var form = $("#loginForm");
     var msgEl = $("#msg");
     if (!form) return;
-
     form.addEventListener("submit", async function (e) {
       e.preventDefault();
       setMsg(msgEl, "Ingresando...", "");
       try {
         var email = $("#email").value;
         var password = $("#password").value;
-
-        var data = await api("/auth/login-staff", {
+        var data = await api("/auth/login", {
           method: "POST",
           body: JSON.stringify({ email: email, password: password })
         });
-
         setToken(data.token);
         setUser(data.user);
         setMsg(msgEl, "OK", "ok");
-
-        var role = data.user && data.user.role;
-        var roles = (data.user && (data.user.roles || (role ? [role] : []))) || [];
-        if (!Array.isArray(roles)) roles = [];
-
-        if (roles.indexOf("superadmin") !== -1) {
-          window.location.href = "admin.html";
-        } else if (roles.indexOf("docente") !== -1) {
-          window.location.href = "docente.html";
-        } else if (roles.indexOf("directivo") !== -1) {
-          window.location.href = "admin.html";
-        } else {
-          window.location.href = "index.html";
-        }
+        window.location.href = "estudiante.html";
       } catch (err) {
         setMsg(msgEl, err.message || "Error", "error");
       }

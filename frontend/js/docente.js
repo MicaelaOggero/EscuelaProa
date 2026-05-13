@@ -66,8 +66,8 @@
     if (roles.indexOf("docente") === -1) {
       // Redirect to the right panel
       if (roles.indexOf("superadmin") !== -1) window.location.href = "admin.html";
-      else if (roles.indexOf("directivo") !== -1) window.location.href = "admin.html";
-      else window.location.href = "index.html";
+      else if (roles.indexOf("directivo") !== -1) window.location.href = "directivo.html";
+      else window.location.href = "../index.html";
       return false;
     }
     return true;
@@ -152,6 +152,27 @@
     if (!modal) return;
     modal.classList.add("is-open");
     modal.setAttribute("aria-hidden", "false");
+  }
+
+  async function loadMisAsignaciones() {
+    var sel = $("#pubAsignacion");
+    if (!sel) return;
+    sel.innerHTML = '<option value="" selected disabled>Seleccionar</option>';
+    try {
+      var rows = await api("/materias-anio/mine", { method: "GET" });
+      if (!Array.isArray(rows)) rows = [];
+      rows.forEach(function (a) {
+        var opt = document.createElement("option");
+        opt.value = a._id;
+        var an = a.anioId;
+        var anLabel = an ? (an.nombre || (an.numero ? String(an.numero) + "o" : "")) : "Anio";
+        var div = an && an.division ? " " + an.division : "";
+        opt.textContent = (a.materia || "Materia") + " · " + anLabel + div;
+        sel.appendChild(opt);
+      });
+    } catch (e) {
+      // keep default
+    }
   }
 
   function closeModal(modal) {
@@ -246,7 +267,7 @@
     btn.addEventListener("click", function () {
       localStorage.removeItem(STORAGE_TOKEN);
       localStorage.removeItem(STORAGE_USER);
-      window.location.href = "index.html";
+      window.location.href = "../index.html";
     });
   }
 
@@ -462,6 +483,7 @@
       setMsg(msgEl, "Publicando...", "");
 
       try {
+        var materiaAnioId = $("#pubAsignacion").value;
         var titulo = $("#pubTitulo").value;
         var categoria = $("#pubCategoria").value;
         var resumen = $("#pubResumen").value;
@@ -471,6 +493,7 @@
         var now = new Date().toISOString();
         var local = {
           id: "l-" + String(Date.now()),
+          materiaAnioId: materiaAnioId,
           titulo: titulo,
           categoria: categoria,
           resumen: resumen,
@@ -484,11 +507,12 @@
 
         // Best effort: also create in backend (no file upload here)
         try {
-          await api("/noticias", {
+          await api("/contenidos", {
             method: "POST",
             body: JSON.stringify({
+              materiaAnioId: materiaAnioId,
+              tipo: "publicacion",
               titulo: titulo,
-              categoria: categoria,
               resumen: resumen,
               contenido: contenido,
               fecha: new Date().toISOString()
@@ -603,6 +627,9 @@
 
     var superLink = $("#superLink");
     if (superLink) superLink.hidden = roles.indexOf("superadmin") === -1;
+
+    var dirLink = $("#dirLink");
+    if (dirLink) dirLink.hidden = roles.indexOf("directivo") === -1 && roles.indexOf("superadmin") === -1;
   }
 
   if (!authGuard()) return;
@@ -617,5 +644,6 @@
   initActividad();
   initRefreshButtons();
   initHeaderUser();
+  loadMisAsignaciones();
   refreshAll();
 })();

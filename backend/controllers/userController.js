@@ -5,7 +5,7 @@ exports.me = async (req, res, next) => {
   try {
     const user = await Usuario.findById(req.user.id).select(
       "nombre apellido fechaNacimiento email role roles createdAt"
-    );
+    ).populate("anioId", "numero nombre division turno");
     if (!user) return res.status(404).json({ message: "User not found" });
     res.json(user);
   } catch (err) {
