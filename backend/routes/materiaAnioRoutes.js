@@ -11,6 +11,7 @@ router.get("/mine", authMiddleware, roleMiddleware("docente"), materiaAnioContro
 
 // Only directivo/superadmin can create/delete
 router.post("/", authMiddleware, roleMiddleware("directivo"), materiaAnioController.create);
+router.post("/import-csv", authMiddleware, roleMiddleware("directivo"), materiaAnioController.importCsv);
 router.put("/:id", authMiddleware, roleMiddleware("directivo"), materiaAnioController.update);
 router.delete("/:id", authMiddleware, roleMiddleware("directivo"), materiaAnioController.remove);
 

@@ -257,6 +257,209 @@
     });
   }
 
+  function toDateInputValue(v) {
+    if (!v) return "";
+    var d = v instanceof Date ? v : new Date(v);
+    if (isNaN(d.getTime())) return "";
+    var y = d.getFullYear();
+    var m = String(d.getMonth() + 1).padStart(2, "0");
+    var day = String(d.getDate()).padStart(2, "0");
+    return y + "-" + m + "-" + day;
+  }
+
+  function formatFecha(v) {
+    if (!v) return "-";
+    var d = v instanceof Date ? v : new Date(v);
+    if (isNaN(d.getTime())) return "-";
+    var dd = String(d.getDate()).padStart(2, "0");
+    var mm = String(d.getMonth() + 1).padStart(2, "0");
+    var yyyy = String(d.getFullYear());
+    return dd + "/" + mm + "/" + yyyy;
+  }
+
+  async function loadDocentes() {
+    var tbody = $("#docTbody");
+    var msg = $("#docMsg");
+    if (!tbody) return;
+    setMsg(msg, "Cargando docentes...", "");
+    try {
+      var rows = await api("/users/staff?role=docente", { method: "GET" });
+      rows = Array.isArray(rows) ? rows : [];
+      tbody.innerHTML = "";
+      if (!rows.length) {
+        var tr0 = document.createElement("tr");
+        var td0 = document.createElement("td");
+        td0.colSpan = 5;
+        td0.className = "table-empty";
+        td0.textContent = "Sin docentes";
+        tr0.appendChild(td0);
+        tbody.appendChild(tr0);
+        setMsg(msg, "OK", "ok");
+        return;
+      }
+
+      rows.forEach(function (u) {
+        var tr = document.createElement("tr");
+        var tdN = document.createElement("td");
+        tdN.textContent = u.nombre || "-";
+        var tdA = document.createElement("td");
+        tdA.textContent = u.apellido || "-";
+        var tdF = document.createElement("td");
+        tdF.textContent = formatFecha(u.fechaNacimiento);
+        var tdE = document.createElement("td");
+        tdE.textContent = u.email || "-";
+
+        var tdX = document.createElement("td");
+        var btnEdit = document.createElement("button");
+        btnEdit.type = "button";
+        btnEdit.className = "btn btn-ghost";
+        btnEdit.textContent = "Editar";
+        btnEdit.style.padding = "0.5rem 0.7rem";
+        btnEdit.style.fontSize = "0.9rem";
+        btnEdit.addEventListener("click", function () {
+          openDocEditModal(u);
+        });
+
+        var btnDel = document.createElement("button");
+        btnDel.type = "button";
+        btnDel.className = "btn btn-secondary";
+        btnDel.textContent = "Eliminar";
+        btnDel.style.padding = "0.5rem 0.7rem";
+        btnDel.style.fontSize = "0.9rem";
+        btnDel.addEventListener("click", function () {
+          deleteDocente(u);
+        });
+        tdX.appendChild(btnEdit);
+        tdX.appendChild(btnDel);
+
+        tr.appendChild(tdN);
+        tr.appendChild(tdA);
+        tr.appendChild(tdF);
+        tr.appendChild(tdE);
+        tr.appendChild(tdX);
+        tbody.appendChild(tr);
+      });
+
+      setMsg(msg, "OK", "ok");
+    } catch (e) {
+      setMsg(msg, e.message || "Error", "error");
+    }
+  }
+
+  function openDocEditModal(u) {
+    var modal = $("#docEditModal");
+    if (!modal) return;
+    $("#docEditId").value = u._id || u.id;
+    $("#docEditNombre").value = u.nombre || "";
+    $("#docEditApellido").value = u.apellido || "";
+    $("#docEditFecha").value = toDateInputValue(u.fechaNacimiento);
+    $("#docEditEmail").value = u.email || "";
+    $("#docEditPass").value = "";
+    setMsg($("#docEditMsg"), "", "");
+    modal.classList.add("is-open");
+    modal.setAttribute("aria-hidden", "false");
+    setTimeout(function () {
+      var el = $("#docEditNombre");
+      if (el) el.focus();
+    }, 0);
+  }
+
+  function closeDocEditModal() {
+    var modal = $("#docEditModal");
+    if (!modal) return;
+    modal.classList.remove("is-open");
+    modal.setAttribute("aria-hidden", "true");
+  }
+
+  function initDocEditModal() {
+    var modal = $("#docEditModal");
+    var form = $("#docEditForm");
+    var msg = $("#docEditMsg");
+    if (!modal || !form) return;
+
+    modal.addEventListener("click", function (e) {
+      var t = e.target;
+      if (!(t instanceof Element)) return;
+      if (t.getAttribute("data-close") === "true") closeDocEditModal();
+    });
+
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") closeDocEditModal();
+    });
+
+    form.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      setMsg(msg, "Guardando...", "");
+      try {
+        var id = $("#docEditId").value;
+        var payload = {
+          nombre: $("#docEditNombre").value,
+          apellido: $("#docEditApellido").value,
+          fechaNacimiento: $("#docEditFecha").value,
+          email: $("#docEditEmail").value,
+          roles: ["docente"]
+        };
+        if (!payload.apellido) delete payload.apellido;
+        if (!payload.fechaNacimiento) delete payload.fechaNacimiento;
+        var pass = $("#docEditPass").value;
+        if (pass) payload.password = pass;
+
+        await api("/users/staff/" + encodeURIComponent(id), {
+          method: "PUT",
+          body: JSON.stringify(payload)
+        });
+        setMsg(msg, "Actualizado", "ok");
+        closeDocEditModal();
+        loadDocentes();
+      } catch (e2) {
+        setMsg(msg, e2.message || "Error", "error");
+      }
+    });
+  }
+
+  async function deleteDocente(u) {
+    if (!confirm("Eliminar docente " + (u.email || "") + "?")) return;
+    var msg = $("#docMsg");
+    setMsg(msg, "Eliminando...", "");
+    try {
+      await api("/users/staff/" + encodeURIComponent(u._id || u.id), { method: "DELETE" });
+      setMsg(msg, "Eliminado", "ok");
+      loadDocentes();
+      loadAll();
+    } catch (e) {
+      setMsg(msg, e.message || "Error", "error");
+    }
+  }
+
+  function initCreateDocente() {
+    var form = $("#docenteForm");
+    var msg = $("#docMsg");
+    if (!form) return;
+    form.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      setMsg(msg, "Creando...", "");
+      try {
+        var payload = {
+          nombre: $("#dNombre").value,
+          apellido: $("#dApellido").value,
+          fechaNacimiento: $("#dFecha").value,
+          email: $("#dEmail").value,
+          password: $("#dPass").value,
+          roles: ["docente"]
+        };
+        if (!payload.apellido) delete payload.apellido;
+        if (!payload.fechaNacimiento) delete payload.fechaNacimiento;
+
+        await api("/users/staff", { method: "POST", body: JSON.stringify(payload) });
+        form.reset();
+        setMsg(msg, "Docente creado", "ok");
+        loadDocentes();
+      } catch (e2) {
+        setMsg(msg, e2.message || "Error", "error");
+      }
+    });
+  }
+
   async function removeAsignacion(id) {
     if (!confirm("Eliminar asignacion?")) return;
     var msg = $("#asigMsg");
@@ -326,11 +529,50 @@
     if (btn) btn.addEventListener("click", loadAll);
   }
 
+  function initCsvImport() {
+    var btn = $("#importBtn");
+    var fileEl = $("#csvFile");
+    var msg = $("#importMsg");
+    if (!btn || !fileEl) return;
+
+    btn.addEventListener("click", async function () {
+      setMsg(msg, "Leyendo archivo...", "");
+      var f = fileEl.files && fileEl.files[0];
+      if (!f) {
+        setMsg(msg, "Selecciona un CSV", "error");
+        return;
+      }
+      try {
+        var text = await f.text();
+        setMsg(msg, "Importando...", "");
+        var res = await api("/materias-anio/import-csv", {
+          method: "POST",
+          body: JSON.stringify({ csv: text })
+        });
+        setMsg(
+          msg,
+          "OK · creadas: " + String(res.created || 0) + " · omitidas: " + String(res.skipped || 0),
+          "ok"
+        );
+        fileEl.value = "";
+        loadAll();
+      } catch (e) {
+        setMsg(msg, e.message || "Error", "error");
+      }
+    });
+  }
+
   if (!guard()) return;
   initLogout();
   initCreateAnio();
   initCreateMateriaAnio();
   initRefresh();
   initEditModal();
+  initCsvImport();
+  initCreateDocente();
+  initDocEditModal();
+  var refreshDoc = $("#refreshDocentes");
+  if (refreshDoc) refreshDoc.addEventListener("click", loadDocentes);
   loadAll();
+  loadDocentes();
 })();

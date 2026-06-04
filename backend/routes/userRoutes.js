@@ -10,9 +10,11 @@ router.get("/", authMiddleware, roleMiddleware("superadmin"), userController.lis
 router.post("/", authMiddleware, roleMiddleware("superadmin"), userController.create);
 
 // Staff management (directivo/docente) - only superadmin
-router.get("/staff", authMiddleware, roleMiddleware("superadmin"), userController.listStaff);
-router.post("/staff", authMiddleware, roleMiddleware("superadmin"), userController.createStaff);
-router.put("/staff/:id", authMiddleware, roleMiddleware("superadmin"), userController.updateStaff);
-router.delete("/staff/:id", authMiddleware, roleMiddleware("superadmin"), userController.deleteStaff);
+// Listing staff is allowed for directivo/superadmin (needed for academic assignments)
+router.get("/staff", authMiddleware, roleMiddleware("superadmin", "directivo"), userController.listStaff);
+// Directivo can manage docentes; superadmin can manage staff.
+router.post("/staff", authMiddleware, roleMiddleware("superadmin", "directivo"), userController.createStaff);
+router.put("/staff/:id", authMiddleware, roleMiddleware("superadmin", "directivo"), userController.updateStaff);
+router.delete("/staff/:id", authMiddleware, roleMiddleware("superadmin", "directivo"), userController.deleteStaff);
 
 module.exports = router;

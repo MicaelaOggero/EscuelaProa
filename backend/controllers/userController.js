@@ -73,6 +73,14 @@ function isStaffRoles(roles) {
   return roles.indexOf("directivo") !== -1 || roles.indexOf("docente") !== -1;
 }
 
+function isSuperadmin(reqUser) {
+  return reqUser && Array.isArray(reqUser.roles) && reqUser.roles.indexOf("superadmin") !== -1;
+}
+
+function isDirectivo(reqUser) {
+  return reqUser && Array.isArray(reqUser.roles) && reqUser.roles.indexOf("directivo") !== -1;
+}
+
 exports.createStaff = async (req, res, next) => {
   try {
     const { nombre, apellido, fechaNacimiento, email, password } = req.body;
@@ -82,15 +90,23 @@ exports.createStaff = async (req, res, next) => {
     }
 
     roles = Array.from(new Set(roles));
+
     var invalid = roles.find(function (r) {
       return r !== "directivo" && r !== "docente";
     });
-    if (invalid) {
-      return res.status(400).json({ message: "Solo se permite roles directivo/docente" });
+    if (invalid) return res.status(400).json({ message: "Solo se permite roles directivo/docente" });
+
+    // Permission: directivo can only create docentes (not directivos)
+    if (isDirectivo(req.user) && !isSuperadmin(req.user)) {
+      if (roles.indexOf("directivo") !== -1) {
+        return res.status(403).json({ message: "Directivo no puede crear directivos" });
+      }
+      if (roles.indexOf("docente") === -1) {
+        return res.status(400).json({ message: "Debe incluir rol docente" });
+      }
     }
-    if (!isStaffRoles(roles)) {
-      return res.status(400).json({ message: "Debe incluir directivo y/o docente" });
-    }
+
+    if (!isStaffRoles(roles)) return res.status(400).json({ message: "Debe incluir directivo y/o docente" });
 
     const existing = await Usuario.findOne({ email });
     if (existing) return res.status(409).json({ message: "Email already in use" });
@@ -150,6 +166,19 @@ exports.updateStaff = async (req, res, next) => {
         return r !== "directivo" && r !== "docente";
       });
       if (invalid) return res.status(400).json({ message: "Solo se permite roles directivo/docente" });
+
+      // directivo cannot grant/revoke directivo role or touch superadmins
+      if (isDirectivo(req.user) && !isSuperadmin(req.user)) {
+        if (currentRoles.indexOf("directivo") !== -1) {
+          return res.status(403).json({ message: "Directivo no puede editar a directivos" });
+        }
+        if (roles.indexOf("directivo") !== -1) {
+          return res.status(403).json({ message: "Directivo no puede asignar rol directivo" });
+        }
+        if (roles.indexOf("docente") === -1) {
+          return res.status(400).json({ message: "Un docente debe mantener rol docente" });
+        }
+      }
     }
 
     if (typeof nombre === "string" && nombre.trim()) user.nombre = nombre.trim();
@@ -184,6 +213,12 @@ exports.deleteStaff = async (req, res, next) => {
     if (!user) return res.status(404).json({ message: "User not found" });
     var roles = user.roles && user.roles.length ? user.roles : user.role ? [user.role] : [];
     if (!isStaffRoles(roles)) return res.status(400).json({ message: "Solo se puede eliminar directivos y docentes" });
+
+    if (isDirectivo(req.user) && !isSuperadmin(req.user)) {
+      if (roles.indexOf("directivo") !== -1) {
+        return res.status(403).json({ message: "Directivo no puede eliminar directivos" });
+      }
+    }
 
     await Usuario.deleteOne({ _id: id });
     res.json({ message: "User deleted" });

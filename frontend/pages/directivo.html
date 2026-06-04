@@ -115,6 +115,80 @@
             </form>
           </div>
 
+          <div class="panel reveal" style="--reveal-delay: 90ms" aria-label="Gestion de docentes">
+            <div class="panel-head">
+              <div>
+                <div class="panel-title">Docentes</div>
+                <div class="panel-sub">Crear, editar y eliminar docentes · <span class="mono">/users/staff</span></div>
+              </div>
+              <button id="refreshDocentes" class="btn btn-secondary" type="button">Actualizar</button>
+            </div>
+
+            <div class="docentes-grid">
+              <form id="docenteForm" class="docente-form" aria-label="Crear docente">
+                <div class="field">
+                  <label for="dNombre">Nombre</label>
+                  <input id="dNombre" type="text" required />
+                </div>
+                <div class="field">
+                  <label for="dApellido">Apellido</label>
+                  <input id="dApellido" type="text" />
+                </div>
+                <div class="field">
+                  <label for="dFecha">Fecha de nacimiento</label>
+                  <input id="dFecha" type="date" />
+                </div>
+                <div class="field">
+                  <label for="dEmail">Email</label>
+                  <input id="dEmail" type="email" required />
+                </div>
+                <div class="field">
+                  <label for="dPass">Password</label>
+                  <input id="dPass" type="password" required />
+                </div>
+                <button class="btn btn-primary" type="submit">Crear docente</button>
+                <div id="docMsg" class="msg" role="status" aria-live="polite"></div>
+              </form>
+
+              <div class="table-wrap">
+                <table class="table" aria-label="Tabla docentes">
+                  <thead>
+                    <tr>
+                      <th>Nombre</th>
+                      <th>Apellido</th>
+                      <th>Fecha nac.</th>
+                      <th>Email</th>
+                      <th>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody id="docTbody">
+                    <tr><td colspan="5" class="table-empty">Sin docentes</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel reveal" style="--reveal-delay: 100ms" aria-label="Importar CSV">
+            <div class="panel-head">
+              <div>
+                <div class="panel-title">Importar materias desde CSV</div>
+                <div class="panel-sub">POST <span class="mono">/materias-anio/import-csv</span></div>
+              </div>
+            </div>
+            <div class="import">
+              <div class="field">
+                <label for="csvFile">Archivo CSV</label>
+                <input id="csvFile" type="file" accept=".csv,text/csv" />
+              </div>
+              <button id="importBtn" class="btn btn-primary" type="button">Importar</button>
+            </div>
+            <div class="panel-note">
+              Columnas: <span class="mono">materia</span>, <span class="mono">anio</span>, <span class="mono">nombre</span>, <span class="mono">apellido</span>, <span class="mono">fecha de nacimiento</span>, <span class="mono">email</span>.
+            </div>
+            <div id="importMsg" class="msg" role="status" aria-live="polite"></div>
+          </div>
+
           <div class="panel reveal" style="--reveal-delay: 120ms" aria-label="Materias por anio">
             <div class="panel-head">
               <div>
@@ -184,6 +258,51 @@
                   <button class="btn btn-secondary" type="button" data-close="true">Cancelar</button>
                 </div>
                 <div id="editMsg" class="msg" role="status" aria-live="polite"></div>
+              </form>
+            </div>
+          </div>
+
+          <div id="docEditModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="docEditTitle">
+            <div class="modal-backdrop" data-close="true"></div>
+            <div class="modal-panel" role="document">
+              <div class="modal-head">
+                <div>
+                  <div id="docEditTitle" class="modal-title">Editar docente</div>
+                  <div class="modal-sub">PUT <span class="mono">/users/staff/:id</span></div>
+                </div>
+                <button class="btn btn-ghost btn-sm" type="button" data-close="true">Cerrar</button>
+              </div>
+              <form id="docEditForm" class="modal-body" aria-label="Editar docente">
+                <input id="docEditId" type="hidden" />
+                <div class="cols">
+                  <div class="field">
+                    <label for="docEditNombre">Nombre</label>
+                    <input id="docEditNombre" type="text" required />
+                  </div>
+                  <div class="field">
+                    <label for="docEditApellido">Apellido</label>
+                    <input id="docEditApellido" type="text" />
+                  </div>
+                </div>
+                <div class="cols">
+                  <div class="field">
+                    <label for="docEditFecha">Fecha de nacimiento</label>
+                    <input id="docEditFecha" type="date" />
+                  </div>
+                  <div class="field">
+                    <label for="docEditEmail">Email</label>
+                    <input id="docEditEmail" type="email" required />
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="docEditPass">Nuevo password (opcional)</label>
+                  <input id="docEditPass" type="password" />
+                </div>
+                <div class="modal-actions">
+                  <button class="btn btn-primary" type="submit">Guardar cambios</button>
+                  <button class="btn btn-secondary" type="button" data-close="true">Cancelar</button>
+                </div>
+                <div id="docEditMsg" class="msg" role="status" aria-live="polite"></div>
               </form>
             </div>
           </div>
