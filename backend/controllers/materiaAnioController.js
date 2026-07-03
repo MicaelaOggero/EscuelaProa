@@ -3,15 +3,27 @@ const Usuario = require("../models/Usuario");
 const Anio = require("../models/Anio");
 const bcrypt = require("bcryptjs");
 
+function materiaAnioPopulate(query) {
+  return query
+    .populate("anioId", "numero nombre division turno")
+    .populate("docenteId", "nombre apellido email roles role");
+}
+
 function hasRole(reqUser, role) {
   const roles = (reqUser && reqUser.roles) || [];
   return roles.indexOf(role) !== -1;
 }
 
+function parseCicloLectivo(value) {
+  var num = Number(value);
+  if (!Number.isInteger(num) || num < 2000 || num > 2100) return null;
+  return num;
+}
+
 exports.list = async (req, res, next) => {
   try {
     const filter = { activo: true };
-    const { anioId, docenteId } = req.query;
+    const { anioId, docenteId, cicloLectivo } = req.query;
 
     if (hasRole(req.user, "estudiante")) {
       const me = await Usuario.findById(req.user.id).select("anioId");
@@ -21,11 +33,14 @@ exports.list = async (req, res, next) => {
     }
 
     if (docenteId) filter.docenteId = docenteId;
+    if (typeof cicloLectivo !== "undefined" && cicloLectivo !== "") {
+      var ciclo = parseCicloLectivo(cicloLectivo);
+      if (ciclo === null) return res.status(400).json({ message: "cicloLectivo invalido" });
+      filter.cicloLectivo = ciclo;
+    }
 
-    const rows = await MateriaAnio.find(filter)
-      .populate("anioId", "numero nombre division turno")
-      .populate("docenteId", "nombre apellido email roles role")
-      .sort({ "anioId.numero": 1, materia: 1, createdAt: -1 });
+    const rows = await materiaAnioPopulate(MateriaAnio.find(filter))
+      .sort({ cicloLectivo: -1, materia: 1, createdAt: -1 });
 
     res.json(rows);
   } catch (err) {
@@ -35,9 +50,8 @@ exports.list = async (req, res, next) => {
 
 exports.mine = async (req, res, next) => {
   try {
-    const rows = await MateriaAnio.find({ docenteId: req.user.id, activo: true })
-      .populate("anioId", "numero nombre division turno")
-      .sort({ createdAt: -1 });
+    const rows = await materiaAnioPopulate(MateriaAnio.find({ docenteId: req.user.id, activo: true }))
+      .sort({ cicloLectivo: -1, createdAt: -1 });
     res.json(rows);
   } catch (err) {
     next(err);
@@ -46,15 +60,33 @@ exports.mine = async (req, res, next) => {
 
 exports.create = async (req, res, next) => {
   try {
-    const { materia, anioId, docenteId } = req.body;
-    if (!materia || !anioId || !docenteId) {
-      return res.status(400).json({ message: "materia, anioId y docenteId son requeridos" });
+    const { materia, anioId, docenteId, cicloLectivo } = req.body;
+    if (!materia || !anioId || !docenteId || typeof cicloLectivo === "undefined") {
+      return res.status(400).json({ message: "materia, anioId, cicloLectivo y docenteId son requeridos" });
     }
 
-    const row = await MateriaAnio.create({ materia, anioId, docenteId });
-    const populated = await MateriaAnio.findById(row._id)
-      .populate("anioId", "numero nombre division turno")
-      .populate("docenteId", "nombre apellido email roles role");
+    const materiaNombre = String(materia || "").trim();
+    if (!materiaNombre) return res.status(400).json({ message: "materia es requerida" });
+    const ciclo = parseCicloLectivo(cicloLectivo);
+    if (ciclo === null) return res.status(400).json({ message: "cicloLectivo invalido" });
+
+    const anio = await Anio.findById(anioId).select("_id");
+    if (!anio) return res.status(404).json({ message: "Anio not found" });
+
+    const docente = await Usuario.findById(docenteId).select("_id roles role");
+    if (!docente) return res.status(404).json({ message: "Docente not found" });
+
+    const docenteRoles = Array.isArray(docente.roles)
+      ? docente.roles
+      : docente.role
+        ? [docente.role]
+        : [];
+    if (docenteRoles.indexOf("docente") === -1) {
+      return res.status(400).json({ message: "El usuario asignado debe tener rol docente" });
+    }
+
+    const row = await MateriaAnio.create({ materia: materiaNombre, anioId, cicloLectivo: ciclo, docenteId });
+    const populated = await materiaAnioPopulate(MateriaAnio.findById(row._id));
 
     res.status(201).json(populated);
   } catch (err) {
@@ -77,21 +109,40 @@ exports.remove = async (req, res, next) => {
 exports.update = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { materia, anioId, docenteId, activo } = req.body;
+    const { materia, anioId, docenteId, cicloLectivo, activo } = req.body;
 
     const row = await MateriaAnio.findById(id);
     if (!row) return res.status(404).json({ message: "Not found" });
 
     if (typeof materia === "string" && materia.trim()) row.materia = materia.trim();
-    if (anioId) row.anioId = anioId;
-    if (docenteId) row.docenteId = docenteId;
+    if (anioId) {
+      const anio = await Anio.findById(anioId).select("_id");
+      if (!anio) return res.status(404).json({ message: "Anio not found" });
+      row.anioId = anioId;
+    }
+    if (docenteId) {
+      const docente = await Usuario.findById(docenteId).select("_id roles role");
+      if (!docente) return res.status(404).json({ message: "Docente not found" });
+      const docenteRoles = Array.isArray(docente.roles)
+        ? docente.roles
+        : docente.role
+          ? [docente.role]
+          : [];
+      if (docenteRoles.indexOf("docente") === -1) {
+        return res.status(400).json({ message: "El usuario asignado debe tener rol docente" });
+      }
+      row.docenteId = docenteId;
+    }
+    if (typeof cicloLectivo !== "undefined") {
+      const ciclo = parseCicloLectivo(cicloLectivo);
+      if (ciclo === null) return res.status(400).json({ message: "cicloLectivo invalido" });
+      row.cicloLectivo = ciclo;
+    }
     if (typeof activo === "boolean") row.activo = activo;
 
     await row.save();
 
-    const populated = await MateriaAnio.findById(row._id)
-      .populate("anioId", "numero nombre division turno")
-      .populate("docenteId", "nombre apellido email roles role");
+    const populated = await materiaAnioPopulate(MateriaAnio.findById(row._id));
 
     res.json(populated);
   } catch (err) {
@@ -173,6 +224,10 @@ function parseCSV(text) {
   if (iAnio === -1) iAnio = idxFor("ano al que corresponde");
   if (iAnio === -1) iAnio = idxFor("anio al que corresponde");
 
+  var iCiclo = idxFor("ciclo lectivo");
+  if (iCiclo === -1) iCiclo = idxFor("anio lectivo");
+  if (iCiclo === -1) iCiclo = idxFor("periodo");
+
   var iNombre = idxFor("nombre");
   var iApellido = idxFor("apellido");
   var iFecha = idxFor("fecha de nacimiento");
@@ -186,6 +241,7 @@ function parseCSV(text) {
   var errors = [];
   if (iMateria === -1) errors.push("Falta columna: nombre de la materia");
   if (iAnio === -1) errors.push("Falta columna: año al que corresponde");
+  if (iCiclo === -1) errors.push("Falta columna: ciclo lectivo");
   if (iEmail === -1) errors.push("Falta columna: email del docente");
   if (errors.length) return { rows: [], errors: errors };
 
@@ -195,6 +251,7 @@ function parseCSV(text) {
     rows.push({
       materia: (cols[iMateria] || "").trim(),
       anio: (cols[iAnio] || "").trim(),
+      cicloLectivo: iCiclo === -1 ? "" : (cols[iCiclo] || "").trim(),
       nombre: iNombre === -1 ? "" : (cols[iNombre] || "").trim(),
       apellido: iApellido === -1 ? "" : (cols[iApellido] || "").trim(),
       fechaNacimiento: iFecha === -1 ? "" : (cols[iFecha] || "").trim(),
@@ -317,9 +374,16 @@ exports.importCsv = async (req, res, next) => {
 
     for (var i = 0; i < parsed.rows.length; i++) {
       var r = parsed.rows[i];
-      if (!r.materia || !r.anio || !r.email) {
+      if (!r.materia || !r.anio || !r.cicloLectivo || !r.email) {
         results.skipped++;
         results.errors.push({ line: r.line, message: "Campos incompletos" });
+        continue;
+      }
+
+      var ciclo = parseCicloLectivo(r.cicloLectivo);
+      if (ciclo === null) {
+        results.skipped++;
+        results.errors.push({ line: r.line, message: "Ciclo lectivo invalido: " + r.cicloLectivo });
         continue;
       }
 
@@ -343,7 +407,7 @@ exports.importCsv = async (req, res, next) => {
       }
 
       try {
-        await MateriaAnio.create({ materia: r.materia, docenteId: docente._id, anioId: anio._id });
+        await MateriaAnio.create({ materia: r.materia, docenteId: docente._id, anioId: anio._id, cicloLectivo: ciclo });
         results.created++;
       } catch (e) {
         if (e && e.code === 11000) {

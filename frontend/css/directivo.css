@@ -210,6 +210,39 @@ select {
   padding: 0.9rem;
 }
 
+.docente-tools {
+  display: grid;
+  gap: 1rem;
+}
+
+.import-card {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.panel-note {
+  color: var(--muted-2);
+  font-weight: 650;
+  line-height: 1.45;
+}
+
+.import-details {
+  border-radius: 14px;
+  border: 1px solid rgba(23, 19, 32, 0.10);
+  background: rgba(255, 255, 255, 0.72);
+  padding: 0.8rem 0.9rem;
+  color: rgba(23, 19, 32, 0.82);
+}
+
+.import-details ul {
+  margin: 0.45rem 0 0;
+  padding-left: 1.1rem;
+}
+
+.import-details li + li {
+  margin-top: 0.25rem;
+}
+
 @media (max-width: 980px) {
   .docentes-grid {
     grid-template-columns: 1fr;

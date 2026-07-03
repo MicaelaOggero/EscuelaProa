@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Gestion de Estudiantes - Escuela Experimental Porteña</title>
+    <meta name="description" content="Alta, edicion, importacion y filtrado de estudiantes." />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="../css/styles.css" />
+    <link rel="stylesheet" href="../css/directivo.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#contenido">Saltar al contenido</a>
+
+    <header class="site-header" role="banner">
+      <div class="container header-inner">
+        <a class="brand" href="../index.html" aria-label="Volver al inicio">
+          <img class="brand-logo" src="../assets/logo.svg" alt="Logo" width="44" height="44" />
+          <div class="brand-text">
+            <span class="brand-name">Escuela Experimental Porteña</span>
+            <span class="brand-tag">Gestion de estudiantes</span>
+          </div>
+        </a>
+        <div class="header-actions">
+          <a class="btn btn-ghost" href="../index.html">Sitio publico</a>
+          <a id="backDirectivo" class="btn btn-secondary" href="directivo.html" hidden>Panel directivo</a>
+          <a id="backDocente" class="btn btn-secondary" href="docente.html" hidden>Panel docente</a>
+          <a id="backAdmin" class="btn btn-secondary" href="admin.html" hidden>Panel superadmin</a>
+          <button id="logout" class="btn btn-primary" type="button">Cerrar sesion</button>
+        </div>
+      </div>
+    </header>
+
+    <main id="contenido" class="main" role="main">
+      <section class="section" aria-label="Gestion de estudiantes">
+        <div class="container">
+          <div class="section-head reveal">
+            <div>
+              <h1 class="section-title">Estudiantes</h1>
+              <p id="roleIntro" class="section-subtitle">
+                Gestion individual o por CSV para estudiantes segun tus permisos.
+              </p>
+            </div>
+          </div>
+
+          <div class="grid">
+            <form id="studentForm" class="panel reveal" aria-label="Crear estudiante">
+              <div class="panel-head">
+                <div>
+                  <div class="panel-title">Crear estudiante</div>
+                  <div class="panel-sub">POST <span class="mono">/users/students</span></div>
+                </div>
+              </div>
+              <div class="cols">
+                <div class="field">
+                  <label for="sNombre">Nombre</label>
+                  <input id="sNombre" type="text" required />
+                </div>
+                <div class="field">
+                  <label for="sApellido">Apellido</label>
+                  <input id="sApellido" type="text" required />
+                </div>
+              </div>
+              <div class="cols">
+                <div class="field">
+                  <label for="sDni">DNI</label>
+                  <input id="sDni" type="text" inputmode="numeric" required />
+                </div>
+                <div class="field">
+                  <label for="sFecha">Fecha de nacimiento</label>
+                  <input id="sFecha" type="date" />
+                </div>
+              </div>
+              <div class="cols">
+                <div class="field">
+                  <label for="sEmail">Email</label>
+                  <input id="sEmail" type="email" required />
+                </div>
+                <div class="field">
+                  <label for="sPass">Password inicial (opcional)</label>
+                  <input id="sPass" type="text" placeholder="Se genera automaticamente" />
+                </div>
+              </div>
+              <div class="cols">
+                <div class="field">
+                  <label for="sAnio">Anio</label>
+                  <select id="sAnio" required>
+                    <option value="" selected disabled>Seleccionar</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="sDivision">Division (opcional)</label>
+                  <input id="sDivision" type="text" />
+                </div>
+              </div>
+              <button class="btn btn-primary" type="submit">Crear estudiante</button>
+              <div id="studentMsg" class="msg" role="status" aria-live="polite"></div>
+              <div id="studentCreds" class="panel-note" hidden></div>
+            </form>
+
+            <div class="panel reveal" style="--reveal-delay: 80ms" aria-label="Importar estudiantes CSV">
+              <div class="panel-head">
+                <div>
+                  <div class="panel-title">Importar estudiantes desde CSV</div>
+                  <div class="panel-sub">POST <span class="mono">/users/students/import-csv</span></div>
+                </div>
+              </div>
+              <div class="import">
+                <div class="field">
+                  <label for="studentsCsvFile">Archivo CSV</label>
+                  <input id="studentsCsvFile" type="file" accept=".csv,text/csv" />
+                </div>
+                <button id="studentsImportBtn" class="btn btn-primary" type="button">Importar</button>
+              </div>
+              <div class="panel-note">
+                Columnas: <span class="mono">nombre</span>, <span class="mono">apellido</span>, <span class="mono">dni</span>,
+                <span class="mono">email</span>, <span class="mono">anio</span>, opcionales: <span class="mono">division</span>,
+                <span class="mono">fecha de nacimiento</span>, <span class="mono">password</span>.
+              </div>
+              <div id="studentsImportMsg" class="msg" role="status" aria-live="polite"></div>
+              <div id="studentsImportDetails" class="panel-note" hidden></div>
+            </div>
+          </div>
+
+          <div class="panel reveal" style="--reveal-delay: 100ms" aria-label="Filtros de estudiantes">
+            <div class="panel-head">
+              <div>
+                <div class="panel-title">Filtros</div>
+                <div class="panel-sub">Por anio, docente y materia</div>
+              </div>
+              <button id="studentsRefresh" class="btn btn-secondary" type="button">Actualizar</button>
+            </div>
+
+            <div class="cols">
+              <div class="field">
+                <label for="filterAnio">Anio</label>
+                <select id="filterAnio">
+                  <option value="">Todos</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="filterDocente">Docente</label>
+                <select id="filterDocente">
+                  <option value="">Todos</option>
+                </select>
+              </div>
+            </div>
+            <div class="cols">
+              <div class="field">
+                <label for="filterMateria">Materia</label>
+                <select id="filterMateria">
+                  <option value="">Todas</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="filterSearch">Buscar</label>
+                <input id="filterSearch" type="text" placeholder="Nombre, apellido, email o DNI" />
+              </div>
+            </div>
+            <div class="modal-actions">
+              <button id="applyFilters" class="btn btn-primary" type="button">Aplicar filtros</button>
+              <button id="clearFilters" class="btn btn-secondary" type="button">Limpiar</button>
+            </div>
+          </div>
+
+          <div class="panel reveal" style="--reveal-delay: 120ms" aria-label="Listado de estudiantes">
+            <div class="panel-head">
+              <div>
+                <div class="panel-title">Listado de estudiantes</div>
+                <div class="panel-sub">GET <span class="mono">/users/students</span></div>
+              </div>
+            </div>
+
+            <div id="studentsListMsg" class="msg" role="status" aria-live="polite"></div>
+
+            <div class="table-wrap">
+              <table class="table" aria-label="Tabla estudiantes">
+                <thead>
+                  <tr>
+                    <th>Nombre</th>
+                    <th>Apellido</th>
+                    <th>DNI</th>
+                    <th>Anio</th>
+                    <th>Division</th>
+                    <th>Email</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="studentsTbody">
+                  <tr><td colspan="7" class="table-empty">Sin estudiantes</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div id="studentEditModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="studentEditTitle">
+            <div class="modal-backdrop" data-close="true"></div>
+            <div class="modal-panel" role="document">
+              <div class="modal-head">
+                <div>
+                  <div id="studentEditTitle" class="modal-title">Editar estudiante</div>
+                  <div class="modal-sub">PUT <span class="mono">/users/students/:id</span></div>
+                </div>
+                <button class="btn btn-ghost btn-sm" type="button" data-close="true">Cerrar</button>
+              </div>
+              <form id="studentEditForm" class="modal-body" aria-label="Editar estudiante">
+                <input id="editStudentId" type="hidden" />
+                <div class="cols">
+                  <div class="field">
+                    <label for="editStudentNombre">Nombre</label>
+                    <input id="editStudentNombre" type="text" required />
+                  </div>
+                  <div class="field">
+                    <label for="editStudentApellido">Apellido</label>
+                    <input id="editStudentApellido" type="text" required />
+                  </div>
+                </div>
+                <div class="cols">
+                  <div class="field">
+                    <label for="editStudentDni">DNI</label>
+                    <input id="editStudentDni" type="text" inputmode="numeric" required />
+                  </div>
+                  <div class="field">
+                    <label for="editStudentFecha">Fecha de nacimiento</label>
+                    <input id="editStudentFecha" type="date" />
+                  </div>
+                </div>
+                <div class="cols">
+                  <div class="field">
+                    <label for="editStudentEmail">Email</label>
+                    <input id="editStudentEmail" type="email" required />
+                  </div>
+                  <div class="field">
+                    <label for="editStudentPass">Nuevo password (opcional)</label>
+                    <input id="editStudentPass" type="text" />
+                  </div>
+                </div>
+                <div class="cols">
+                  <div class="field">
+                    <label for="editStudentAnio">Anio</label>
+                    <select id="editStudentAnio" required>
+                      <option value="" selected disabled>Seleccionar</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label for="editStudentDivision">Division (opcional)</label>
+                    <input id="editStudentDivision" type="text" />
+                  </div>
+                </div>
+                <div class="modal-actions">
+                  <button class="btn btn-primary" type="submit">Guardar cambios</button>
+                  <button class="btn btn-secondary" type="button" data-close="true">Cancelar</button>
+                </div>
+                <div id="studentEditMsg" class="msg" role="status" aria-live="polite"></div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer" role="contentinfo">
+      <div class="container footer-bottom">
+        <div>© <span id="year"></span> Escuela Experimental Porteña</div>
+        <div class="footer-bottom-links"><a href="../index.html">Inicio</a></div>
+      </div>
+    </footer>
+
+    <script src="../js/script.js" defer></script>
+    <script src="../js/estudiantes.js" defer></script>
+  </body>
+</html>

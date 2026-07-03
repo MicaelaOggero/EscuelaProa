@@ -7,10 +7,30 @@ function hasRole(user, role) {
   return roles.indexOf(role) !== -1;
 }
 
+function parseCicloLectivo(value) {
+  var num = Number(value);
+  if (!Number.isInteger(num) || num < 2000 || num > 2100) return null;
+  return num;
+}
+
+function contenidoPopulate(query) {
+  return query
+    .populate("anioId", "numero nombre division turno")
+    .populate({
+      path: "materiaAnioId",
+      select: "materia anioId cicloLectivo docenteId activo",
+      populate: [
+        { path: "anioId", select: "numero nombre division turno" },
+        { path: "docenteId", select: "nombre apellido email" }
+      ]
+    })
+    .populate("createdBy", "nombre apellido email");
+}
+
 exports.list = async (req, res, next) => {
   try {
     const filter = { publicado: true };
-    const { anioId, materiaAnioId, tipo } = req.query;
+    const { anioId, materiaAnioId, tipo, cicloLectivo } = req.query;
 
     // If logged student: force scope by student's anioId
     if (req.user && req.user.id && hasRole(req.user, "estudiante")) {
@@ -22,11 +42,13 @@ exports.list = async (req, res, next) => {
 
     if (materiaAnioId) filter.materiaAnioId = materiaAnioId;
     if (tipo) filter.tipo = tipo;
+    if (typeof cicloLectivo !== "undefined" && cicloLectivo !== "") {
+      const ciclo = parseCicloLectivo(cicloLectivo);
+      if (ciclo === null) return res.status(400).json({ message: "cicloLectivo invalido" });
+      filter.cicloLectivo = ciclo;
+    }
 
-    const rows = await Contenido.find(filter)
-      .populate("anioId", "numero nombre division turno")
-      .populate("materiaAnioId", "materia")
-      .populate("createdBy", "nombre apellido email")
+    const rows = await contenidoPopulate(Contenido.find(filter))
       .sort({ fecha: -1, createdAt: -1 });
     res.json(rows);
   } catch (err) {
@@ -36,9 +58,7 @@ exports.list = async (req, res, next) => {
 
 exports.mine = async (req, res, next) => {
   try {
-    const rows = await Contenido.find({ createdBy: req.user.id })
-      .populate("anioId", "numero nombre division turno")
-      .populate("materiaAnioId", "materia")
+    const rows = await contenidoPopulate(Contenido.find({ createdBy: req.user.id }))
       .sort({ fecha: -1, createdAt: -1 });
     res.json(rows);
   } catch (err) {
@@ -70,13 +90,11 @@ exports.create = async (req, res, next) => {
       archivos: Array.isArray(req.body.archivos) ? req.body.archivos : [],
       materiaAnioId,
       anioId: ma.anioId,
+      cicloLectivo: ma.cicloLectivo,
       createdBy: req.user.id
     });
 
-    const populated = await Contenido.findById(row._id)
-      .populate("anioId", "numero nombre division turno")
-      .populate("materiaAnioId", "materia")
-      .populate("createdBy", "nombre apellido email");
+    const populated = await contenidoPopulate(Contenido.findById(row._id));
 
     res.status(201).json(populated);
   } catch (err) {
@@ -100,10 +118,7 @@ exports.update = async (req, res, next) => {
     });
     await row.save();
 
-    const populated = await Contenido.findById(row._id)
-      .populate("anioId", "numero nombre division turno")
-      .populate("materiaId", "nombre codigo")
-      .populate("createdBy", "nombre apellido email");
+    const populated = await contenidoPopulate(Contenido.findById(row._id));
 
     res.json(populated);
   } catch (err) {

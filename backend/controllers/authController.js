@@ -1,17 +1,18 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const Usuario = require("../models/Usuario");
+const { normalizeRoles, primaryRole } = require("../utils/roles");
 
 function signToken(user) {
   const secret = process.env.JWT_SECRET;
   if (!secret) throw new Error("JWT_SECRET not set");
   const expiresIn = process.env.JWT_EXPIRES_IN || "7d";
-  var roles = user.roles && user.roles.length ? user.roles : user.role ? [user.role] : [];
+  var roles = normalizeRoles(user.roles && user.roles.length ? user.roles : user.role ? [user.role] : []);
   return jwt.sign({ id: user._id, roles: roles }, secret, { expiresIn });
 }
 
 function toUserResponse(user) {
-  var roles = user.roles && user.roles.length ? user.roles : user.role ? [user.role] : [];
+  var roles = normalizeRoles(user.roles && user.roles.length ? user.roles : user.role ? [user.role] : []);
   return {
     id: user._id,
     nombre: user.nombre,
@@ -19,7 +20,7 @@ function toUserResponse(user) {
     fechaNacimiento: user.fechaNacimiento,
     email: user.email,
     roles: roles,
-    role: roles[0] || user.role
+    role: primaryRole(roles) || user.role
   };
 }
 
@@ -30,14 +31,14 @@ exports.register = async (req, res, next) => {
     if (existing) return res.status(409).json({ message: "Email already in use" });
 
     const passwordHash = await bcrypt.hash(password, 10);
-    // Registro publico: por defecto se crea como comunidad-estudiantes.
+    // Registro publico: por defecto se crea como estudiante.
     const user = await Usuario.create({
       nombre,
       apellido,
       fechaNacimiento,
       email,
       passwordHash,
-      roles: ["comunidad-estudiantes"]
+      roles: ["estudiante"]
     });
     const token = signToken(user);
 
@@ -72,7 +73,7 @@ exports.loginStaff = async (req, res, next) => {
     const ok = await bcrypt.compare(password, user.passwordHash);
     if (!ok) return res.status(401).json({ message: "Invalid credentials" });
 
-    var roles = user.roles && user.roles.length ? user.roles : user.role ? [user.role] : [];
+    var roles = normalizeRoles(user.roles && user.roles.length ? user.roles : user.role ? [user.role] : []);
     const isStaff =
       roles.indexOf("superadmin") !== -1 ||
       roles.indexOf("directivo") !== -1 ||

@@ -30,6 +30,7 @@
         </a>
         <div class="header-actions">
           <a class="btn btn-ghost" href="../index.html">Sitio publico</a>
+          <a class="btn btn-secondary" href="estudiantes.html">Estudiantes</a>
           <a id="superPanel" class="btn btn-secondary" href="admin.html" hidden>Panel superadmin</a>
           <button id="logout" class="btn btn-primary" type="button">Cerrar sesion</button>
         </div>
@@ -106,6 +107,12 @@
                   </select>
                 </div>
                 <div class="field">
+                  <label for="maCicloLectivo">Ciclo lectivo</label>
+                  <input id="maCicloLectivo" type="number" min="2000" max="2100" required />
+                </div>
+              </div>
+              <div class="cols">
+                <div class="field">
                   <label>Estado</label>
                   <input value="Activo" readonly />
                 </div>
@@ -125,30 +132,47 @@
             </div>
 
             <div class="docentes-grid">
-              <form id="docenteForm" class="docente-form" aria-label="Crear docente">
-                <div class="field">
-                  <label for="dNombre">Nombre</label>
-                  <input id="dNombre" type="text" required />
+              <div class="docente-tools">
+                <form id="docenteForm" class="docente-form" aria-label="Crear docente">
+                  <div class="field">
+                    <label for="dNombre">Nombre</label>
+                    <input id="dNombre" type="text" required />
+                  </div>
+                  <div class="field">
+                    <label for="dApellido">Apellido</label>
+                    <input id="dApellido" type="text" />
+                  </div>
+                  <div class="field">
+                    <label for="dFecha">Fecha de nacimiento</label>
+                    <input id="dFecha" type="date" />
+                  </div>
+                  <div class="field">
+                    <label for="dEmail">Email</label>
+                    <input id="dEmail" type="email" required />
+                  </div>
+                  <div class="field">
+                    <label for="dPass">Password</label>
+                    <input id="dPass" type="password" required />
+                  </div>
+                  <button class="btn btn-primary" type="submit">Crear docente</button>
+                  <div id="docMsg" class="msg" role="status" aria-live="polite"></div>
+                </form>
+
+                <div class="docente-form import-card" aria-label="Importar docentes por CSV">
+                  <div class="panel-title">Importar docentes por CSV</div>
+                  <div class="panel-sub">POST <span class="mono">/users/staff/import-csv</span></div>
+                  <div class="field">
+                    <label for="docCsvFile">Archivo CSV</label>
+                    <input id="docCsvFile" type="file" accept=".csv,text/csv" />
+                  </div>
+                  <button id="docImportBtn" class="btn btn-secondary" type="button">Importar docentes</button>
+                  <div class="panel-note">
+                    Columnas: <span class="mono">nombre</span>, <span class="mono">apellido</span>, <span class="mono">fecha de nacimiento</span>, <span class="mono">email</span>, <span class="mono">dni</span>, <span class="mono">password</span>. Solo <span class="mono">nombre</span> y <span class="mono">email</span> son obligatorias; si falta <span class="mono">password</span> se genera una.
+                  </div>
+                  <div id="docImportMsg" class="msg" role="status" aria-live="polite"></div>
+                  <div id="docImportDetails" class="import-details" hidden></div>
                 </div>
-                <div class="field">
-                  <label for="dApellido">Apellido</label>
-                  <input id="dApellido" type="text" />
-                </div>
-                <div class="field">
-                  <label for="dFecha">Fecha de nacimiento</label>
-                  <input id="dFecha" type="date" />
-                </div>
-                <div class="field">
-                  <label for="dEmail">Email</label>
-                  <input id="dEmail" type="email" required />
-                </div>
-                <div class="field">
-                  <label for="dPass">Password</label>
-                  <input id="dPass" type="password" required />
-                </div>
-                <button class="btn btn-primary" type="submit">Crear docente</button>
-                <div id="docMsg" class="msg" role="status" aria-live="polite"></div>
-              </form>
+              </div>
 
               <div class="table-wrap">
                 <table class="table" aria-label="Tabla docentes">
@@ -184,7 +208,7 @@
               <button id="importBtn" class="btn btn-primary" type="button">Importar</button>
             </div>
             <div class="panel-note">
-              Columnas: <span class="mono">materia</span>, <span class="mono">anio</span>, <span class="mono">nombre</span>, <span class="mono">apellido</span>, <span class="mono">fecha de nacimiento</span>, <span class="mono">email</span>.
+              Columnas: <span class="mono">materia</span>, <span class="mono">anio</span>, <span class="mono">ciclo lectivo</span>, <span class="mono">nombre</span>, <span class="mono">apellido</span>, <span class="mono">fecha de nacimiento</span>, <span class="mono">email</span>.
             </div>
             <div id="importMsg" class="msg" role="status" aria-live="polite"></div>
           </div>
@@ -207,11 +231,12 @@
                     <th>Docente</th>
                     <th>Materia</th>
                     <th>Anio</th>
+                    <th>Ciclo lectivo</th>
                     <th>Acciones</th>
                   </tr>
                 </thead>
                 <tbody id="asigTbody">
-                  <tr><td colspan="4" class="table-empty">Sin asignaciones</td></tr>
+                  <tr><td colspan="5" class="table-empty">Sin asignaciones</td></tr>
                 </tbody>
               </table>
             </div>
@@ -246,6 +271,10 @@
                       <option value="" selected disabled>Seleccionar</option>
                     </select>
                   </div>
+                </div>
+                <div class="field">
+                  <label for="editCicloLectivo">Ciclo lectivo</label>
+                  <input id="editCicloLectivo" type="number" min="2000" max="2100" required />
                 </div>
                 <div class="field">
                   <label class="switch">

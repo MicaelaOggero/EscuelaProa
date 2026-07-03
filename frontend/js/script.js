@@ -67,6 +67,7 @@ function initReveal() {
 function initAuthHeader() {
   var STORAGE_TOKEN = "eep_token";
   var STORAGE_USER = "eep_user";
+  var STORAGE_LAST_PANEL = "eep_last_panel_path";
   var token = localStorage.getItem(STORAGE_TOKEN) || "";
   var userRaw = localStorage.getItem(STORAGE_USER);
   var user = null;
@@ -84,15 +85,24 @@ function initAuthHeader() {
   var roles = (user && (user.roles || (user.role ? [user.role] : []))) || [];
   if (!Array.isArray(roles)) roles = [];
   var isStaff = roles.indexOf("superadmin") !== -1 || roles.indexOf("directivo") !== -1 || roles.indexOf("docente") !== -1;
+  var lastPanelPath = sessionStorage.getItem(STORAGE_LAST_PANEL) || "";
+
+  function defaultPanelPath() {
+    if (roles.indexOf("docente") !== -1) return "pages/docente.html";
+    if (roles.indexOf("directivo") !== -1 || roles.indexOf("superadmin") !== -1) return "pages/directivo.html";
+    return "pages/admin.html";
+  }
 
   if (loginLink) loginLink.hidden = isLoggedIn;
   if (logoutBtn) logoutBtn.hidden = !isLoggedIn;
   if (panelLink) panelLink.hidden = !isStaff;
+  if (panelLink && isStaff) panelLink.href = lastPanelPath || defaultPanelPath();
 
   if (logoutBtn) {
     logoutBtn.addEventListener("click", function () {
       localStorage.removeItem(STORAGE_TOKEN);
       localStorage.removeItem(STORAGE_USER);
+      sessionStorage.removeItem(STORAGE_LAST_PANEL);
       if (loginLink) loginLink.hidden = false;
       if (panelLink) panelLink.hidden = true;
       logoutBtn.hidden = true;

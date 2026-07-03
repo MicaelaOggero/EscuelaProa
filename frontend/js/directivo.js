@@ -2,6 +2,7 @@
   var STORAGE_API_BASE = "eep_api_base";
   var STORAGE_TOKEN = "eep_token";
   var STORAGE_USER = "eep_user";
+  var STORAGE_LAST_PANEL = "eep_last_panel_path";
 
   function $(sel) {
     return document.querySelector(sel);
@@ -13,6 +14,15 @@
     el.classList.remove("is-error", "is-ok");
     if (kind === "error") el.classList.add("is-error");
     if (kind === "ok") el.classList.add("is-ok");
+  }
+
+  function escapeHtml(value) {
+    return String(value || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\"/g, "&quot;")
+      .replace(/'/g, "&#39;");
   }
 
   function getApiBase() {
@@ -32,6 +42,10 @@
     } catch (e) {
       return null;
     }
+  }
+
+  function rememberPanelPath() {
+    sessionStorage.setItem(STORAGE_LAST_PANEL, "pages/directivo.html");
   }
 
   function rolesOf(u) {
@@ -108,6 +122,51 @@
     return base + div + tur;
   }
 
+  function cicloLabel(v) {
+    return v ? String(v) : "-";
+  }
+
+  function currentCicloLectivo() {
+    return new Date().getFullYear();
+  }
+
+  async function readCsvFile(file) {
+    var buffer = await file.arrayBuffer();
+    var bytes = new Uint8Array(buffer);
+
+    function decode(label, fatal) {
+      return new TextDecoder(label, { fatal: fatal }).decode(bytes);
+    }
+
+    try {
+      return decode("utf-8", true);
+    } catch (e) {
+      return decode("windows-1252", false);
+    }
+  }
+
+  function renderImportDetails(el, credentials, errors) {
+    if (!el) return;
+    var blocks = [];
+
+    if (Array.isArray(credentials) && credentials.length) {
+      var items = credentials.map(function (row) {
+        return "<li>Linea " + escapeHtml(row.line) + " · " + escapeHtml(row.email || row.dni || "") + " · " + escapeHtml(row.password || "") + "</li>";
+      }).join("");
+      blocks.push("<div><strong>Passwords generados</strong><ul>" + items + "</ul></div>");
+    }
+
+    if (Array.isArray(errors) && errors.length) {
+      var errItems = errors.map(function (row) {
+        return "<li>Linea " + escapeHtml(row.line) + " · " + escapeHtml(row.message || "Error") + "</li>";
+      }).join("");
+      blocks.push("<div><strong>Observaciones</strong><ul>" + errItems + "</ul></div>");
+    }
+
+    el.innerHTML = blocks.join("");
+    el.hidden = !blocks.length;
+  }
+
   async function loadAll() {
     var asigMsg = $("#asigMsg");
     setMsg(asigMsg, "Cargando...", "");
@@ -146,7 +205,7 @@
     if (!rows.length) {
       var tr = document.createElement("tr");
       var td = document.createElement("td");
-      td.colSpan = 4;
+      td.colSpan = 5;
       td.className = "table-empty";
       td.textContent = "Sin asignaciones";
       tr.appendChild(td);
@@ -162,6 +221,8 @@
       tdM.textContent = r.materia || "-";
       var tdA = document.createElement("td");
       tdA.textContent = r.anioId ? anioLabel(r.anioId) : "-";
+      var tdC = document.createElement("td");
+      tdC.textContent = cicloLabel(r.cicloLectivo);
       var tdX = document.createElement("td");
 
       var btnEdit = document.createElement("button");
@@ -189,6 +250,7 @@
       tr.appendChild(tdD);
       tr.appendChild(tdM);
       tr.appendChild(tdA);
+      tr.appendChild(tdC);
       tr.appendChild(tdX);
       tbody.appendChild(tr);
     });
@@ -202,6 +264,7 @@
     $("#editActivo").checked = row.activo !== false;
     if (row.docenteId && row.docenteId._id) $("#editDocente").value = row.docenteId._id;
     if (row.anioId && row.anioId._id) $("#editAnio").value = row.anioId._id;
+    $("#editCicloLectivo").value = row.cicloLectivo || new Date().getFullYear();
     setMsg($("#editMsg"), "", "");
     modal.classList.add("is-open");
     modal.setAttribute("aria-hidden", "false");
@@ -245,6 +308,7 @@
             materia: $("#editMateria").value,
             docenteId: $("#editDocente").value,
             anioId: $("#editAnio").value,
+            cicloLectivo: Number($("#editCicloLectivo").value),
             activo: $("#editActivo").checked
           })
         });
@@ -460,6 +524,45 @@
     });
   }
 
+  function initImportDocentes() {
+    var btn = $("#docImportBtn");
+    var fileEl = $("#docCsvFile");
+    var msg = $("#docImportMsg");
+    var details = $("#docImportDetails");
+    if (!btn || !fileEl) return;
+
+    btn.addEventListener("click", async function () {
+      setMsg(msg, "Leyendo archivo...", "");
+      renderImportDetails(details, [], []);
+      var f = fileEl.files && fileEl.files[0];
+      if (!f) {
+        setMsg(msg, "Selecciona un CSV", "error");
+        return;
+      }
+
+      try {
+        var text = await readCsvFile(f);
+        setMsg(msg, "Importando...", "");
+        var res = await api("/users/staff/import-csv", {
+          method: "POST",
+          body: JSON.stringify({ csv: text })
+        });
+        setMsg(
+          msg,
+          "OK · creados: " + String(res.created || 0) + " · omitidos: " + String(res.skipped || 0),
+          "ok"
+        );
+        renderImportDetails(details, res.credentials, res.errors);
+        fileEl.value = "";
+        loadDocentes();
+        loadAll();
+      } catch (e) {
+        renderImportDetails(details, [], []);
+        setMsg(msg, e.message || "Error", "error");
+      }
+    });
+  }
+
   async function removeAsignacion(id) {
     if (!confirm("Eliminar asignacion?")) return;
     var msg = $("#asigMsg");
@@ -512,6 +615,7 @@
           body: JSON.stringify({
             materia: $("#maMateria").value,
             anioId: $("#maAnio").value,
+            cicloLectivo: Number($("#maCicloLectivo").value),
             docenteId: $("#maDocente").value
           })
         });
@@ -543,7 +647,7 @@
         return;
       }
       try {
-        var text = await f.text();
+        var text = await readCsvFile(f);
         setMsg(msg, "Importando...", "");
         var res = await api("/materias-anio/import-csv", {
           method: "POST",
@@ -563,6 +667,9 @@
   }
 
   if (!guard()) return;
+  rememberPanelPath();
+  var maCiclo = $("#maCicloLectivo");
+  if (maCiclo && !maCiclo.value) maCiclo.value = currentCicloLectivo();
   initLogout();
   initCreateAnio();
   initCreateMateriaAnio();
@@ -570,6 +677,7 @@
   initEditModal();
   initCsvImport();
   initCreateDocente();
+  initImportDocentes();
   initDocEditModal();
   var refreshDoc = $("#refreshDocentes");
   if (refreshDoc) refreshDoc.addEventListener("click", loadDocentes);

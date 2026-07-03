@@ -2,6 +2,7 @@
   var STORAGE_API_BASE = "eep_api_base";
   var STORAGE_TOKEN = "eep_token";
   var STORAGE_USER = "eep_user";
+  var STORAGE_LAST_PANEL = "eep_last_panel_path";
 
   function $(sel) {
     return document.querySelector(sel);
@@ -48,6 +49,10 @@
       return;
     }
     localStorage.setItem(STORAGE_USER, JSON.stringify(u));
+  }
+
+  function rememberPanelPath() {
+    sessionStorage.setItem(STORAGE_LAST_PANEL, "pages/admin.html");
   }
 
   async function api(path, opts) {
@@ -441,6 +446,7 @@
   initCreateStaff();
   initListControls();
   initEditModal();
+  rememberPanelPath();
   syncSessionUI();
 
   

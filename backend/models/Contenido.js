@@ -22,12 +22,22 @@ const ContenidoSchema = new mongoose.Schema(
 
     materiaAnioId: { type: mongoose.Schema.Types.ObjectId, ref: "MateriaAnio", required: true, index: true },
     anioId: { type: mongoose.Schema.Types.ObjectId, ref: "Anio", required: true, index: true },
+    cicloLectivo: {
+      type: Number,
+      required: true,
+      min: 2000,
+      max: 2100,
+      default: function () {
+        return new Date().getFullYear();
+      },
+      index: true
+    },
 
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "Usuario", required: true, index: true }
   },
   { timestamps: true }
 );
 
-ContenidoSchema.index({ anioId: 1, materiaAnioId: 1, fecha: -1 });
+ContenidoSchema.index({ anioId: 1, cicloLectivo: 1, materiaAnioId: 1, fecha: -1 });
 
 module.exports = mongoose.model("Contenido", ContenidoSchema);

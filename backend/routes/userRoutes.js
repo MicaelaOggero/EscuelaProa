@@ -14,7 +14,14 @@ router.post("/", authMiddleware, roleMiddleware("superadmin"), userController.cr
 router.get("/staff", authMiddleware, roleMiddleware("superadmin", "directivo"), userController.listStaff);
 // Directivo can manage docentes; superadmin can manage staff.
 router.post("/staff", authMiddleware, roleMiddleware("superadmin", "directivo"), userController.createStaff);
+router.post("/staff/import-csv", authMiddleware, roleMiddleware("superadmin", "directivo"), userController.importStaffCsv);
 router.put("/staff/:id", authMiddleware, roleMiddleware("superadmin", "directivo"), userController.updateStaff);
 router.delete("/staff/:id", authMiddleware, roleMiddleware("superadmin", "directivo"), userController.deleteStaff);
+
+router.get("/students", authMiddleware, roleMiddleware("directivo", "docente"), userController.listStudents);
+router.post("/students", authMiddleware, roleMiddleware("directivo", "docente"), userController.createStudent);
+router.post("/students/import-csv", authMiddleware, roleMiddleware("directivo", "docente"), userController.importStudentsCsv);
+router.put("/students/:id", authMiddleware, roleMiddleware("directivo", "docente"), userController.updateStudent);
+router.delete("/students/:id", authMiddleware, roleMiddleware("directivo", "docente"), userController.deleteStudent);
 
 module.exports = router;

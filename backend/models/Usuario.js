@@ -1,10 +1,12 @@
 const mongoose = require("mongoose");
+const { normalizeRoles, primaryRole } = require("../utils/roles");
 
 const UsuarioSchema = new mongoose.Schema(
   {
     nombre: { type: String, required: true, trim: true },
     apellido: { type: String, default: "", trim: true },
     fechaNacimiento: { type: Date },
+    dni: { type: String, unique: true, sparse: true, trim: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     passwordHash: { type: String, required: true },
     // Legacy single role (kept for backwards compatibility with existing docs)
@@ -13,7 +15,7 @@ const UsuarioSchema = new mongoose.Schema(
     roles: {
       type: [String],
       enum: ["superadmin", "directivo", "docente", "estudiante", "comunidad-estudiantes"],
-      default: ["comunidad-estudiantes"]
+      default: ["estudiante"]
     }
     ,
     // Estudiante: anio/curso actual (opcional)
@@ -26,21 +28,23 @@ const UsuarioSchema = new mongoose.Schema(
 UsuarioSchema.pre("save", function (next) {
   // If an old document uses `role`, migrate it to `roles`.
   // Important: avoid overwriting an explicitly provided `role` with the default roles.
-  var hasRoles = Array.isArray(this.roles) && this.roles.length > 0;
+  var normalizedRoles = normalizeRoles(this.roles);
+  var hasRoles = normalizedRoles.length > 0;
   var hasRole = typeof this.role === "string" && this.role.trim().length > 0;
 
   if (hasRole) {
-    var r = this.role.trim();
-    // If roles is missing/empty OR still at default ["comunidad-estudiantes"], trust `role`.
-    if (!hasRoles || (this.roles.length === 1 && this.roles[0] === "comunidad-estudiantes" && r !== "comunidad-estudiantes")) {
-      this.roles = [r];
+    var r = primaryRole(this.role.trim());
+    // If roles is missing/empty OR still at default ["estudiante"], trust `role`.
+    if (!hasRoles || (normalizedRoles.length === 1 && normalizedRoles[0] === "estudiante" && r !== "estudiante")) {
+      normalizedRoles = r ? [r] : [];
       hasRoles = true;
     }
   }
 
   // Keep `role` as a mirror of the primary role.
   if (hasRoles) {
-    this.role = this.roles[0];
+    this.roles = normalizedRoles;
+    this.role = primaryRole(normalizedRoles);
   }
   next();
 });

@@ -2,6 +2,7 @@
   var STORAGE_API_BASE = "eep_api_base";
   var STORAGE_TOKEN = "eep_token";
   var STORAGE_USER = "eep_user";
+  var STORAGE_LAST_PANEL = "eep_last_panel_path";
   var LS_POSTS = "eep_docente_posts";
   var LS_MATS = "eep_docente_materials";
   var LS_ACTS = "eep_docente_activities";
@@ -39,6 +40,10 @@
     } catch (e) {
       return null;
     }
+  }
+
+  function rememberPanelPath() {
+    sessionStorage.setItem(STORAGE_LAST_PANEL, "pages/docente.html");
   }
 
   function saveLS(key, value) {
@@ -147,6 +152,18 @@
     return dd + "/" + mm + "/" + yyyy + " " + hh + ":" + mi;
   }
 
+  function anioLabel(a) {
+    if (!a) return "Anio";
+    var base = a.nombre || (a.numero ? String(a.numero) + "o" : "Anio");
+    var div = a.division ? " " + a.division : "";
+    var turno = a.turno ? " · " + a.turno : "";
+    return base + div + turno;
+  }
+
+  function cicloLabel(v) {
+    return v ? String(v) : "-";
+  }
+
   function openModal(id) {
     var modal = $(id);
     if (!modal) return;
@@ -164,10 +181,7 @@
       rows.forEach(function (a) {
         var opt = document.createElement("option");
         opt.value = a._id;
-        var an = a.anioId;
-        var anLabel = an ? (an.nombre || (an.numero ? String(an.numero) + "o" : "")) : "Anio";
-        var div = an && an.division ? " " + an.division : "";
-        opt.textContent = (a.materia || "Materia") + " · " + anLabel + div;
+        opt.textContent = (a.materia || "Materia") + " · " + anioLabel(a.anioId) + " · " + cicloLabel(a.cicloLectivo);
         sel.appendChild(opt);
       });
     } catch (e) {
@@ -633,6 +647,7 @@
   }
 
   if (!authGuard()) return;
+  rememberPanelPath();
 
   injectIcons();
   initSidebarNav();

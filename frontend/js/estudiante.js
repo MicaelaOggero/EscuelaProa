@@ -2,6 +2,7 @@
   var STORAGE_API_BASE = "eep_api_base";
   var STORAGE_TOKEN = "eep_token";
   var STORAGE_USER = "eep_user";
+  var STORAGE_LAST_PANEL = "eep_last_panel_path";
 
   function $(sel) {
     return document.querySelector(sel);
@@ -34,9 +35,16 @@
     }
   }
 
+  function rememberPanelPath() {
+    sessionStorage.setItem(STORAGE_LAST_PANEL, "pages/estudiante.html");
+  }
+
   function rolesOf(u) {
     var roles = (u && (u.roles || (u.role ? [u.role] : []))) || [];
-    return Array.isArray(roles) ? roles : [];
+    if (!Array.isArray(roles)) return [];
+    return roles.map(function (role) {
+      return role === "comunidad-estudiantes" ? "estudiante" : role;
+    });
   }
 
   function guard() {
@@ -88,6 +96,23 @@
     return dd + "/" + mm + "/" + yyyy;
   }
 
+  function anioLabel(a) {
+    if (!a) return "";
+    var base = a.nombre || (a.numero ? String(a.numero) + "o" : "Anio");
+    var div = a.division ? " " + a.division : "";
+    var turno = a.turno ? " · " + a.turno : "";
+    return base + div + turno;
+  }
+
+  function materiaConAnioLabel(m) {
+    if (!m) return "Materia";
+    var materia = m.materia || "Materia";
+    var anio = anioLabel(m.anioId);
+    var ciclo = m.cicloLectivo ? String(m.cicloLectivo) : "";
+    var label = anio ? materia + " · " + anio : materia;
+    return ciclo ? label + " · " + ciclo : label;
+  }
+
   function initLogout() {
     var btn = $("#logout");
     if (!btn) return;
@@ -103,11 +128,12 @@
     if (!sel) return;
     sel.innerHTML = '<option value="">Todas</option>';
     try {
-      var rows = await api("/materias-anio", { method: "GET" });
+      var cicloActual = new Date().getFullYear();
+      var rows = await api("/materias-anio?cicloLectivo=" + encodeURIComponent(cicloActual), { method: "GET" });
       (rows || []).forEach(function (m) {
         var opt = document.createElement("option");
         opt.value = m._id;
-        opt.textContent = m.materia;
+        opt.textContent = materiaConAnioLabel(m);
         sel.appendChild(opt);
       });
     } catch (e) {
@@ -133,7 +159,7 @@
       meta.className = "meta";
       var chip = document.createElement("div");
       chip.className = "chip";
-      chip.textContent = (r.materiaAnioId && r.materiaAnioId.materia) || "Materia";
+      chip.textContent = materiaConAnioLabel(r.materiaAnioId);
       var date = document.createElement("div");
       date.className = "date";
       date.textContent = formatFecha(r.fecha || r.createdAt);
@@ -151,7 +177,9 @@
       var by = document.createElement("div");
       by.className = "byline";
       var who = r.createdBy ? [r.createdBy.apellido, r.createdBy.nombre].filter(Boolean).join(", ") : "";
-      by.textContent = [r.tipo, who].filter(Boolean).join(" · ");
+      var curso = anioLabel((r.materiaAnioId && r.materiaAnioId.anioId) || r.anioId);
+      var ciclo = (r.materiaAnioId && r.materiaAnioId.cicloLectivo) || r.cicloLectivo;
+      by.textContent = [r.tipo, curso, ciclo ? String(ciclo) : "", who].filter(Boolean).join(" · ");
 
       card.appendChild(meta);
       card.appendChild(h);
@@ -168,8 +196,10 @@
       var q = [];
       var materia = $("#materia").value;
       var tipo = $("#tipo").value;
+      var cicloActual = new Date().getFullYear();
       if (materia) q.push("materiaAnioId=" + encodeURIComponent(materia));
       if (tipo) q.push("tipo=" + encodeURIComponent(tipo));
+      if (!materia) q.push("cicloLectivo=" + encodeURIComponent(cicloActual));
       var data = await api("/contenidos" + (q.length ? "?" + q.join("&") : ""), { method: "GET" });
       renderCards(Array.isArray(data) ? data : []);
       setMsg(msg, "OK", "ok");
@@ -203,6 +233,7 @@
   }
 
   if (!guard()) return;
+  rememberPanelPath();
   initLogout();
   initFilters();
   loadMaterias();
