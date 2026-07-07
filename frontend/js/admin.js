@@ -51,6 +51,24 @@
     localStorage.setItem(STORAGE_USER, JSON.stringify(u));
   }
 
+  function authGuard() {
+    var token = getToken();
+    var user = getUser();
+    var roles = (user && (user.roles || (user.role ? [user.role] : []))) || [];
+    if (!Array.isArray(roles)) roles = [];
+    if (!token || !user) {
+      window.location.href = "login.html";
+      return false;
+    }
+    if (roles.indexOf("superadmin") === -1) {
+      if (roles.indexOf("directivo") !== -1) window.location.href = "directivo.html";
+      else if (roles.indexOf("docente") !== -1) window.location.href = "docente.html";
+      else window.location.href = "../index.html";
+      return false;
+    }
+    return true;
+  }
+
   function rememberPanelPath() {
     sessionStorage.setItem(STORAGE_LAST_PANEL, "pages/admin.html");
   }
@@ -83,38 +101,14 @@
   }
 
   function syncSessionUI() {
-    var tokenEl = $("#token");
-    var stateEl = $("#sessionState");
-    var userEl = $("#sessionUser");
-    var roleEl = $("#sessionRole");
-
     var token = getToken();
     var user = getUser();
-
-    if (tokenEl) tokenEl.value = token;
-
-    if (token && user) {
-      if (stateEl) stateEl.textContent = "Autenticado";
-      if (userEl) userEl.textContent = user.email || user.nombre || "-";
-      if (roleEl) roleEl.textContent = formatRoles(user);
-    } else {
-      if (stateEl) stateEl.textContent = "No autenticado";
-      if (userEl) userEl.textContent = "-";
-      if (roleEl) roleEl.textContent = "-";
-    }
-
     var roles = (user && (user.roles || (user.role ? [user.role] : []))) || [];
     if (!Array.isArray(roles)) roles = [];
     var isLoggedIn = Boolean(token && user);
     var isSuperadmin = roles.indexOf("superadmin") !== -1;
     var staffSection = document.getElementById("staff");
     if (staffSection) staffSection.hidden = isLoggedIn && !isSuperadmin;
-  }
-
-  function formatRoles(user) {
-    var roles = (user && (user.roles || (user.role ? [user.role] : []))) || [];
-    if (!Array.isArray(roles)) roles = [];
-    return roles.length ? roles.join(", ") : "-";
   }
 
   function renderStaffRows(users) {
@@ -338,59 +332,14 @@
     });
   }
 
-  function initLogin() {
-    var form = $("#loginForm");
-    var msgEl = $("#loginMsg");
-    if (!form) return;
-
-    form.addEventListener("submit", async function (e) {
-      e.preventDefault();
-      setMsg(msgEl, "Ingresando...", "");
-      try {
-        var email = $("#loginEmail").value;
-        var password = $("#loginPassword").value;
-
-        var data = await api("/auth/login-staff", {
-          method: "POST",
-          body: JSON.stringify({ email: email, password: password })
-        });
-
-        setToken(data.token);
-        setUser(data.user);
-        syncSessionUI();
-        setMsg(msgEl, "OK", "ok");
-        loadStaff();
-      } catch (err) {
-        setMsg(msgEl, err.message || "Error", "error");
-      }
-    });
-  }
-
   function initLogout() {
     var btn = $("#logout");
     if (!btn) return;
     btn.addEventListener("click", function () {
       setToken("");
       setUser(null);
-      syncSessionUI();
-      renderStaffRows([]);
-      setMsg($("#loginMsg"), "Sesion cerrada", "ok");
-    });
-  }
-
-  function initCopyToken() {
-    var btn = $("#copyToken");
-    var tokenEl = $("#token");
-    if (!btn || !tokenEl) return;
-    btn.addEventListener("click", async function () {
-      if (!tokenEl.value) return;
-      try {
-        await navigator.clipboard.writeText(tokenEl.value);
-        setMsg($("#loginMsg"), "Token copiado", "ok");
-      } catch (e) {
-        tokenEl.focus();
-        tokenEl.select();
-      }
+      sessionStorage.removeItem(STORAGE_LAST_PANEL);
+      window.location.href = "login.html";
     });
   }
 
@@ -432,6 +381,51 @@
     });
   }
 
+  function initImportStaff() {
+    var btn = $("#staffImportBtn");
+    var fileInput = $("#staffCsvFile");
+    var msgEl = $("#staffImportMsg");
+    var detailsEl = $("#staffImportDetails");
+    if (!btn || !fileInput) return;
+
+    btn.addEventListener("click", async function () {
+      if (!fileInput.files || !fileInput.files[0]) {
+        setMsg(msgEl, "Selecciona un archivo CSV", "error");
+        return;
+      }
+
+      detailsEl.hidden = true;
+      detailsEl.textContent = "";
+      setMsg(msgEl, "Importando...", "");
+
+      try {
+        var text = await fileInput.files[0].text();
+        var res = await api("/users/staff/import-csv", {
+          method: "POST",
+          body: JSON.stringify({
+            csv: text,
+            defaultRole: $("#staffImportRole") ? $("#staffImportRole").value : "docente"
+          })
+        });
+
+        setMsg(msgEl, "Importacion completada", "ok");
+        var parts = [];
+        parts.push("Creados: " + String(res.created || 0));
+        parts.push("Omitidos: " + String(res.skipped || 0));
+        if (res.credentials && res.credentials.length) parts.push("Passwords generadas: " + String(res.credentials.length));
+        if (res.errors && res.errors.length) {
+          parts.push("Errores: " + res.errors.map(function (e) { return "L" + e.line + ": " + e.message; }).join(" | "));
+        }
+        detailsEl.textContent = parts.join(". ");
+        detailsEl.hidden = false;
+        fileInput.value = "";
+        loadStaff();
+      } catch (err) {
+        setMsg(msgEl, err.message || "Error", "error");
+      }
+    });
+  }
+
   function initListControls() {
     var refresh = $("#refresh");
     var filter = $("#filterRole");
@@ -439,15 +433,16 @@
     if (filter) filter.addEventListener("change", loadStaff);
   }
 
+  if (!authGuard()) return;
   initApiBaseUI();
-  initLogin();
   initLogout();
-  initCopyToken();
   initCreateStaff();
+  initImportStaff();
   initListControls();
   initEditModal();
   rememberPanelPath();
   syncSessionUI();
+  loadStaff();
 
   
 })();

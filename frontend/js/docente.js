@@ -6,6 +6,10 @@
   var LS_POSTS = "eep_docente_posts";
   var LS_MATS = "eep_docente_materials";
   var LS_ACTS = "eep_docente_activities";
+  var state = {
+    publicNews: [],
+    publicEvents: []
+  };
 
   function $(sel) {
     return document.querySelector(sel);
@@ -58,6 +62,18 @@
     } catch (e) {
       return fallback;
     }
+  }
+
+  function dedupeByKey(rows, getKey) {
+    var seen = {};
+    var out = [];
+    (rows || []).forEach(function (row) {
+      var key = getKey(row);
+      if (!key || seen[key]) return;
+      seen[key] = true;
+      out.push(row);
+    });
+    return out;
   }
 
   function authGuard() {
@@ -152,6 +168,66 @@
     return dd + "/" + mm + "/" + yyyy + " " + hh + ":" + mi;
   }
 
+  function pad(v) {
+    return String(v).padStart(2, "0");
+  }
+
+  function toDatetimeLocalValue(v) {
+    if (!v) return "";
+    var d = v instanceof Date ? v : new Date(v);
+    if (isNaN(d.getTime())) return "";
+    return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) + "T" + pad(d.getHours()) + ":" + pad(d.getMinutes());
+  }
+
+  function resetNewsForm() {
+    var form = $("#crearForm");
+    if (!form) return;
+    form.reset();
+    $("#pubId").value = "";
+    var submit = $("#pubSubmit");
+    var cancel = $("#pubEditCancel");
+    if (submit) submit.textContent = "Publicar";
+    if (cancel) cancel.hidden = true;
+  }
+
+  function resetEventForm() {
+    var form = $("#eventoForm");
+    if (!form) return;
+    form.reset();
+    $("#eventoId").value = "";
+    var submit = $("#eventoSubmit");
+    var cancel = $("#eventoEditCancel");
+    if (submit) submit.textContent = "Publicar evento";
+    if (cancel) cancel.hidden = true;
+  }
+
+  function openNewsEdit(row) {
+    $("#pubId").value = row._id || row.id || "";
+    $("#pubTitulo").value = row.titulo || "";
+    $("#pubCategoria").value = row.categoria || "Institucional";
+    $("#pubResumen").value = row.resumen || "";
+    $("#pubContenido").value = row.contenido || "";
+    $("#pubDestacada").checked = !!row.destacada;
+    $("#pubSubmit").textContent = "Guardar cambios";
+    $("#pubEditCancel").hidden = false;
+    openModal("#modalCrear");
+    setMsg($("#crearMsg"), "Editando novedad...", "");
+  }
+
+  function openEventEdit(row) {
+    $("#eventoId").value = row._id || row.id || "";
+    $("#eventoTitulo").value = row.titulo || "";
+    $("#eventoInicio").value = toDatetimeLocalValue(row.inicio);
+    $("#eventoFin").value = toDatetimeLocalValue(row.fin);
+    $("#eventoTipo").value = row.tipo || "";
+    $("#eventoUbicacion").value = row.ubicacion || "";
+    $("#eventoDesc").value = row.descripcion || "";
+    $("#eventoSubmit").textContent = "Guardar cambios";
+    $("#eventoEditCancel").hidden = false;
+    openModal("#modalEventoPublico");
+    setMsg($("#eventoMsg"), "Editando evento...", "");
+  }
+
   function anioLabel(a) {
     if (!a) return "Anio";
     var base = a.nombre || (a.numero ? String(a.numero) + "o" : "Anio");
@@ -171,24 +247,6 @@
     modal.setAttribute("aria-hidden", "false");
   }
 
-  async function loadMisAsignaciones() {
-    var sel = $("#pubAsignacion");
-    if (!sel) return;
-    sel.innerHTML = '<option value="" selected disabled>Seleccionar</option>';
-    try {
-      var rows = await api("/materias-anio/mine", { method: "GET" });
-      if (!Array.isArray(rows)) rows = [];
-      rows.forEach(function (a) {
-        var opt = document.createElement("option");
-        opt.value = a._id;
-        opt.textContent = (a.materia || "Materia") + " · " + anioLabel(a.anioId) + " · " + cicloLabel(a.cicloLectivo);
-        sel.appendChild(opt);
-      });
-    } catch (e) {
-      // keep default
-    }
-  }
-
   function closeModal(modal) {
     if (!modal) return;
     modal.classList.remove("is-open");
@@ -199,15 +257,34 @@
     $$("[data-open]").forEach(function (btn) {
       btn.addEventListener("click", function () {
         var t = btn.getAttribute("data-open");
-        if (t === "crear") openModal("#modalCrear");
+        if (t === "crear") {
+          resetNewsForm();
+          setMsg($("#crearMsg"), "", "");
+          openModal("#modalCrear");
+        }
         if (t === "material") openModal("#modalMaterial");
         if (t === "actividad") openModal("#modalActividad");
+        if (t === "evento-publico") {
+          resetEventForm();
+          setMsg($("#eventoMsg"), "", "");
+          openModal("#modalEventoPublico");
+        }
       });
     });
 
     var openCrearPub = $("#openCrearPub");
+    var openCrearEvento = $("#openCrearEvento");
     var openSubirMat = $("#openSubirMat");
-    if (openCrearPub) openCrearPub.addEventListener("click", function () { openModal("#modalCrear"); });
+    if (openCrearPub) openCrearPub.addEventListener("click", function () {
+      resetNewsForm();
+      setMsg($("#crearMsg"), "", "");
+      openModal("#modalCrear");
+    });
+    if (openCrearEvento) openCrearEvento.addEventListener("click", function () {
+      resetEventForm();
+      setMsg($("#eventoMsg"), "", "");
+      openModal("#modalEventoPublico");
+    });
     if (openSubirMat) openSubirMat.addEventListener("click", function () { openModal("#modalMaterial"); });
 
     $$(".modal").forEach(function (m) {
@@ -294,7 +371,7 @@
       var td = document.createElement("td");
       td.colSpan = 3;
       td.className = "table-empty";
-      td.textContent = "Sin publicaciones aun";
+      td.textContent = "Sin novedades publicas aun";
       tr.appendChild(td);
       tbody.appendChild(tr);
       return;
@@ -324,7 +401,7 @@
       var td = document.createElement("td");
       td.colSpan = 4;
       td.className = "table-empty";
-      td.textContent = "Sin publicaciones";
+      td.textContent = "Sin novedades publicadas";
       tr.appendChild(td);
       tbody.appendChild(tr);
       return;
@@ -339,6 +416,15 @@
       var td3 = document.createElement("td");
       td3.textContent = formatFecha(p.fecha);
       var td4 = document.createElement("td");
+      var edit = document.createElement("button");
+      edit.type = "button";
+      edit.className = "btn btn-ghost";
+      edit.textContent = "Editar";
+      edit.style.padding = "0.5rem 0.7rem";
+      edit.style.fontSize = "0.9rem";
+      edit.addEventListener("click", function () {
+        openNewsEdit(p);
+      });
       var del = document.createElement("button");
       del.type = "button";
       del.className = "btn btn-secondary";
@@ -346,8 +432,9 @@
       del.style.padding = "0.5rem 0.7rem";
       del.style.fontSize = "0.9rem";
       del.addEventListener("click", function () {
-        deletePost(p.id);
+        deletePost(p);
       });
+      td4.appendChild(edit);
       td4.appendChild(del);
 
       tr.appendChild(td1);
@@ -358,13 +445,21 @@
     });
   }
 
-  function deletePost(id) {
-    var posts = loadLS(LS_POSTS, []);
-    posts = posts.filter(function (p) {
-      return p.id !== id;
-    });
-    saveLS(LS_POSTS, posts);
-    refreshAll();
+  async function deletePost(row) {
+    if (!confirm("Eliminar novedad publica '" + (row.titulo || "") + "'?")) return;
+    var msg = $("#postsMsg");
+    setMsg(msg, "Eliminando...", "");
+    try {
+      await api("/noticias/" + encodeURIComponent(row._id || row.id), { method: "DELETE" });
+      if ($("#pubId") && $("#pubId").value === String(row._id || row.id)) {
+        resetNewsForm();
+        setMsg($("#crearMsg"), "", "");
+      }
+      setMsg(msg, "Novedad eliminada", "ok");
+      refreshPublicNews();
+    } catch (err) {
+      setMsg(msg, err.message || "Error", "error");
+    }
   }
 
   function renderMaterials(items) {
@@ -399,73 +494,156 @@
     });
   }
 
-  function renderActivities(items) {
+  function renderStudentActivities(items) {
     var list = $("#activitiesList");
+    if (!list) return;
+    list.innerHTML = "";
+    if (!items.length) {
+      var empty = document.createElement("div");
+      empty.className = "empty";
+      empty.textContent = "Aun no hay actividades.";
+      list.appendChild(empty);
+      return;
+    }
+    items.forEach(function (a) {
+      var div = document.createElement("div");
+      div.className = "item";
+      var left = document.createElement("div");
+      var t = document.createElement("div");
+      t.className = "item-title";
+      t.textContent = a.titulo;
+      var s = document.createElement("div");
+      s.className = "item-sub";
+      s.textContent = a.desc || "";
+      left.appendChild(t);
+      left.appendChild(s);
+      var meta = document.createElement("div");
+      meta.className = "item-meta";
+      meta.textContent = formatFechaHora(a.inicio);
+      div.appendChild(left);
+      div.appendChild(meta);
+      list.appendChild(div);
+    });
+  }
+
+  function renderPublicEvents(items) {
     var up = $("#upcoming");
     var cal = $("#calendarList");
-    function renderTarget(target) {
+
+    function renderTarget(target, limit) {
       if (!target) return;
       target.innerHTML = "";
       if (!items.length) {
         var e = document.createElement("div");
         e.className = "empty";
-        e.textContent = "Aun no hay actividades.";
+        e.textContent = "Aun no hay eventos publicos.";
         target.appendChild(e);
         return;
       }
-      items.slice(0, target === up ? 4 : items.length).forEach(function (a) {
+      items.slice(0, limit).forEach(function (ev) {
         var div = document.createElement("div");
         div.className = "item";
         var left = document.createElement("div");
         var t = document.createElement("div");
         t.className = "item-title";
-        t.textContent = a.titulo;
+        t.textContent = ev.titulo || "Evento";
         var s = document.createElement("div");
         s.className = "item-sub";
-        s.textContent = a.desc || "";
+        s.textContent = ev.descripcion || ev.tipo || "Evento publico";
         left.appendChild(t);
         left.appendChild(s);
         var meta = document.createElement("div");
         meta.className = "item-meta";
-        meta.textContent = formatFechaHora(a.inicio);
+        meta.textContent = formatFechaHora(ev.inicio);
+        if (target === cal) {
+          var actions = document.createElement("div");
+          actions.style.display = "flex";
+          actions.style.gap = "0.5rem";
+          actions.style.flexWrap = "wrap";
+          var edit = document.createElement("button");
+          edit.type = "button";
+          edit.className = "btn btn-ghost";
+          edit.textContent = "Editar";
+          edit.style.padding = "0.5rem 0.7rem";
+          edit.style.fontSize = "0.9rem";
+          edit.addEventListener("click", function () {
+            openEventEdit(ev);
+          });
+          var del = document.createElement("button");
+          del.type = "button";
+          del.className = "btn btn-secondary";
+          del.textContent = "Eliminar";
+          del.style.padding = "0.5rem 0.7rem";
+          del.style.fontSize = "0.9rem";
+          del.addEventListener("click", function () {
+            deleteEvent(ev);
+          });
+          actions.appendChild(edit);
+          actions.appendChild(del);
+          left.appendChild(actions);
+        }
         div.appendChild(left);
         div.appendChild(meta);
         target.appendChild(div);
       });
     }
-    renderTarget(list);
-    renderTarget(up);
-    renderTarget(cal);
+
+    renderTarget(up, 4);
+    renderTarget(cal, items.length);
   }
 
-  async function refreshFromBackendRecent() {
+  async function refreshPublicNews() {
     try {
       var news = await api("/noticias", { method: "GET" });
-      if (Array.isArray(news) && news.length) {
-        // Merge: backend news are shown in recent table only.
-        var mapped = news
-          .slice(0, 5)
-          .map(function (n) {
-            return {
-              id: n._id || "b-" + String(Math.random()),
-              titulo: n.titulo || "(sin titulo)",
-              categoria: n.categoria || "Institucional",
-              fecha: n.fecha || n.createdAt || new Date().toISOString()
-            };
-          });
-        var localPosts = loadLS(LS_POSTS, []);
-        renderRecentPosts(localPosts.concat(mapped).slice(0, 5));
-        return;
-      }
+      state.publicNews = Array.isArray(news) ? news : [];
+      renderRecentPosts(state.publicNews);
+      renderMyPosts(state.publicNews);
+      if ($("#kpiPosts")) $("#kpiPosts").textContent = String(state.publicNews.length);
+      setMsg($("#postsMsg"), "OK", "ok");
     } catch (e) {
-      // ignore
+      state.publicNews = [];
+      renderRecentPosts([]);
+      renderMyPosts([]);
+      if ($("#kpiPosts")) $("#kpiPosts").textContent = "0";
+      setMsg($("#postsMsg"), e.message || "Error", "error");
+    }
+  }
+
+  async function refreshPublicEvents() {
+    try {
+      var data = await api("/calendario", { method: "GET" });
+      state.publicEvents = Array.isArray(data)
+        ? data.slice().sort(function (a, b) {
+            return new Date(a.inicio).getTime() - new Date(b.inicio).getTime();
+          })
+        : [];
+      renderPublicEvents(state.publicEvents);
+      setMsg($("#calMsg"), "OK", "ok");
+    } catch (err) {
+      state.publicEvents = [];
+      renderPublicEvents([]);
+      setMsg($("#calMsg"), err.message || "Error", "error");
+    }
+  }
+
+  async function deleteEvent(row) {
+    if (!confirm("Eliminar evento publico '" + (row.titulo || "") + "'?")) return;
+    var msg = $("#calMsg");
+    setMsg(msg, "Eliminando...", "");
+    try {
+      await api("/calendario/" + encodeURIComponent(row._id || row.id), { method: "DELETE" });
+      if ($("#eventoId") && $("#eventoId").value === String(row._id || row.id)) {
+        resetEventForm();
+        setMsg($("#eventoMsg"), "", "");
+      }
+      setMsg(msg, "Evento eliminado", "ok");
+      refreshPublicEvents();
+    } catch (err) {
+      setMsg(msg, err.message || "Error", "error");
     }
   }
 
   function refreshAll() {
-    var posts = loadLS(LS_POSTS, []).sort(function (a, b) {
-      return new Date(b.fecha).getTime() - new Date(a.fecha).getTime();
-    });
     var mats = loadLS(LS_MATS, []);
     var acts = loadLS(LS_ACTS, []).sort(function (a, b) {
       return new Date(a.inicio).getTime() - new Date(b.inicio).getTime();
@@ -474,16 +652,15 @@
     var kpiPosts = $("#kpiPosts");
     var kpiMats = $("#kpiMats");
     var kpiActs = $("#kpiActs");
-    if (kpiPosts) kpiPosts.textContent = String(posts.length);
+    if (kpiPosts) kpiPosts.textContent = String(state.publicNews.length);
     if (kpiMats) kpiMats.textContent = String(mats.length);
     if (kpiActs) kpiActs.textContent = String(acts.length);
 
-    renderRecentPosts(posts);
-    renderMyPosts(posts);
     renderMaterials(mats);
-    renderActivities(acts);
+    renderStudentActivities(acts);
 
-    refreshFromBackendRecent();
+    refreshPublicNews();
+    refreshPublicEvents();
   }
 
   function initCreatePost() {
@@ -491,53 +668,41 @@
     var msgEl = $("#crearMsg");
     var modal = $("#modalCrear");
     if (!form) return;
+    var cancel = $("#pubEditCancel");
+    if (cancel) {
+      cancel.addEventListener("click", function () {
+        resetNewsForm();
+        setMsg(msgEl, "", "");
+      });
+    }
 
     form.addEventListener("submit", async function (e) {
       e.preventDefault();
       setMsg(msgEl, "Publicando...", "");
 
       try {
-        var materiaAnioId = $("#pubAsignacion").value;
         var titulo = $("#pubTitulo").value;
         var categoria = $("#pubCategoria").value;
         var resumen = $("#pubResumen").value;
         var contenido = $("#pubContenido").value;
-        var file = $("#pubAdjunto").files && $("#pubAdjunto").files[0];
+        var destacada = !!($("#pubDestacada") && $("#pubDestacada").checked);
+        var id = $("#pubId").value;
 
         var now = new Date().toISOString();
-        var local = {
-          id: "l-" + String(Date.now()),
-          materiaAnioId: materiaAnioId,
-          titulo: titulo,
-          categoria: categoria,
-          resumen: resumen,
-          contenido: contenido,
-          fecha: now,
-          fileName: file ? file.name : ""
-        };
-        var posts = loadLS(LS_POSTS, []);
-        posts.unshift(local);
-        saveLS(LS_POSTS, posts);
+        await api(id ? "/noticias/" + encodeURIComponent(id) : "/noticias", {
+          method: id ? "PUT" : "POST",
+          body: JSON.stringify({
+            titulo: titulo,
+            categoria: categoria,
+            resumen: resumen,
+            contenido: contenido,
+            fecha: now,
+            destacada: destacada
+          })
+        });
 
-        // Best effort: also create in backend (no file upload here)
-        try {
-          await api("/contenidos", {
-            method: "POST",
-            body: JSON.stringify({
-              materiaAnioId: materiaAnioId,
-              tipo: "publicacion",
-              titulo: titulo,
-              resumen: resumen,
-              contenido: contenido,
-              fecha: new Date().toISOString()
-            })
-          });
-        } catch (err) {
-          // Still ok locally
-        }
-
-        form.reset();
-        setMsg(msgEl, "Publicacion creada", "ok");
+        resetNewsForm();
+        setMsg(msgEl, id ? "Novedad actualizada" : "Novedad publicada", "ok");
         refreshAll();
         closeModal(modal);
       } catch (err) {
@@ -593,35 +758,54 @@
     });
   }
 
+  function initPublicEvent() {
+    var form = $("#eventoForm");
+    var msgEl = $("#eventoMsg");
+    var modal = $("#modalEventoPublico");
+    if (!form) return;
+    var cancel = $("#eventoEditCancel");
+    if (cancel) {
+      cancel.addEventListener("click", function () {
+        resetEventForm();
+        setMsg(msgEl, "", "");
+      });
+    }
+
+    form.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      setMsg(msgEl, "Publicando...", "");
+      try {
+        var id = $("#eventoId").value;
+        var payload = {
+          titulo: $("#eventoTitulo").value,
+          inicio: new Date($("#eventoInicio").value).toISOString(),
+          descripcion: $("#eventoDesc").value,
+          tipo: $("#eventoTipo").value || "Evento",
+          ubicacion: $("#eventoUbicacion").value || ""
+        };
+        var fin = $("#eventoFin").value;
+        if (fin) payload.fin = new Date(fin).toISOString();
+
+        await api(id ? "/calendario/" + encodeURIComponent(id) : "/calendario", {
+          method: id ? "PUT" : "POST",
+          body: JSON.stringify(payload)
+        });
+
+        resetEventForm();
+        setMsg(msgEl, id ? "Evento actualizado" : "Evento publicado", "ok");
+        refreshPublicEvents();
+        closeModal(modal);
+      } catch (err) {
+        setMsg(msgEl, err.message || "Error", "error");
+      }
+    });
+  }
+
   function initRefreshButtons() {
     var btn = $("#refreshPosts");
     if (btn) btn.addEventListener("click", refreshAll);
-    var sync = $("#syncBackendEvents");
-    if (sync)
-      sync.addEventListener("click", async function () {
-        var msg = $("#calMsg");
-        setMsg(msg, "Sincronizando...", "");
-        try {
-          var data = await api("/calendario", { method: "GET" });
-          if (Array.isArray(data) && data.length) {
-            var acts = loadLS(LS_ACTS, []);
-            data.forEach(function (ev) {
-              acts.push({
-                id: "b-" + (ev._id || String(Date.now() + Math.random())),
-                titulo: ev.titulo || "Evento",
-                inicio: ev.inicio || ev.createdAt || new Date().toISOString(),
-                desc: ev.descripcion || "",
-                fileName: ""
-              });
-            });
-            saveLS(LS_ACTS, acts);
-            refreshAll();
-          }
-          setMsg(msg, "OK", "ok");
-        } catch (err) {
-          setMsg(msg, err.message || "Error", "error");
-        }
-      });
+    var refreshEvents = $("#refreshPublicEvents");
+    if (refreshEvents) refreshEvents.addEventListener("click", refreshPublicEvents);
   }
 
   function initHeaderUser() {
@@ -657,8 +841,8 @@
   initCreatePost();
   initMaterial();
   initActividad();
+  initPublicEvent();
   initRefreshButtons();
   initHeaderUser();
-  loadMisAsignaciones();
   refreshAll();
 })();

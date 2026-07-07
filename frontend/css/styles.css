@@ -590,6 +590,10 @@ img {
   padding-top: 0;
 }
 
+.section-agenda {
+  padding-top: 0.4rem;
+}
+
 .access-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -651,6 +655,72 @@ img {
 .access-arrow {
   color: rgba(23, 19, 32, 0.60);
   font-weight: 900;
+}
+
+.agenda-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.agenda-card {
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(23, 19, 32, 0.12);
+  box-shadow: 0 16px 44px rgba(23, 19, 32, 0.07);
+  padding: 1.05rem;
+}
+
+.agenda-date {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.32rem 0.58rem;
+  border-radius: 999px;
+  background: rgba(231, 224, 255, 0.5);
+  border: 1px solid rgba(109, 44, 207, 0.12);
+  color: rgba(46, 21, 80, 0.88);
+  font-weight: 800;
+  font-size: 0.82rem;
+}
+
+.agenda-title {
+  margin: 0.8rem 0 0.35rem;
+  font-size: 1.05rem;
+  letter-spacing: -0.02em;
+}
+
+.agenda-text {
+  margin: 0;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.agenda-meta {
+  margin-top: 0.8rem;
+  color: var(--muted-2);
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.status-card {
+  display: grid;
+  place-items: start;
+  min-height: 180px;
+}
+
+.form-status {
+  min-height: 1.4rem;
+  margin: 0.7rem 0 0;
+  font-weight: 750;
+  font-size: 0.92rem;
+}
+
+.form-status.is-ok {
+  color: #1f6b43;
+}
+
+.form-status.is-error {
+  color: #a43c3c;
 }
 
 /* About */
@@ -1078,6 +1148,9 @@ textarea:focus {
   }
   .access-grid {
     grid-template-columns: 1fr 1fr;
+  }
+  .agenda-grid {
+    grid-template-columns: 1fr;
   }
   .about-grid {
     grid-template-columns: 1fr;

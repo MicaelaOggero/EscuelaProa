@@ -93,7 +93,7 @@
         if (!Array.isArray(roles)) roles = [];
 
         if (roles.indexOf("superadmin") !== -1) {
-          window.location.href = "directivo.html";
+          window.location.href = "admin.html";
         } else if (roles.indexOf("directivo") !== -1) {
           window.location.href = "directivo.html";
         } else if (roles.indexOf("docente") !== -1) {

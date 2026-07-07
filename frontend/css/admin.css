@@ -72,7 +72,7 @@
 
 .staff-grid {
   display: grid;
-  grid-template-columns: 0.9fr 1.1fr;
+  grid-template-columns: 1fr;
   gap: 1rem;
 }
 

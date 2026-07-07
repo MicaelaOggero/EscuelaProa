@@ -36,7 +36,7 @@
           </a>
           <a class="side-link" href="#publicaciones" data-view="publicaciones">
             <span class="ico" aria-hidden="true">{posts}</span>
-            Mis publicaciones
+            Novedades publicas
           </a>
           <a class="side-link" href="#materiales" data-view="materiales">
             <span class="ico" aria-hidden="true">{files}</span>
@@ -48,7 +48,7 @@
           </a>
           <a class="side-link" href="#calendario" data-view="calendario">
             <span class="ico" aria-hidden="true">{calendar}</span>
-            Calendario
+            Eventos publicos
           </a>
           <a class="side-link" href="estudiantes.html">
             <span class="ico" aria-hidden="true">{user}</span>
@@ -95,7 +95,8 @@
                 <p class="view-sub">Accesos rapidos y ultimos movimientos.</p>
               </div>
               <div class="view-cta">
-                <button id="openCrearPub" class="btn btn-primary" type="button">Crear publicacion</button>
+                <button id="openCrearPub" class="btn btn-primary" type="button">Publicar novedad</button>
+                <button id="openCrearEvento" class="btn btn-secondary" type="button">Crear evento publico</button>
                 <button id="openSubirMat" class="btn btn-secondary" type="button">Subir material</button>
               </div>
             </div>
@@ -103,36 +104,36 @@
             <div class="cards">
               <div class="kpi">
                 <div class="kpi-top">
-                  <div class="kpi-label">Publicaciones realizadas</div>
+                  <div class="kpi-label">Novedades publicas</div>
                   <div class="kpi-ico" aria-hidden="true">{posts}</div>
                 </div>
                 <div id="kpiPosts" class="kpi-value">-</div>
-                <div class="kpi-foot">Ultimos 90 dias (local)</div>
+                <div class="kpi-foot">Publicadas desde este panel</div>
               </div>
               <div class="kpi">
                 <div class="kpi-top">
-                  <div class="kpi-label">Actividades cargadas</div>
+                  <div class="kpi-label">Actividades para estudiantes</div>
                   <div class="kpi-ico" aria-hidden="true">{tasks}</div>
                 </div>
                 <div id="kpiActs" class="kpi-value">-</div>
-                <div class="kpi-foot">Proximas 4 semanas (local)</div>
+                <div class="kpi-foot">Borradores de trabajo interno</div>
               </div>
               <div class="kpi">
                 <div class="kpi-top">
-                  <div class="kpi-label">Materiales subidos</div>
+                  <div class="kpi-label">Materiales para estudiantes</div>
                   <div class="kpi-ico" aria-hidden="true">{files}</div>
                 </div>
                 <div id="kpiMats" class="kpi-value">-</div>
-                <div class="kpi-foot">Archivos en borrador (local)</div>
+                <div class="kpi-foot">Archivos de trabajo interno</div>
               </div>
             </div>
 
             <div class="grid-2">
-              <section class="panel" aria-label="Publicaciones recientes">
+              <section class="panel" aria-label="Novedades publicas recientes">
                 <div class="panel-head">
                   <div>
-                    <div class="panel-title">Publicaciones recientes</div>
-                    <div class="panel-sub">Ultimas 5 (local + backend si disponible)</div>
+                    <div class="panel-title">Novedades publicas recientes</div>
+                    <div class="panel-sub">Registro local + noticias visibles en el sitio publico</div>
                   </div>
                   <a class="link-pill" href="#publicaciones" data-viewlink="publicaciones">Ver todas</a>
                 </div>
@@ -152,37 +153,37 @@
                 </div>
               </section>
 
-              <section class="panel" aria-label="Proximas actividades">
+              <section class="panel" aria-label="Proximos eventos publicos">
                 <div class="panel-head">
                   <div>
-                    <div class="panel-title">Calendario</div>
-                    <div class="panel-sub">Actividades proximas</div>
+                    <div class="panel-title">Eventos publicos</div>
+                    <div class="panel-sub">Fechas visibles para toda la comunidad</div>
                   </div>
                   <a class="link-pill" href="#calendario" data-viewlink="calendario">Abrir</a>
                 </div>
                 <div id="upcoming" class="upcoming" aria-label="Lista de actividades">
-                  <div class="empty">Crea actividades desde la seccion Actividades.</div>
+                  <div class="empty">Crea eventos publicos desde esta misma pantalla.</div>
                 </div>
               </section>
             </div>
           </section>
 
-          <section id="publicaciones" class="view" data-view="publicaciones" aria-label="Mis publicaciones">
+          <section id="publicaciones" class="view" data-view="publicaciones" aria-label="Novedades publicas">
             <div class="view-head">
               <div>
-                <h2 class="view-title">Mis publicaciones</h2>
-                <p class="view-sub">Gestiona tus entradas visibles en la web.</p>
+                <h2 class="view-title">Novedades publicas</h2>
+                <p class="view-sub">Publicaciones institucionales que se muestran en el sitio publico.</p>
               </div>
               <div class="view-cta">
-                <button class="btn btn-primary" type="button" data-open="crear">Crear publicacion</button>
+                <button class="btn btn-primary" type="button" data-open="crear">Publicar novedad</button>
               </div>
             </div>
 
             <div class="panel">
               <div class="panel-head">
                 <div>
-                  <div class="panel-title">Listado</div>
-                  <div class="panel-sub">Guardadas localmente (y opcionalmente replicadas al backend)</div>
+                  <div class="panel-title">Registro de novedades</div>
+                  <div class="panel-sub">Se guardan localmente para tu seguimiento y tambien se publican en `/noticias`</div>
                 </div>
                 <button id="refreshPosts" class="btn btn-secondary" type="button">Actualizar</button>
               </div>
@@ -197,7 +198,7 @@
                     </tr>
                   </thead>
                   <tbody id="postsTbody">
-                    <tr><td colspan="4" class="table-empty">Sin publicaciones</td></tr>
+                    <tr><td colspan="4" class="table-empty">Sin novedades publicadas</td></tr>
                   </tbody>
                 </table>
               </div>
@@ -220,7 +221,7 @@
               <div class="panel-head">
                 <div>
                   <div class="panel-title">Borradores</div>
-                  <div class="panel-sub">Guardado local para pruebas (sin backend de materiales aun)</div>
+                  <div class="panel-sub">Contenido academico para estudiantes. Guardado local por ahora.</div>
                 </div>
               </div>
               <div id="materialsList" class="list" aria-label="Lista de materiales">
@@ -233,7 +234,7 @@
             <div class="view-head">
               <div>
                 <h2 class="view-title">Actividades</h2>
-                <p class="view-sub">Crea actividades y fechas importantes.</p>
+                <p class="view-sub">Actividades y consignas para estudiantes. No se muestran en el sitio publico.</p>
               </div>
               <div class="view-cta">
                 <button class="btn btn-secondary" type="button" data-open="actividad">Crear actividad</button>
@@ -253,26 +254,27 @@
             </div>
           </section>
 
-          <section id="calendario" class="view" data-view="calendario" aria-label="Calendario">
+          <section id="calendario" class="view" data-view="calendario" aria-label="Eventos publicos">
             <div class="view-head">
               <div>
-                <h2 class="view-title">Calendario</h2>
-                <p class="view-sub">Vista de proximos eventos (local + backend si disponible).</p>
+                <h2 class="view-title">Eventos publicos</h2>
+                <p class="view-sub">Agenda institucional visible para cualquier persona en el sitio publico.</p>
               </div>
               <div class="view-cta">
-                <button id="syncBackendEvents" class="btn btn-secondary" type="button">Sincronizar</button>
+                <button class="btn btn-primary" type="button" data-open="evento-publico">Crear evento publico</button>
+                <button id="refreshPublicEvents" class="btn btn-secondary" type="button">Actualizar</button>
               </div>
             </div>
 
             <div class="panel">
               <div class="panel-head">
                 <div>
-                  <div class="panel-title">Proximos</div>
-                  <div class="panel-sub">Ordenados por fecha</div>
+                  <div class="panel-title">Agenda publica</div>
+                  <div class="panel-sub">Eventos ordenados por fecha</div>
                 </div>
               </div>
               <div id="calendarList" class="list" aria-label="Lista calendario">
-                <div class="empty">Sin eventos.</div>
+                <div class="empty">Sin eventos publicos.</div>
               </div>
               <div id="calMsg" class="msg" role="status" aria-live="polite"></div>
             </div>
@@ -302,24 +304,19 @@
       </div>
     </div>
 
-    <!-- Modal: Crear publicacion -->
+    <!-- Modal: Crear novedad publica -->
     <div id="modalCrear" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="crearTitle">
       <div class="modal-backdrop" data-close="true"></div>
       <div class="modal-panel" role="document">
         <div class="modal-head">
           <div>
-            <div id="crearTitle" class="modal-title">Crear publicacion</div>
+            <div id="crearTitle" class="modal-title">Publicar novedad</div>
             <div class="modal-sub">POST <span class="mono">/noticias</span></div>
           </div>
           <button class="btn btn-ghost btn-sm" type="button" data-close="true">Cerrar</button>
         </div>
-        <form id="crearForm" class="modal-body" aria-label="Formulario crear publicacion">
-          <div class="field">
-            <label for="pubAsignacion">Materia, anio y ciclo</label>
-            <select id="pubAsignacion" required>
-              <option value="" selected disabled>Seleccionar</option>
-            </select>
-          </div>
+        <form id="crearForm" class="modal-body" aria-label="Formulario crear publicacion publica">
+          <input id="pubId" type="hidden" />
           <div class="field">
             <label for="pubTitulo">Titulo</label>
             <input id="pubTitulo" type="text" required />
@@ -342,15 +339,69 @@
             <textarea id="pubContenido" rows="5" placeholder="Escribe el contenido"></textarea>
           </div>
           <div class="field">
-            <label for="pubAdjunto">Imagen/archivo (opcional)</label>
-            <input id="pubAdjunto" type="file" />
+            <label class="switch">
+              <input id="pubDestacada" type="checkbox" />
+              <span>Marcar como destacada</span>
+            </label>
           </div>
           <div class="modal-actions">
-            <button class="btn btn-primary" type="submit">Publicar</button>
-            <button class="btn btn-secondary" type="button" data-close="true">Cancelar</button>
+            <button id="pubSubmit" class="btn btn-primary" type="submit">Publicar</button>
+            <button id="pubEditCancel" class="btn btn-secondary" type="button" hidden>Cancelar edicion</button>
+            <button class="btn btn-secondary" type="button" data-close="true">Cerrar</button>
           </div>
           <div id="crearMsg" class="msg" role="status" aria-live="polite"></div>
-          <div class="panel-note">La carga de archivos es de prueba (se guarda localmente).</div>
+          <div class="panel-note">Las novedades publicas se muestran en la home del sitio y no forman parte del contenido academico estudiantil.</div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal: Crear evento publico -->
+    <div id="modalEventoPublico" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="eventoTitle">
+      <div class="modal-backdrop" data-close="true"></div>
+      <div class="modal-panel" role="document">
+        <div class="modal-head">
+          <div>
+            <div id="eventoTitle" class="modal-title">Crear evento publico</div>
+            <div class="modal-sub">POST <span class="mono">/calendario</span></div>
+          </div>
+          <button class="btn btn-ghost btn-sm" type="button" data-close="true">Cerrar</button>
+        </div>
+        <form id="eventoForm" class="modal-body" aria-label="Formulario crear evento publico">
+          <input id="eventoId" type="hidden" />
+          <div class="field">
+            <label for="eventoTitulo">Titulo</label>
+            <input id="eventoTitulo" type="text" required />
+          </div>
+          <div class="cols-2">
+            <div class="field">
+              <label for="eventoInicio">Inicio</label>
+              <input id="eventoInicio" type="datetime-local" required />
+            </div>
+            <div class="field">
+              <label for="eventoFin">Fin (opcional)</label>
+              <input id="eventoFin" type="datetime-local" />
+            </div>
+          </div>
+          <div class="cols-2">
+            <div class="field">
+              <label for="eventoTipo">Tipo</label>
+              <input id="eventoTipo" type="text" placeholder="Acto, reunion, jornada..." />
+            </div>
+            <div class="field">
+              <label for="eventoUbicacion">Ubicacion</label>
+              <input id="eventoUbicacion" type="text" placeholder="Salon de actos" />
+            </div>
+          </div>
+          <div class="field">
+            <label for="eventoDesc">Descripcion</label>
+            <textarea id="eventoDesc" rows="4" placeholder="Detalle del evento"></textarea>
+          </div>
+          <div class="modal-actions">
+            <button id="eventoSubmit" class="btn btn-primary" type="submit">Publicar evento</button>
+            <button id="eventoEditCancel" class="btn btn-secondary" type="button" hidden>Cancelar edicion</button>
+            <button class="btn btn-secondary" type="button" data-close="true">Cerrar</button>
+          </div>
+          <div id="eventoMsg" class="msg" role="status" aria-live="polite"></div>
         </form>
       </div>
     </div>

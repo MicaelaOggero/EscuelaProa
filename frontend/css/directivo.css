@@ -196,9 +196,43 @@ select {
   flex-wrap: wrap;
 }
 
+.public-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.public-grid--lists {
+  margin-top: 1rem;
+}
+
+.public-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+}
+
+.panel-surface {
+  border-radius: 18px;
+  border: 1px solid rgba(23, 19, 32, 0.10);
+  background: rgba(255, 255, 255, 0.4);
+  padding: 0.9rem;
+}
+
+.panel-head--inner {
+  padding-bottom: 0.6rem;
+  margin-bottom: 0.6rem;
+}
+
+.form-actions-inline {
+  display: flex;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
 .docentes-grid {
   display: grid;
-  grid-template-columns: 0.9fr 1.1fr;
+  grid-template-columns: 1fr;
   gap: 1rem;
   align-items: start;
 }
@@ -213,6 +247,11 @@ select {
 .docente-tools {
   display: grid;
   gap: 1rem;
+  grid-template-columns: 1fr 1fr;
+}
+
+.docentes-grid .table-wrap {
+  grid-column: 1 / -1;
 }
 
 .import-card {
@@ -245,6 +284,15 @@ select {
 
 @media (max-width: 980px) {
   .docentes-grid {
+    grid-template-columns: 1fr;
+  }
+  .docente-tools {
+    grid-template-columns: 1fr;
+  }
+  .public-grid {
+    grid-template-columns: 1fr;
+  }
+  .public-cols {
     grid-template-columns: 1fr;
   }
 }

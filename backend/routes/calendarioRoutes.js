@@ -12,5 +12,17 @@ router.post(
   roleMiddleware("superadmin", "directivo", "docente"),
   calendarioController.create
 );
+router.put(
+  "/:id",
+  authMiddleware,
+  roleMiddleware("superadmin", "directivo", "docente"),
+  calendarioController.update
+);
+router.delete(
+  "/:id",
+  authMiddleware,
+  roleMiddleware("superadmin", "directivo", "docente"),
+  calendarioController.remove
+);
 
 module.exports = router;

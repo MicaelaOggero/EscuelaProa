@@ -139,41 +139,35 @@
             <a class="link-pill" href="#">Ver todas</a>
           </div>
 
-          <div class="cards-grid">
-            <article class="card reveal" style="--reveal-delay: 60ms">
+          <div id="newsGrid" class="cards-grid" aria-live="polite">
+            <article class="card reveal">
               <div class="card-top">
-                <div class="chip">Institucional</div>
-                <time class="card-date" datetime="2026-05-09">9 mayo 2026</time>
+                <div class="chip">Cargando</div>
+                <time class="card-date">...</time>
               </div>
-              <h3 class="card-title">Apertura de inscripciones 2026</h3>
-              <p class="card-text">
-                Conocé fechas, documentación y criterios de admisión para los distintos niveles.
-              </p>
-              <a class="card-link" href="#contacto">Consultar requisitos</a>
+              <h3 class="card-title">Estamos buscando las ultimas novedades</h3>
+              <p class="card-text">En unos segundos vas a ver las noticias publicadas desde el panel institucional.</p>
             </article>
+          </div>
+        </div>
+      </section>
 
-            <article class="card reveal" style="--reveal-delay: 120ms">
-              <div class="card-top">
-                <div class="chip">Proyectos</div>
-                <time class="card-date" datetime="2026-05-02">2 mayo 2026</time>
-              </div>
-              <h3 class="card-title">Semana de ciencia y tecnología</h3>
-              <p class="card-text">
-                Muestras, laboratorios abiertos y charlas con especialistas para toda la comunidad.
+      <section id="agenda" class="section section-agenda" aria-label="Próximos eventos">
+        <div class="container">
+          <div class="section-head reveal">
+            <div>
+              <h2 class="section-title">Próximos eventos</h2>
+              <p class="section-subtitle">
+                Actividades institucionales, reuniones y fechas importantes para la comunidad.
               </p>
-              <a class="card-link" href="#escuela">Ver propuesta</a>
-            </article>
+            </div>
+          </div>
 
-            <article class="card reveal" style="--reveal-delay: 180ms">
-              <div class="card-top">
-                <div class="chip">Comunidad</div>
-                <time class="card-date" datetime="2026-04-20">20 abril 2026</time>
-              </div>
-              <h3 class="card-title">Encuentro con familias y equipo docente</h3>
-              <p class="card-text">
-                Un espacio de escucha para fortalecer acuerdos de convivencia y acompañamiento.
-              </p>
-              <a class="card-link" href="#contacto">Agendar visita</a>
+          <div id="eventsGrid" class="agenda-grid" aria-live="polite">
+            <article class="agenda-card reveal">
+              <div class="agenda-date">Cargando agenda...</div>
+              <h3 class="agenda-title">Consultando calendario institucional</h3>
+              <p class="agenda-text">Cuando el backend responda, esta sección mostrará los próximos eventos.</p>
             </article>
           </div>
         </div>
@@ -373,7 +367,7 @@
               </div>
             </div>
 
-            <form class="contact-form" action="#" method="post" aria-label="Formulario de consulta">
+            <form id="contactForm" class="contact-form" action="#" method="post" aria-label="Formulario de consulta">
               <div class="field">
                 <label for="nombre">Nombre y apellido</label>
                 <input id="nombre" name="nombre" type="text" autocomplete="name" placeholder="Tu nombre" required />
@@ -397,9 +391,8 @@
                 <textarea id="mensaje" name="mensaje" rows="4" placeholder="Contanos en qué podemos ayudarte" required></textarea>
               </div>
               <button class="btn btn-primary" type="submit">Enviar consulta</button>
-              <p class="form-note">
-                Este formulario es de muestra. Podés conectarlo a tu backend o servicio de formularios.
-              </p>
+              <p id="contactMsg" class="form-status" aria-live="polite"></p>
+              <p class="form-note">Tu consulta se envía al backend institucional y queda registrada para seguimiento.</p>
             </form>
           </div>
         </div>

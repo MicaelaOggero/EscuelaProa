@@ -66,8 +66,11 @@
       else window.location.href = "../index.html";
       return false;
     }
-    var superPanel = $("#superPanel");
-    if (superPanel) superPanel.hidden = roles.indexOf("superadmin") === -1;
+    var staffLink = $("#staffLink");
+    if (staffLink) staffLink.hidden = roles.indexOf("superadmin") === -1;
+
+    var docentesPanel = $("#docentesPanel");
+    if (docentesPanel) docentesPanel.hidden = roles.indexOf("superadmin") !== -1;
     return true;
   }
 
@@ -509,7 +512,7 @@
           fechaNacimiento: $("#dFecha").value,
           email: $("#dEmail").value,
           password: $("#dPass").value,
-          roles: ["docente"]
+          roles: [$("#dRole").value || "docente"]
         };
         if (!payload.apellido) delete payload.apellido;
         if (!payload.fechaNacimiento) delete payload.fechaNacimiento;
@@ -523,6 +526,7 @@
       }
     });
   }
+
 
   function initImportDocentes() {
     var btn = $("#docImportBtn");
@@ -545,7 +549,7 @@
         setMsg(msg, "Importando...", "");
         var res = await api("/users/staff/import-csv", {
           method: "POST",
-          body: JSON.stringify({ csv: text })
+          body: JSON.stringify({ csv: text, defaultRole: $("#docImportRole") ? $("#docImportRole").value : "docente" })
         });
         setMsg(
           msg,

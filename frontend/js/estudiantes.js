@@ -117,15 +117,18 @@
     if (roleIntro) {
       roleIntro.textContent = state.directivoLike
         ? "Puedes crear, editar, importar y filtrar todos los estudiantes por anio, docente y materia."
-        : "Puedes gestionar estudiantes de los anios donde dictas materias y filtrarlos por tus materias activas.";
+        : "Puedes consultar estudiantes de los anios donde dictas materias y filtrarlos por tus materias activas.";
     }
 
-    var backDirectivo = $("#backDirectivo");
-    var backDocente = $("#backDocente");
-    var backAdmin = $("#backAdmin");
-    if (backDirectivo) backDirectivo.hidden = !state.directivoLike;
-    if (backDocente) backDocente.hidden = !hasRole("docente");
-    if (backAdmin) backAdmin.hidden = !hasRole("superadmin");
+    var staffLink = $("#staffLink");
+    var academicLink = $("#academicLink");
+    if (staffLink) staffLink.hidden = !hasRole("superadmin");
+    if (academicLink) academicLink.hidden = !state.directivoLike;
+
+    var studentForm = $("#studentForm");
+    var importPanel = $("#studentsImportPanel");
+    if (studentForm) studentForm.hidden = !state.directivoLike;
+    if (importPanel) importPanel.hidden = !state.directivoLike;
 
     var filterDocente = $("#filterDocente");
     if (!state.directivoLike && filterDocente) {
@@ -306,28 +309,32 @@
       });
 
       var tdActions = document.createElement("td");
-      var btnEdit = document.createElement("button");
-      btnEdit.type = "button";
-      btnEdit.className = "btn btn-ghost";
-      btnEdit.textContent = "Editar";
-      btnEdit.style.padding = "0.5rem 0.7rem";
-      btnEdit.style.fontSize = "0.9rem";
-      btnEdit.addEventListener("click", function () {
-        openEditModal(u);
-      });
+      if (state.directivoLike) {
+        var btnEdit = document.createElement("button");
+        btnEdit.type = "button";
+        btnEdit.className = "btn btn-ghost";
+        btnEdit.textContent = "Editar";
+        btnEdit.style.padding = "0.5rem 0.7rem";
+        btnEdit.style.fontSize = "0.9rem";
+        btnEdit.addEventListener("click", function () {
+          openEditModal(u);
+        });
 
-      var btnDelete = document.createElement("button");
-      btnDelete.type = "button";
-      btnDelete.className = "btn btn-secondary";
-      btnDelete.textContent = "Eliminar";
-      btnDelete.style.padding = "0.5rem 0.7rem";
-      btnDelete.style.fontSize = "0.9rem";
-      btnDelete.addEventListener("click", function () {
-        deleteStudent(u);
-      });
+        var btnDelete = document.createElement("button");
+        btnDelete.type = "button";
+        btnDelete.className = "btn btn-secondary";
+        btnDelete.textContent = "Eliminar";
+        btnDelete.style.padding = "0.5rem 0.7rem";
+        btnDelete.style.fontSize = "0.9rem";
+        btnDelete.addEventListener("click", function () {
+          deleteStudent(u);
+        });
 
-      tdActions.appendChild(btnEdit);
-      tdActions.appendChild(btnDelete);
+        tdActions.appendChild(btnEdit);
+        tdActions.appendChild(btnDelete);
+      } else {
+        tdActions.textContent = "Solo lectura";
+      }
       tr.appendChild(tdActions);
       tbody.appendChild(tr);
     });
@@ -394,6 +401,7 @@
             fechaNacimiento: $("#sFecha").value,
             email: $("#sEmail").value,
             password: $("#sPass").value,
+            role: $("#sRole").value,
             anioId: $("#sAnio").value,
             division: $("#sDivision").value
           })
@@ -511,7 +519,7 @@
         setMsg(msg, "Importando...", "");
         var res = await api("/users/students/import-csv", {
           method: "POST",
-          body: JSON.stringify({ csv: text })
+          body: JSON.stringify({ csv: text, defaultRole: $("#studentsImportRole") ? $("#studentsImportRole").value : "estudiante" })
         });
         setMsg(msg, "OK · creados: " + String(res.created || 0) + " · omitidos: " + String(res.skipped || 0), "ok");
         if (res && Array.isArray(res.credentials) && res.credentials.length) {

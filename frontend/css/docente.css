@@ -258,6 +258,12 @@
   margin-top: 0.9rem;
 }
 
+.cols-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+}
+
 .panel {
   border-radius: var(--radius-lg);
   border: 1px solid rgba(23, 19, 32, 0.12);
@@ -415,6 +421,19 @@
   font-size: 0.92rem;
 }
 
+.switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-weight: 850;
+  color: rgba(23, 19, 32, 0.82);
+}
+
+.switch input {
+  width: 18px;
+  height: 18px;
+}
+
 .mono {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   font-weight: 700;
@@ -492,6 +511,9 @@
     grid-template-columns: 1fr;
   }
   .grid-2 {
+    grid-template-columns: 1fr;
+  }
+  .cols-2 {
     grid-template-columns: 1fr;
   }
 }

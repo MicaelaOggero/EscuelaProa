@@ -12,5 +12,17 @@ router.post(
   roleMiddleware("superadmin", "directivo", "docente"),
   noticiaController.create
 );
+router.put(
+  "/:id",
+  authMiddleware,
+  roleMiddleware("superadmin", "directivo", "docente"),
+  noticiaController.update
+);
+router.delete(
+  "/:id",
+  authMiddleware,
+  roleMiddleware("superadmin", "directivo", "docente"),
+  noticiaController.remove
+);
 
 module.exports = router;

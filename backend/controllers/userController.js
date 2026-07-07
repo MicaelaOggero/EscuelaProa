@@ -47,6 +47,40 @@ function normalizeStudent(user) {
   return user;
 }
 
+function splitRoleValues(input) {
+  if (Array.isArray(input)) return input;
+  var text = String(input || "").trim();
+  if (!text) return [];
+  return text.split(/[|,+/;]+/).map(function (part) {
+    return String(part || "").trim();
+  }).filter(Boolean);
+}
+
+function resolveStaffRolesForRequest(reqUser, input, fallback) {
+  var roles = normalizeRoles(splitRoleValues(input).length ? splitRoleValues(input) : splitRoleValues(fallback));
+  roles = Array.from(new Set(roles));
+  if (!roles.length) roles = ["docente"];
+
+  var invalid = roles.find(function (r) {
+    return r !== "directivo" && r !== "docente";
+  });
+  if (invalid) throw new Error("Solo se permite roles directivo/docente");
+
+  if (isDirectivo(reqUser) && !isSuperadmin(reqUser)) {
+    if (roles.indexOf("directivo") !== -1) throw new Error("Directivo no puede crear directivos");
+    if (roles.length !== 1 || roles[0] !== "docente") throw new Error("Directivo solo puede crear docentes");
+  }
+
+  return roles;
+}
+
+function resolveStudentRole(input, fallback) {
+  var roles = normalizeRoles(splitRoleValues(input).length ? splitRoleValues(input) : splitRoleValues(fallback));
+  if (!roles.length) roles = ["estudiante"];
+  if (roles.length !== 1 || roles[0] !== "estudiante") throw new Error("Solo se permite rol estudiante");
+  return roles;
+}
+
 async function findAnio(anioStr) {
   var s = String(anioStr || "").trim();
   if (!s) return null;
@@ -182,6 +216,9 @@ function parseStudentsCSV(text) {
   var iDivision = idxFor("division");
   var iPassword = idxFor("password");
   if (iPassword === -1) iPassword = idxFor("contrasena");
+  var iRole = idxFor("rol");
+  if (iRole === -1) iRole = idxFor("role");
+  if (iRole === -1) iRole = idxFor("roles");
 
   var errors = [];
   if (iNombre === -1) errors.push("Falta columna: nombre");
@@ -203,6 +240,7 @@ function parseStudentsCSV(text) {
       anio: (cols[iAnio] || "").trim(),
       division: iDivision === -1 ? "" : (cols[iDivision] || "").trim(),
       password: iPassword === -1 ? "" : (cols[iPassword] || "").trim(),
+      role: iRole === -1 ? "" : (cols[iRole] || "").trim(),
       line: li + 1
     });
   }
@@ -277,6 +315,9 @@ function parseStaffCSV(text) {
   var iDni = idxFor("dni");
   var iPassword = idxFor("password");
   if (iPassword === -1) iPassword = idxFor("contrasena");
+  var iRole = idxFor("rol");
+  if (iRole === -1) iRole = idxFor("role");
+  if (iRole === -1) iRole = idxFor("roles");
 
   var errors = [];
   if (iNombre === -1) errors.push("Falta columna: nombre");
@@ -293,6 +334,7 @@ function parseStaffCSV(text) {
       email: (cols[iEmail] || "").trim(),
       dni: iDni === -1 ? "" : (cols[iDni] || "").trim(),
       password: iPassword === -1 ? "" : (cols[iPassword] || "").trim(),
+      role: iRole === -1 ? "" : (cols[iRole] || "").trim(),
       line: li + 1
     });
   }
@@ -387,27 +429,16 @@ function isDirectivo(reqUser) {
 exports.createStaff = async (req, res, next) => {
   try {
     const { nombre, apellido, fechaNacimiento, email, password } = req.body;
-    var roles = normalizeRoles(req.body.roles || req.body.role);
+    var roles;
     var dni = normalizeDni(req.body.dni);
-    if (!nombre || !email || !password || !roles.length) {
+    if (!nombre || !email || !password || !(req.body.roles || req.body.role)) {
       return res.status(400).json({ message: "nombre, email, password y roles/role son requeridos" });
     }
 
-    roles = Array.from(new Set(roles));
-
-    var invalid = roles.find(function (r) {
-      return r !== "directivo" && r !== "docente";
-    });
-    if (invalid) return res.status(400).json({ message: "Solo se permite roles directivo/docente" });
-
-    // Permission: directivo can only create docentes (not directivos)
-    if (isDirectivo(req.user) && !isSuperadmin(req.user)) {
-      if (roles.indexOf("directivo") !== -1) {
-        return res.status(403).json({ message: "Directivo no puede crear directivos" });
-      }
-      if (roles.indexOf("docente") === -1) {
-        return res.status(400).json({ message: "Debe incluir rol docente" });
-      }
+    try {
+      roles = resolveStaffRolesForRequest(req.user, req.body.roles || req.body.role);
+    } catch (roleErr) {
+      return res.status(/Directivo/.test(roleErr.message) ? 403 : 400).json({ message: roleErr.message });
     }
 
     if (!isStaffRoles(roles)) return res.status(400).json({ message: "Debe incluir directivo y/o docente" });
@@ -583,6 +614,15 @@ exports.importStaffCsv = async (req, res, next) => {
         }
       }
 
+      var roles;
+      try {
+        roles = resolveStaffRolesForRequest(req.user, r.role, req.body && (req.body.defaultRole || req.body.defaultRoles));
+      } catch (roleErr) {
+        results.skipped++;
+        results.errors.push({ line: r.line, message: roleErr.message });
+        continue;
+      }
+
       var generatedPassword = r.password || randomPassword(10);
       var passwordHash = await bcrypt.hash(generatedPassword, 10);
 
@@ -594,7 +634,7 @@ exports.importStaffCsv = async (req, res, next) => {
           dni: dni || undefined,
           email: email,
           passwordHash: passwordHash,
-          roles: ["docente"]
+          roles: roles
         });
         results.created++;
         if (!r.password) {
@@ -663,9 +703,16 @@ exports.createStudent = async (req, res, next) => {
     var anioId = String(req.body.anioId || "").trim();
     var division = String(req.body.division || "").trim();
     var password = String(req.body.password || "");
+    var roles;
 
     if (!nombre || !apellido || !dni || !email || !anioId) {
       return res.status(400).json({ message: "nombre, apellido, dni, email y anioId son requeridos" });
+    }
+
+    try {
+      roles = resolveStudentRole(req.body.roles || req.body.role);
+    } catch (roleErr) {
+      return res.status(400).json({ message: roleErr.message });
     }
 
     var anio = await Anio.findById(anioId).select("_id nombre numero division turno");
@@ -696,7 +743,7 @@ exports.createStudent = async (req, res, next) => {
       dni: dni,
       email: email,
       passwordHash: passwordHash,
-      roles: ["estudiante"],
+      roles: roles,
       anioId: anioId,
       division: division
     });
@@ -844,6 +891,14 @@ exports.importStudentsCsv = async (req, res, next) => {
           results.errors.push({ line: r.line, message: "No tienes permisos para el anio: " + r.anio });
           continue;
         }
+      }
+
+      try {
+        resolveStudentRole(r.role, req.body && (req.body.defaultRole || req.body.defaultRoles));
+      } catch (roleErr) {
+        results.skipped++;
+        results.errors.push({ line: r.line, message: roleErr.message });
+        continue;
       }
 
       var generatedPassword = r.password || randomPassword(10);

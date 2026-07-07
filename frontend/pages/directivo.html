@@ -30,8 +30,9 @@
         </a>
         <div class="header-actions">
           <a class="btn btn-ghost" href="../index.html">Sitio publico</a>
+          <a id="staffLink" class="btn btn-secondary" href="admin.html" hidden>Directivos/Docentes</a>
+          <a class="btn btn-secondary" href="directivo.html">Años y materias</a>
           <a class="btn btn-secondary" href="estudiantes.html">Estudiantes</a>
-          <a id="superPanel" class="btn btn-secondary" href="admin.html" hidden>Panel superadmin</a>
           <button id="logout" class="btn btn-primary" type="button">Cerrar sesion</button>
         </div>
       </div>
@@ -46,6 +47,89 @@
               <p class="section-subtitle">
                 Crea anos/materias y asigna materias a docentes por ano. Roles: directivo o superadmin.
               </p>
+            </div>
+          </div>
+
+          <div id="docentesPanel" class="panel reveal" style="--reveal-delay: 90ms" aria-label="Gestion de docentes">
+            <div class="panel-head">
+              <div>
+                <div class="panel-title">Docentes</div>
+                <div class="panel-sub">Crear, editar y eliminar docentes · <span class="mono">/users/staff</span></div>
+              </div>
+              <button id="refreshDocentes" class="btn btn-secondary" type="button">Actualizar</button>
+            </div>
+
+            <div class="docentes-grid">
+              <div class="docente-tools">
+                <form id="docenteForm" class="docente-form" aria-label="Crear docente">
+                  <div class="field">
+                    <label for="dNombre">Nombre</label>
+                    <input id="dNombre" type="text" required />
+                  </div>
+                  <div class="field">
+                    <label for="dApellido">Apellido</label>
+                    <input id="dApellido" type="text" />
+                  </div>
+                  <div class="field">
+                    <label for="dFecha">Fecha de nacimiento</label>
+                    <input id="dFecha" type="date" />
+                  </div>
+                  <div class="field">
+                    <label for="dEmail">Email</label>
+                    <input id="dEmail" type="email" required />
+                  </div>
+                  <div class="field">
+                    <label for="dPass">Password</label>
+                    <input id="dPass" type="password" required />
+                  </div>
+                  <div class="field">
+                    <label for="dRole">Rol</label>
+                    <select id="dRole" required>
+                      <option value="docente" selected>Docente</option>
+                    </select>
+                  </div>
+                  <button class="btn btn-primary" type="submit">Crear docente</button>
+                  <div id="docMsg" class="msg" role="status" aria-live="polite"></div>
+                </form>
+
+                <div class="docente-form import-card" aria-label="Importar docentes por CSV">
+                  <div class="panel-title">Importar docentes por CSV</div>
+                  <div class="panel-sub">POST <span class="mono">/users/staff/import-csv</span></div>
+                  <div class="field">
+                    <label for="docCsvFile">Archivo CSV</label>
+                    <input id="docCsvFile" type="file" accept=".csv,text/csv" />
+                  </div>
+                  <div class="field">
+                    <label for="docImportRole">Rol por defecto</label>
+                    <select id="docImportRole">
+                      <option value="docente" selected>Docente</option>
+                    </select>
+                  </div>
+                  <button id="docImportBtn" class="btn btn-secondary" type="button">Importar docentes</button>
+                  <div class="panel-note">
+                    Columnas: <span class="mono">nombre</span>, <span class="mono">apellido</span>, <span class="mono">fecha de nacimiento</span>, <span class="mono">email</span>, <span class="mono">dni</span>, <span class="mono">password</span>, <span class="mono">rol</span>. Solo <span class="mono">nombre</span> y <span class="mono">email</span> son obligatorias; si falta <span class="mono">password</span> se genera una.
+                  </div>
+                  <div id="docImportMsg" class="msg" role="status" aria-live="polite"></div>
+                  <div id="docImportDetails" class="import-details" hidden></div>
+                </div>
+              </div>
+
+              <div class="table-wrap">
+                <table class="table" aria-label="Tabla docentes">
+                  <thead>
+                    <tr>
+                      <th>Nombre</th>
+                      <th>Apellido</th>
+                      <th>Fecha nac.</th>
+                      <th>Email</th>
+                      <th>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody id="docTbody">
+                    <tr><td colspan="5" class="table-empty">Sin docentes</td></tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
 
@@ -120,77 +204,6 @@
               <button class="btn btn-primary" type="submit">Crear</button>
               <div id="maMsg" class="msg" role="status" aria-live="polite"></div>
             </form>
-          </div>
-
-          <div class="panel reveal" style="--reveal-delay: 90ms" aria-label="Gestion de docentes">
-            <div class="panel-head">
-              <div>
-                <div class="panel-title">Docentes</div>
-                <div class="panel-sub">Crear, editar y eliminar docentes · <span class="mono">/users/staff</span></div>
-              </div>
-              <button id="refreshDocentes" class="btn btn-secondary" type="button">Actualizar</button>
-            </div>
-
-            <div class="docentes-grid">
-              <div class="docente-tools">
-                <form id="docenteForm" class="docente-form" aria-label="Crear docente">
-                  <div class="field">
-                    <label for="dNombre">Nombre</label>
-                    <input id="dNombre" type="text" required />
-                  </div>
-                  <div class="field">
-                    <label for="dApellido">Apellido</label>
-                    <input id="dApellido" type="text" />
-                  </div>
-                  <div class="field">
-                    <label for="dFecha">Fecha de nacimiento</label>
-                    <input id="dFecha" type="date" />
-                  </div>
-                  <div class="field">
-                    <label for="dEmail">Email</label>
-                    <input id="dEmail" type="email" required />
-                  </div>
-                  <div class="field">
-                    <label for="dPass">Password</label>
-                    <input id="dPass" type="password" required />
-                  </div>
-                  <button class="btn btn-primary" type="submit">Crear docente</button>
-                  <div id="docMsg" class="msg" role="status" aria-live="polite"></div>
-                </form>
-
-                <div class="docente-form import-card" aria-label="Importar docentes por CSV">
-                  <div class="panel-title">Importar docentes por CSV</div>
-                  <div class="panel-sub">POST <span class="mono">/users/staff/import-csv</span></div>
-                  <div class="field">
-                    <label for="docCsvFile">Archivo CSV</label>
-                    <input id="docCsvFile" type="file" accept=".csv,text/csv" />
-                  </div>
-                  <button id="docImportBtn" class="btn btn-secondary" type="button">Importar docentes</button>
-                  <div class="panel-note">
-                    Columnas: <span class="mono">nombre</span>, <span class="mono">apellido</span>, <span class="mono">fecha de nacimiento</span>, <span class="mono">email</span>, <span class="mono">dni</span>, <span class="mono">password</span>. Solo <span class="mono">nombre</span> y <span class="mono">email</span> son obligatorias; si falta <span class="mono">password</span> se genera una.
-                  </div>
-                  <div id="docImportMsg" class="msg" role="status" aria-live="polite"></div>
-                  <div id="docImportDetails" class="import-details" hidden></div>
-                </div>
-              </div>
-
-              <div class="table-wrap">
-                <table class="table" aria-label="Tabla docentes">
-                  <thead>
-                    <tr>
-                      <th>Nombre</th>
-                      <th>Apellido</th>
-                      <th>Fecha nac.</th>
-                      <th>Email</th>
-                      <th>Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody id="docTbody">
-                    <tr><td colspan="5" class="table-empty">Sin docentes</td></tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
           </div>
 
           <div class="panel reveal" style="--reveal-delay: 100ms" aria-label="Importar CSV">
