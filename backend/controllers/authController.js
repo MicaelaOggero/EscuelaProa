@@ -6,9 +6,15 @@ const { normalizeRoles, primaryRole } = require("../utils/roles");
 function signToken(user) {
   const secret = process.env.JWT_SECRET;
   if (!secret) throw new Error("JWT_SECRET not set");
-  const expiresIn = process.env.JWT_EXPIRES_IN || "7d";
+  const expiresIn = process.env.JWT_EXPIRES_IN || "12h";
   var roles = normalizeRoles(user.roles && user.roles.length ? user.roles : user.role ? [user.role] : []);
   return jwt.sign({ id: user._id, roles: roles }, secret, { expiresIn });
+}
+
+function tokenExpiresAt(token) {
+  var payload = jwt.decode(token);
+  if (!payload || !payload.exp) return null;
+  return new Date(payload.exp * 1000).toISOString();
 }
 
 function toUserResponse(user) {
@@ -21,6 +27,14 @@ function toUserResponse(user) {
     email: user.email,
     roles: roles,
     role: primaryRole(roles) || user.role
+  };
+}
+
+function toAuthResponse(user, token) {
+  return {
+    token: token,
+    expiresAt: tokenExpiresAt(token),
+    user: toUserResponse(user)
   };
 }
 
@@ -42,7 +56,7 @@ exports.register = async (req, res, next) => {
     });
     const token = signToken(user);
 
-    res.status(201).json({ token, user: toUserResponse(user) });
+    res.status(201).json(toAuthResponse(user, token));
   } catch (err) {
     next(err);
   }
@@ -58,7 +72,7 @@ exports.login = async (req, res, next) => {
     if (!ok) return res.status(401).json({ message: "Invalid credentials" });
 
     const token = signToken(user);
-    res.json({ token, user: toUserResponse(user) });
+    res.json(toAuthResponse(user, token));
   } catch (err) {
     next(err);
   }
@@ -81,7 +95,7 @@ exports.loginStaff = async (req, res, next) => {
     if (!isStaff) return res.status(403).json({ message: "Staff only" });
 
     const token = signToken(user);
-    res.json({ token, user: toUserResponse(user) });
+    res.json(toAuthResponse(user, token));
   } catch (err) {
     next(err);
   }
@@ -125,7 +139,7 @@ exports.bootstrapSuperadmin = async (req, res, next) => {
     });
     const token = signToken(user);
 
-    res.status(201).json({ message: "Superadmin created", token, user: toUserResponse(user) });
+    res.status(201).json(Object.assign({ message: "Superadmin created" }, toAuthResponse(user, token)));
   } catch (err) {
     next(err);
   }

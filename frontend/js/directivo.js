@@ -26,15 +26,18 @@
   }
 
   function getApiBase() {
+    if (window.EEPAuth) return window.EEPAuth.getApiBase();
     var saved = localStorage.getItem(STORAGE_API_BASE);
     return saved || "http://localhost:4000/api";
   }
 
   function getToken() {
+    if (window.EEPAuth) return window.EEPAuth.getToken();
     return localStorage.getItem(STORAGE_TOKEN) || "";
   }
 
   function getUser() {
+    if (window.EEPAuth) return window.EEPAuth.getUser();
     var raw = localStorage.getItem(STORAGE_USER);
     if (!raw) return null;
     try {
@@ -91,6 +94,10 @@
     }
     if (!res.ok) {
       var msg = (data && (data.message || data.error)) || res.statusText || "Request failed";
+      if (res.status === 401) {
+        if (window.EEPAuth) window.EEPAuth.clearSession();
+        window.location.href = "login.html";
+      }
       throw new Error(msg);
     }
     return data;
@@ -100,13 +107,17 @@
     var btn = $("#logout");
     if (!btn) return;
     btn.addEventListener("click", function () {
-      localStorage.removeItem(STORAGE_TOKEN);
-      localStorage.removeItem(STORAGE_USER);
+      if (window.EEPAuth) window.EEPAuth.clearSession();
+      else {
+        localStorage.removeItem(STORAGE_TOKEN);
+        localStorage.removeItem(STORAGE_USER);
+      }
       window.location.href = "../index.html";
     });
   }
 
   function fillSelect(sel, rows, getValue, getLabel) {
+    if (!sel) return;
     sel.innerHTML = '<option value="" selected disabled>Seleccionar</option>';
     rows.forEach(function (r) {
       var opt = document.createElement("option");
@@ -119,7 +130,7 @@
   }
 
   function anioLabel(a) {
-    var base = a.nombre || (a.numero ? String(a.numero) + "o" : "Anio");
+    var base = a.nombre || (a.numero ? String(a.numero) + "o" : "Curso");
     var div = a.division ? " " + a.division : "";
     var tur = a.turno ? " · " + a.turno : "";
     return base + div + tur;
@@ -131,6 +142,75 @@
 
   function currentCicloLectivo() {
     return new Date().getFullYear();
+  }
+
+  var docentesOptions = [];
+  var selectedDocente = null;
+
+  function docenteLabel(u) {
+    return [u.apellido, u.nombre].filter(Boolean).join(", ") + " · " + (u.email || "");
+  }
+
+  function filterDocentes(query) {
+    var term = String(query || "").trim().toLowerCase();
+    return docentesOptions.filter(function (u) {
+      if (!term) return true;
+      var haystack = [u.nombre || "", u.apellido || "", u.email || "", docenteLabel(u)]
+        .join(" ")
+        .toLowerCase();
+      return haystack.indexOf(term) !== -1;
+    });
+  }
+
+  function setSelectedDocente(docente) {
+    var hidden = $("#editDocente");
+    var lookup = $("#editDocenteLookup");
+    if (!hidden || !lookup) return;
+    selectedDocente = docente || null;
+    hidden.value = docente ? (docente._id || docente.id || "") : "";
+    lookup.value = docente ? docenteLabel(docente) : "";
+  }
+
+  function renderDocenteResults(query) {
+    var resultsEl = $("#editDocenteResults");
+    if (!resultsEl) return;
+    var filtered = filterDocentes(query).slice(0, 12);
+    resultsEl.innerHTML = "";
+
+    var clearBtn = document.createElement("button");
+    clearBtn.type = "button";
+    clearBtn.className = "combo-option";
+    clearBtn.textContent = "Sin asignar";
+    clearBtn.addEventListener("mousedown", function (e) {
+      e.preventDefault();
+      setSelectedDocente(null);
+      resultsEl.hidden = true;
+    });
+    resultsEl.appendChild(clearBtn);
+
+    if (!filtered.length) {
+      var empty = document.createElement("div");
+      empty.className = "combo-empty";
+      empty.textContent = "No se encontraron docentes";
+      resultsEl.appendChild(empty);
+      resultsEl.hidden = false;
+      return;
+    }
+
+    filtered.forEach(function (u) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "combo-option";
+      btn.textContent = docenteLabel(u);
+      btn.addEventListener("mousedown", function (e) {
+        e.preventDefault();
+        setSelectedDocente(u);
+        resultsEl.hidden = true;
+      });
+      resultsEl.appendChild(btn);
+    });
+
+    resultsEl.hidden = false;
   }
 
   async function readCsvFile(file) {
@@ -180,18 +260,14 @@
         var roles = (u.roles && u.roles.length ? u.roles : u.role ? [u.role] : []);
         return roles.indexOf("docente") !== -1;
       });
-      var anios = await api("/anios", { method: "GET" });
-      var mas = await api("/materias-anio", { method: "GET" });
+      docentesOptions = users.slice();
+      var anios = await api("/cursos", { method: "GET" });
+      var mas = await api("/materias-curso", { method: "GET" });
 
-      fillSelect($("#maDocente"), users, function (u) { return u._id || u.id; }, function (u) {
-        return [u.apellido, u.nombre].filter(Boolean).join(", ") + " · " + (u.email || "");
-      });
       fillSelect($("#maAnio"), anios || [], function (a) { return a._id; }, anioLabel);
 
       // Reuse same data for edit modal selects
-      fillSelect($("#editDocente"), users, function (u) { return u._id || u.id; }, function (u) {
-        return [u.apellido, u.nombre].filter(Boolean).join(", ") + " · " + (u.email || "");
-      });
+      setSelectedDocente(null);
       fillSelect($("#editAnio"), anios || [], function (a) { return a._id; }, anioLabel);
 
       renderAsignaciones(mas || []);
@@ -202,31 +278,58 @@
   }
 
   function renderAsignaciones(rows) {
-    var tbody = $("#asigTbody");
-    if (!tbody) return;
-    tbody.innerHTML = "";
-    if (!rows.length) {
-      var tr = document.createElement("tr");
-      var td = document.createElement("td");
-      td.colSpan = 5;
-      td.className = "table-empty";
-      td.textContent = "Sin asignaciones";
-      tr.appendChild(td);
-      tbody.appendChild(tr);
-      return;
+    var assignedTbody = $("#asigTbody");
+    var pendingTbody = $("#pendingAsigTbody");
+    var assigned = (rows || []).filter(function (r) { return !!(r && r.docenteId); });
+    var pending = (rows || []).filter(function (r) { return !(r && r.docenteId); });
+    var assignedCount = $("#conDocenteCount");
+    var pendingCount = $("#sinDocenteCount");
+    if (assignedCount) assignedCount.textContent = String(assigned.length);
+    if (pendingCount) pendingCount.textContent = String(pending.length);
+    if (!assignedTbody || !pendingTbody) return;
+
+    assignedTbody.innerHTML = "";
+    pendingTbody.innerHTML = "";
+
+    if (!pending.length) {
+      var trPendingEmpty = document.createElement("tr");
+      var tdPendingEmpty = document.createElement("td");
+      tdPendingEmpty.colSpan = 4;
+      tdPendingEmpty.className = "table-empty";
+      tdPendingEmpty.textContent = "Sin materias pendientes";
+      trPendingEmpty.appendChild(tdPendingEmpty);
+      pendingTbody.appendChild(trPendingEmpty);
     }
-    rows.forEach(function (r) {
+
+    if (!assigned.length) {
+      var trAssignedEmpty = document.createElement("tr");
+      var tdAssignedEmpty = document.createElement("td");
+      tdAssignedEmpty.colSpan = 5;
+      tdAssignedEmpty.className = "table-empty";
+      tdAssignedEmpty.textContent = "Sin asignaciones";
+      trAssignedEmpty.appendChild(tdAssignedEmpty);
+      assignedTbody.appendChild(trAssignedEmpty);
+    }
+
+    pending.forEach(function (r) {
       var tr = document.createElement("tr");
-      var tdD = document.createElement("td");
-      var d = r.docenteId;
-      tdD.textContent = d ? ([d.apellido, d.nombre].filter(Boolean).join(", ") || d.email) : "-";
       var tdM = document.createElement("td");
       tdM.textContent = r.materia || "-";
       var tdA = document.createElement("td");
-      tdA.textContent = r.anioId ? anioLabel(r.anioId) : "-";
+      tdA.textContent = r.cursoId ? anioLabel(r.cursoId) : "-";
       var tdC = document.createElement("td");
       tdC.textContent = cicloLabel(r.cicloLectivo);
       var tdX = document.createElement("td");
+
+      var btnAssign = document.createElement("button");
+      btnAssign.type = "button";
+      btnAssign.className = "btn btn-primary";
+      btnAssign.textContent = "Asignar docente";
+      btnAssign.style.padding = "0.5rem 0.7rem";
+      btnAssign.style.fontSize = "0.9rem";
+      btnAssign.addEventListener("click", function () {
+        openEditModal(r, "assign");
+      });
 
       var btnEdit = document.createElement("button");
       btnEdit.type = "button";
@@ -235,44 +338,102 @@
       btnEdit.style.padding = "0.5rem 0.7rem";
       btnEdit.style.fontSize = "0.9rem";
       btnEdit.addEventListener("click", function () {
-        openEditModal(r);
+        openEditModal(r, "edit");
       });
 
-      var btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "btn btn-secondary";
-      btn.textContent = "Eliminar";
-      btn.style.padding = "0.5rem 0.7rem";
-      btn.style.fontSize = "0.9rem";
-      btn.addEventListener("click", function () {
+      var btnDelete = document.createElement("button");
+      btnDelete.type = "button";
+      btnDelete.className = "btn btn-secondary";
+      btnDelete.textContent = "Eliminar";
+      btnDelete.style.padding = "0.5rem 0.7rem";
+      btnDelete.style.fontSize = "0.9rem";
+      btnDelete.addEventListener("click", function () {
         removeAsignacion(r._id);
       });
+
+      tdX.appendChild(btnAssign);
       tdX.appendChild(btnEdit);
-      tdX.appendChild(btn);
+      tdX.appendChild(btnDelete);
+
+      tr.appendChild(tdM);
+      tr.appendChild(tdA);
+      tr.appendChild(tdC);
+      tr.appendChild(tdX);
+      pendingTbody.appendChild(tr);
+    });
+
+    assigned.forEach(function (r) {
+      var tr = document.createElement("tr");
+      var tdD = document.createElement("td");
+      var d = r.docenteId;
+      tdD.textContent = [d.apellido, d.nombre].filter(Boolean).join(", ") || d.email || "-";
+      var tdM = document.createElement("td");
+      tdM.textContent = r.materia || "-";
+      var tdA = document.createElement("td");
+      tdA.textContent = r.cursoId ? anioLabel(r.cursoId) : "-";
+      var tdC = document.createElement("td");
+      tdC.textContent = cicloLabel(r.cicloLectivo);
+      var tdX = document.createElement("td");
+
+      var btnReassign = document.createElement("button");
+      btnReassign.type = "button";
+      btnReassign.className = "btn btn-primary";
+      btnReassign.textContent = "Cambiar docente";
+      btnReassign.style.padding = "0.5rem 0.7rem";
+      btnReassign.style.fontSize = "0.9rem";
+      btnReassign.addEventListener("click", function () {
+        openEditModal(r, "assign");
+      });
+
+      var btnClear = document.createElement("button");
+      btnClear.type = "button";
+      btnClear.className = "btn btn-ghost";
+      btnClear.textContent = "Quitar docente";
+      btnClear.style.padding = "0.5rem 0.7rem";
+      btnClear.style.fontSize = "0.9rem";
+      btnClear.addEventListener("click", function () {
+        clearDocente(r);
+      });
+
+      tdX.appendChild(btnReassign);
+      tdX.appendChild(btnClear);
 
       tr.appendChild(tdD);
       tr.appendChild(tdM);
       tr.appendChild(tdA);
       tr.appendChild(tdC);
       tr.appendChild(tdX);
-      tbody.appendChild(tr);
+      assignedTbody.appendChild(tr);
     });
   }
 
-  function openEditModal(row) {
+  function openEditModal(row, mode) {
     var modal = $("#editModal");
     if (!modal) return;
+    var isAssignMode = mode === "assign";
+    var title = $("#editTitle");
+    var sub = modal.querySelector(".modal-sub");
+    modal.setAttribute("data-mode", isAssignMode ? "assign" : "edit");
     $("#editId").value = row._id;
     $("#editMateria").value = row.materia || "";
     $("#editActivo").checked = row.activo !== false;
-    if (row.docenteId && row.docenteId._id) $("#editDocente").value = row.docenteId._id;
-    if (row.anioId && row.anioId._id) $("#editAnio").value = row.anioId._id;
+    setSelectedDocente(row.docenteId || null);
+    if ($("#editDocenteResults")) $("#editDocenteResults").hidden = true;
+    if (row.cursoId && row.cursoId._id) $("#editAnio").value = row.cursoId._id;
     $("#editCicloLectivo").value = row.cicloLectivo || new Date().getFullYear();
+    $("#editMateria").readOnly = isAssignMode;
+    $("#editAnio").disabled = isAssignMode;
+    $("#editCicloLectivo").readOnly = isAssignMode;
+    $("#editActivo").disabled = isAssignMode;
+    if (title) title.textContent = isAssignMode ? "Asignar docente a materia" : "Editar materia por curso";
+    if (sub) sub.textContent = isAssignMode
+      ? "Selecciona un docente existente para esta materia."
+      : "Edita la materia, el curso, el ciclo o la asignacion docente.";
     setMsg($("#editMsg"), "", "");
     modal.classList.add("is-open");
     modal.setAttribute("aria-hidden", "false");
     setTimeout(function () {
-      var el = $("#editMateria");
+      var el = isAssignMode ? $("#editDocente") : $("#editMateria");
       if (el) el.focus();
     }, 0);
   }
@@ -280,6 +441,12 @@
   function closeEditModal() {
     var modal = $("#editModal");
     if (!modal) return;
+    modal.setAttribute("data-mode", "edit");
+    $("#editMateria").readOnly = false;
+    $("#editAnio").disabled = false;
+    $("#editCicloLectivo").readOnly = false;
+    $("#editActivo").disabled = false;
+    if ($("#editDocenteResults")) $("#editDocenteResults").hidden = true;
     modal.classList.remove("is-open");
     modal.setAttribute("aria-hidden", "true");
   }
@@ -288,7 +455,32 @@
     var modal = $("#editModal");
     var form = $("#editForm");
     var msg = $("#editMsg");
+    var docenteLookup = $("#editDocenteLookup");
+    var docenteHidden = $("#editDocente");
+    var docenteResults = $("#editDocenteResults");
     if (!modal || !form) return;
+
+    if (docenteLookup) {
+      docenteLookup.addEventListener("focus", function () {
+        renderDocenteResults(docenteLookup.value);
+      });
+      docenteLookup.addEventListener("input", function () {
+        selectedDocente = null;
+        if (docenteHidden) docenteHidden.value = "";
+        renderDocenteResults(docenteLookup.value);
+      });
+      docenteLookup.addEventListener("blur", function () {
+        window.setTimeout(function () {
+          if (docenteResults) docenteResults.hidden = true;
+          if (docenteHidden && !docenteHidden.value) {
+            docenteLookup.value = "";
+            selectedDocente = null;
+          } else if (selectedDocente) {
+            docenteLookup.value = docenteLabel(selectedDocente);
+          }
+        }, 150);
+      });
+    }
 
     modal.addEventListener("click", function (e) {
       var t = e.target;
@@ -305,16 +497,24 @@
       setMsg(msg, "Guardando...", "");
       try {
         var id = $("#editId").value;
-        await api("/materias-anio/" + encodeURIComponent(id), {
-          method: "PUT",
-          body: JSON.stringify({
-            materia: $("#editMateria").value,
-            docenteId: $("#editDocente").value,
-            anioId: $("#editAnio").value,
-            cicloLectivo: Number($("#editCicloLectivo").value),
-            activo: $("#editActivo").checked
-          })
-        });
+        var mode = modal.getAttribute("data-mode") || "edit";
+        if (mode === "assign") {
+          await api("/materias-curso/" + encodeURIComponent(id) + "/asignar-docente", {
+            method: "PATCH",
+            body: JSON.stringify({ docenteId: $("#editDocente").value })
+          });
+        } else {
+          await api("/materias-curso/" + encodeURIComponent(id), {
+            method: "PUT",
+            body: JSON.stringify({
+              materia: $("#editMateria").value,
+              docenteId: $("#editDocente").value,
+              cursoId: $("#editAnio").value,
+              cicloLectivo: Number($("#editCicloLectivo").value),
+              activo: $("#editActivo").checked
+            })
+          });
+        }
         setMsg(msg, "Actualizado", "ok");
         closeEditModal();
         loadAll();
@@ -572,9 +772,22 @@
     var msg = $("#asigMsg");
     setMsg(msg, "Eliminando...", "");
     try {
-      await api("/materias-anio/" + encodeURIComponent(id), { method: "DELETE" });
+      await api("/materias-curso/" + encodeURIComponent(id), { method: "DELETE" });
       await loadAll();
       setMsg(msg, "Eliminado", "ok");
+    } catch (e) {
+      setMsg(msg, e.message || "Error", "error");
+    }
+  }
+
+  async function clearDocente(row) {
+    if (!confirm("Quitar el docente asignado a esta materia?")) return;
+    var msg = $("#asigMsg");
+    setMsg(msg, "Quitando docente...", "");
+    try {
+      await api("/materias-curso/" + encodeURIComponent(row._id) + "/quitar-docente", { method: "PATCH" });
+      await loadAll();
+      setMsg(msg, "Docente quitado", "ok");
     } catch (e) {
       setMsg(msg, e.message || "Error", "error");
     }
@@ -588,7 +801,7 @@
       e.preventDefault();
       setMsg(msg, "Creando...", "");
       try {
-        await api("/anios", {
+        await api("/cursos", {
           method: "POST",
           body: JSON.stringify({
             numero: Number($("#anioNumero").value),
@@ -606,7 +819,7 @@
     });
   }
 
-  function initCreateMateriaAnio() {
+  function initCreateMateriaCurso() {
     var form = $("#maForm");
     var msg = $("#maMsg");
     if (!form) return;
@@ -614,13 +827,12 @@
       e.preventDefault();
       setMsg(msg, "Creando...", "");
       try {
-        await api("/materias-anio", {
+        await api("/materias-curso", {
           method: "POST",
           body: JSON.stringify({
             materia: $("#maMateria").value,
-            anioId: $("#maAnio").value,
-            cicloLectivo: Number($("#maCicloLectivo").value),
-            docenteId: $("#maDocente").value
+            cursoId: $("#maAnio").value,
+            cicloLectivo: Number($("#maCicloLectivo").value)
           })
         });
         form.reset();
@@ -653,7 +865,7 @@
       try {
         var text = await readCsvFile(f);
         setMsg(msg, "Importando...", "");
-        var res = await api("/materias-anio/import-csv", {
+        var res = await api("/materias-curso/import-csv", {
           method: "POST",
           body: JSON.stringify({ csv: text })
         });
@@ -676,7 +888,7 @@
   if (maCiclo && !maCiclo.value) maCiclo.value = currentCicloLectivo();
   initLogout();
   initCreateAnio();
-  initCreateMateriaAnio();
+  initCreateMateriaCurso();
   initRefresh();
   initEditModal();
   initCsvImport();

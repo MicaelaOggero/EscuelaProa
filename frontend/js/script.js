@@ -5,6 +5,7 @@ function initYear() {
 }
 
 function getApiBase() {
+  if (window.EEPAuth) return window.EEPAuth.getApiBase().replace(/\/$/, "");
   var saved = localStorage.getItem("eep_api_base");
   return (saved || "http://localhost:4000/api").replace(/\/$/, "");
 }
@@ -244,17 +245,18 @@ function initReveal() {
 }
 
 function initAuthHeader() {
-  var STORAGE_TOKEN = "eep_token";
-  var STORAGE_USER = "eep_user";
   var STORAGE_LAST_PANEL = "eep_last_panel_path";
-  var token = localStorage.getItem(STORAGE_TOKEN) || "";
-  var userRaw = localStorage.getItem(STORAGE_USER);
-  var user = null;
-  try {
-    user = userRaw ? JSON.parse(userRaw) : null;
-  } catch (e) {
-    user = null;
-  }
+  var token = window.EEPAuth ? window.EEPAuth.getToken() : localStorage.getItem("eep_token") || "";
+  var user = window.EEPAuth
+    ? window.EEPAuth.getUser()
+    : (function () {
+        var userRaw = localStorage.getItem("eep_user");
+        try {
+          return userRaw ? JSON.parse(userRaw) : null;
+        } catch (e) {
+          return null;
+        }
+      })();
 
   var loginLink = document.getElementById("loginLink");
   var panelLink = document.getElementById("panelLink");
@@ -280,8 +282,11 @@ function initAuthHeader() {
 
   if (logoutBtn) {
     logoutBtn.addEventListener("click", function () {
-      localStorage.removeItem(STORAGE_TOKEN);
-      localStorage.removeItem(STORAGE_USER);
+      if (window.EEPAuth) window.EEPAuth.clearSession();
+      else {
+        localStorage.removeItem("eep_token");
+        localStorage.removeItem("eep_user");
+      }
       sessionStorage.removeItem(STORAGE_LAST_PANEL);
       if (loginLink) loginLink.hidden = false;
       if (panelLink) panelLink.hidden = true;

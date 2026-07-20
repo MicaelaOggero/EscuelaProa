@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Iniciar sesion - Escuela Experimental Porteña</title>
-    <meta name="description" content="Ingreso institucional para directivos, docentes y superadmin." />
+    <meta name="description" content="Ingreso unificado para estudiantes, docentes, directivos y superadmin." />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -32,7 +32,7 @@
           />
           <div class="brand-text">
             <span class="brand-name">Escuela Experimental Porteña</span>
-            <span class="brand-tag">Ingreso institucional</span>
+            <span class="brand-tag">Ingreso unificado</span>
           </div>
         </a>
         <div class="header-actions">
@@ -48,28 +48,23 @@
             <div class="login-card reveal">
               <div class="badge">
                 <span class="badge-dot" aria-hidden="true"></span>
-                Acceso para directivos y docentes
+                Acceso a la plataforma
               </div>
               <h1 class="login-title">Iniciar sesion</h1>
               <p class="login-lead">
-                Usa tus credenciales institucionales. Esta pantalla autentica roles
-                <strong>directivo</strong>, <strong>docente</strong> o <strong>superadmin</strong>.
+                Usa tus credenciales para ingresar a tu espacio correspondiente segun tu rol.
               </p>
-
-              <div class="api-box">
-                <div class="api-box-title">API base</div>
-                <div class="api-box-row">
-                  <input id="apiBase" class="api-input" type="url" placeholder="http://localhost:4000/api" />
-                  <button id="saveApi" class="btn btn-secondary" type="button">Guardar</button>
-                </div>
-                <div class="api-hint">Debe coincidir con donde corre el backend.</div>
-              </div>
+              <ul class="login-points" aria-label="Accesos habilitados">
+                <li>Estudiantes pueden consultar sus materias, materiales y actividades.</li>
+                <li>Directivos pueden administrar estudiantes, docentes, materias.</li>
+                <li>Docentes pueden ingresar a su panel de trabajo y administrar el contenido de sus materias para estudiantes.</li>
+              </ul>
             </div>
 
             <form id="loginForm" class="login-form reveal" style="--reveal-delay: 90ms" aria-label="Formulario de ingreso">
               <div class="panel-card-head">
                 <div class="panel-card-title">Credenciales</div>
-                <div class="panel-card-sub">POST <span class="mono">/auth/login-staff</span></div>
+                <div class="panel-card-sub">Todos los usuarios</div>
               </div>
 
               <div class="field">
@@ -86,8 +81,6 @@
               <div id="msg" class="msg" role="status" aria-live="polite"></div>
               <div class="login-links">
                 <a class="link" href="../index.html">Volver al inicio</a>
-                <a class="link" href="admin.html">Ir al panel</a>
-                <a class="link" href="login-estudiante.html">Ingreso estudiantes</a>
               </div>
             </form>
           </div>
@@ -104,6 +97,7 @@
       </div>
     </footer>
 
+    <script src="../js/auth-session.js" defer></script>
     <script src="../js/script.js" defer></script>
     <script src="../js/login.js" defer></script>
   </body>

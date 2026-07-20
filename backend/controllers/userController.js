@@ -1,11 +1,11 @@
 const Usuario = require("../models/Usuario");
-const MateriaAnio = require("../models/MateriaAnio");
-const Anio = require("../models/Anio");
+const MateriaCurso = require("../models/MateriaCurso");
+const Curso = require("../models/Curso");
 const bcrypt = require("bcryptjs");
 const { normalizeRoles, primaryRole } = require("../utils/roles");
 
 function studentSelect() {
-  return "nombre apellido fechaNacimiento dni email role roles anioId division createdAt";
+  return "nombre apellido fechaNacimiento dni email role roles cursoId division createdAt";
 }
 
 function normalizeDni(value) {
@@ -81,67 +81,67 @@ function resolveStudentRole(input, fallback) {
   return roles;
 }
 
-async function findAnio(anioStr) {
+async function findCurso(anioStr) {
   var s = String(anioStr || "").trim();
   if (!s) return null;
   var n = parseInt(s, 10);
   if (!isNaN(n)) {
-    var byNum = await Anio.findOne({ numero: n });
+    var byNum = await Curso.findOne({ numero: n });
     if (byNum) return byNum;
   }
-  return await Anio.findOne({ nombre: s });
+  return await Curso.findOne({ nombre: s });
 }
 
-async function docenteVisibleAnioIds(reqUser, filters) {
+async function docenteVisibleCursoIds(reqUser, filters) {
   var assignmentFilter = { docenteId: reqUser.id, activo: true };
-  if (filters && filters.anioId) assignmentFilter.anioId = filters.anioId;
-  if (filters && filters.materiaAnioId) assignmentFilter._id = filters.materiaAnioId;
+  if (filters && filters.cursoId) assignmentFilter.cursoId = filters.cursoId;
+  if (filters && filters.materiaCursoId) assignmentFilter._id = filters.materiaCursoId;
   if (filters && filters.cicloLectivo) assignmentFilter.cicloLectivo = filters.cicloLectivo;
 
-  var rows = await MateriaAnio.find(assignmentFilter).select("anioId");
+  var rows = await MateriaCurso.find(assignmentFilter).select("cursoId");
   var map = {};
   rows.forEach(function (row) {
-    if (row && row.anioId) map[String(row.anioId)] = true;
+    if (row && row.cursoId) map[String(row.cursoId)] = true;
   });
   return Object.keys(map);
 }
 
-async function docentePuedeGestionarAnio(reqUser, anioId) {
-  var rows = await MateriaAnio.find({ docenteId: reqUser.id, anioId: anioId, activo: true }).select("_id").limit(1);
+async function docentePuedeGestionarCurso(reqUser, cursoId) {
+  var rows = await MateriaCurso.find({ docenteId: reqUser.id, cursoId: cursoId, activo: true }).select("_id").limit(1);
   return rows.length > 0;
 }
 
 async function buildStudentScope(req, options) {
   var filters = options || {};
-  var byAssignment = !!(filters.docenteId || filters.materiaAnioId || filters.cicloLectivo);
+  var byAssignment = !!(filters.docenteId || filters.materiaCursoId || filters.cicloLectivo);
 
   if (isDirectivoLike(req.user)) {
     if (!byAssignment) {
-      if (filters.anioId) return { unrestricted: false, anioIds: [String(filters.anioId)] };
-      return { unrestricted: true, anioIds: [] };
+      if (filters.cursoId) return { unrestricted: false, cursoIds: [String(filters.cursoId)] };
+      return { unrestricted: true, cursoIds: [] };
     }
 
     var assignmentFilter = { activo: true };
-    if (filters.anioId) assignmentFilter.anioId = filters.anioId;
+    if (filters.cursoId) assignmentFilter.cursoId = filters.cursoId;
     if (filters.docenteId) assignmentFilter.docenteId = filters.docenteId;
-    if (filters.materiaAnioId) assignmentFilter._id = filters.materiaAnioId;
+    if (filters.materiaCursoId) assignmentFilter._id = filters.materiaCursoId;
     if (filters.cicloLectivo) assignmentFilter.cicloLectivo = filters.cicloLectivo;
 
-    var rows = await MateriaAnio.find(assignmentFilter).select("anioId");
+    var rows = await MateriaCurso.find(assignmentFilter).select("cursoId");
     var map = {};
     rows.forEach(function (row) {
-      if (row && row.anioId) map[String(row.anioId)] = true;
+      if (row && row.cursoId) map[String(row.cursoId)] = true;
     });
-    return { unrestricted: false, anioIds: Object.keys(map) };
+    return { unrestricted: false, cursoIds: Object.keys(map) };
   }
 
-  var anioIds = await docenteVisibleAnioIds(req.user, {
-    anioId: filters.anioId,
-    materiaAnioId: filters.materiaAnioId,
+  var cursoIds = await docenteVisibleCursoIds(req.user, {
+    cursoId: filters.cursoId,
+    materiaCursoId: filters.materiaCursoId,
     cicloLectivo: filters.cicloLectivo
   });
 
-  return { unrestricted: false, anioIds: anioIds };
+  return { unrestricted: false, cursoIds: cursoIds };
 }
 
 function parseStudentsCSV(text) {
@@ -210,9 +210,7 @@ function parseStudentsCSV(text) {
   if (iEmail === -1) iEmail = idxFor("correo");
   if (iEmail === -1) iEmail = idxFor("mail");
   var iDni = idxFor("dni");
-  var iAnio = idxFor("ano");
-  if (iAnio === -1) iAnio = idxFor("anio");
-  if (iAnio === -1) iAnio = idxFor("curso");
+  var iCurso = idxFor("curso");
   var iDivision = idxFor("division");
   var iPassword = idxFor("password");
   if (iPassword === -1) iPassword = idxFor("contrasena");
@@ -225,7 +223,7 @@ function parseStudentsCSV(text) {
   if (iApellido === -1) errors.push("Falta columna: apellido");
   if (iDni === -1) errors.push("Falta columna: dni");
   if (iEmail === -1) errors.push("Falta columna: email");
-  if (iAnio === -1) errors.push("Falta columna: anio");
+  if (iCurso === -1) errors.push("Falta columna: curso");
   if (errors.length) return { rows: [], errors: errors };
 
   var rows = [];
@@ -237,7 +235,7 @@ function parseStudentsCSV(text) {
       fechaNacimiento: iFecha === -1 ? "" : (cols[iFecha] || "").trim(),
       email: (cols[iEmail] || "").trim(),
       dni: (cols[iDni] || "").trim(),
-      anio: (cols[iAnio] || "").trim(),
+      curso: (cols[iCurso] || "").trim(),
       division: iDivision === -1 ? "" : (cols[iDivision] || "").trim(),
       password: iPassword === -1 ? "" : (cols[iPassword] || "").trim(),
       role: iRole === -1 ? "" : (cols[iRole] || "").trim(),
@@ -344,8 +342,8 @@ function parseStaffCSV(text) {
 exports.me = async (req, res, next) => {
   try {
     const user = await Usuario.findById(req.user.id).select(
-      "nombre apellido fechaNacimiento dni email role roles anioId division createdAt"
-    ).populate("anioId", "numero nombre division turno");
+      "nombre apellido fechaNacimiento dni email role roles cursoId division createdAt"
+    ).populate("cursoId", "numero nombre division turno");
     if (!user) return res.status(404).json({ message: "User not found" });
     user.roles = normalizeRoles(user.roles && user.roles.length ? user.roles : user.role ? [user.role] : []);
     user.role = primaryRole(user.roles);
@@ -358,7 +356,7 @@ exports.me = async (req, res, next) => {
 exports.list = async (req, res, next) => {
   try {
     const users = await Usuario.find()
-      .select("nombre apellido fechaNacimiento dni email role roles anioId division createdAt")
+      .select("nombre apellido fechaNacimiento dni email role roles cursoId division createdAt")
       .sort({ createdAt: -1 });
     users.forEach(function (user) {
       user.roles = normalizeRoles(user.roles && user.roles.length ? user.roles : user.role ? [user.role] : []);
@@ -381,7 +379,7 @@ exports.create = async (req, res, next) => {
       return res.status(400).json({ message: "nombre, email, password y roles/role son requeridos" });
     }
 
-    var allowed = ["superadmin", "directivo", "docente", "estudiante", "comunidad-estudiantes"];
+    var allowed = ["superadmin", "directivo", "docente", "estudiante"];
     roles = normalizeRoles(roles || role);
     var invalid = roles.find(function (r) {
       return allowed.indexOf(r) === -1;
@@ -481,7 +479,7 @@ exports.listStaff = async (req, res, next) => {
     }
 
     const users = await Usuario.find(filter)
-      .select("nombre apellido fechaNacimiento dni email role roles anioId division createdAt")
+      .select("nombre apellido fechaNacimiento dni email role roles cursoId division createdAt")
       .sort({ createdAt: -1 });
     users.forEach(function (user) {
       user.roles = normalizeRoles(user.roles && user.roles.length ? user.roles : user.role ? [user.role] : []);
@@ -664,16 +662,16 @@ exports.listStudents = async (req, res, next) => {
     if (cicloLectivo === false) return res.status(400).json({ message: "cicloLectivo invalido" });
 
     var scope = await buildStudentScope(req, {
-      anioId: req.query.anioId,
+      cursoId: req.query.cursoId,
       docenteId: req.query.docenteId,
-      materiaAnioId: req.query.materiaAnioId,
+      materiaCursoId: req.query.materiaCursoId,
       cicloLectivo: cicloLectivo || null
     });
 
-    if (!scope.unrestricted && !scope.anioIds.length) return res.json([]);
+    if (!scope.unrestricted && !scope.cursoIds.length) return res.json([]);
 
     var filter = { roles: "estudiante" };
-    if (!scope.unrestricted) filter.anioId = scope.anioIds.length === 1 ? scope.anioIds[0] : { $in: scope.anioIds };
+    if (!scope.unrestricted) filter.cursoId = scope.cursoIds.length === 1 ? scope.cursoIds[0] : { $in: scope.cursoIds };
 
     var search = String(req.query.search || "").trim();
     if (search) {
@@ -683,7 +681,7 @@ exports.listStudents = async (req, res, next) => {
 
     var users = await Usuario.find(filter)
       .select(studentSelect())
-      .populate("anioId", "numero nombre division turno")
+      .populate("cursoId", "numero nombre division turno")
       .sort({ apellido: 1, nombre: 1, createdAt: -1 });
 
     users.forEach(normalizeStudent);
@@ -700,13 +698,13 @@ exports.createStudent = async (req, res, next) => {
     var fechaNacimiento = req.body.fechaNacimiento;
     var dni = normalizeDni(req.body.dni);
     var email = String(req.body.email || "").trim().toLowerCase();
-    var anioId = String(req.body.anioId || "").trim();
+    var cursoId = String(req.body.cursoId || "").trim();
     var division = String(req.body.division || "").trim();
     var password = String(req.body.password || "");
     var roles;
 
-    if (!nombre || !apellido || !dni || !email || !anioId) {
-      return res.status(400).json({ message: "nombre, apellido, dni, email y anioId son requeridos" });
+    if (!nombre || !apellido || !dni || !email || !cursoId) {
+      return res.status(400).json({ message: "nombre, apellido, dni, email y cursoId son requeridos" });
     }
 
     try {
@@ -715,13 +713,10 @@ exports.createStudent = async (req, res, next) => {
       return res.status(400).json({ message: roleErr.message });
     }
 
-    var anio = await Anio.findById(anioId).select("_id nombre numero division turno");
-    if (!anio) return res.status(404).json({ message: "Anio not found" });
+    var curso = await Curso.findById(cursoId).select("_id nombre numero division turno");
+    if (!curso) return res.status(404).json({ message: "Curso not found" });
 
-    if (!isDirectivoLike(req.user)) {
-      var puede = await docentePuedeGestionarAnio(req.user, anioId);
-      if (!puede) return res.status(403).json({ message: "Solo puedes gestionar estudiantes de tus materias" });
-    }
+    if (!isDirectivoLike(req.user)) return res.status(403).json({ message: "Forbidden" });
 
     var existingDni = await Usuario.findOne({ dni: dni }).select("_id");
     if (existingDni) return res.status(409).json({ message: "DNI already in use" });
@@ -744,11 +739,11 @@ exports.createStudent = async (req, res, next) => {
       email: email,
       passwordHash: passwordHash,
       roles: roles,
-      anioId: anioId,
+      cursoId: cursoId,
       division: division
     });
 
-    var saved = await Usuario.findById(user._id).select(studentSelect()).populate("anioId", "numero nombre division turno");
+    var saved = await Usuario.findById(user._id).select(studentSelect()).populate("cursoId", "numero nombre division turno");
     normalizeStudent(saved);
     res.status(201).json({ student: saved, generatedPassword: generatedPassword });
   } catch (err) {
@@ -771,21 +766,15 @@ exports.updateStudent = async (req, res, next) => {
       return res.status(400).json({ message: "Solo se puede editar estudiantes" });
     }
 
-    if (!isDirectivoLike(req.user)) {
-      var puedeActual = user.anioId ? await docentePuedeGestionarAnio(req.user, user.anioId) : false;
-      if (!puedeActual) return res.status(403).json({ message: "Solo puedes gestionar estudiantes de tus materias" });
+    if (!isDirectivoLike(req.user)) return res.status(403).json({ message: "Forbidden" });
+
+    var nextCursoId = typeof req.body.cursoId === "string" && req.body.cursoId.trim() ? req.body.cursoId.trim() : user.cursoId;
+    if (req.body.cursoId) {
+      var curso = await Curso.findById(nextCursoId).select("_id");
+      if (!curso) return res.status(404).json({ message: "Curso not found" });
     }
 
-    var nextAnioId = typeof req.body.anioId === "string" && req.body.anioId.trim() ? req.body.anioId.trim() : user.anioId;
-    if (req.body.anioId) {
-      var anio = await Anio.findById(nextAnioId).select("_id");
-      if (!anio) return res.status(404).json({ message: "Anio not found" });
-    }
-
-    if (!isDirectivoLike(req.user) && nextAnioId) {
-      var puedeNuevo = await docentePuedeGestionarAnio(req.user, nextAnioId);
-      if (!puedeNuevo) return res.status(403).json({ message: "Solo puedes asignar estudiantes a anios de tus materias" });
-    }
+    if (!isDirectivoLike(req.user)) return res.status(403).json({ message: "Forbidden" });
 
     if (typeof req.body.nombre === "string" && req.body.nombre.trim()) user.nombre = req.body.nombre.trim();
     if (typeof req.body.apellido === "string" && req.body.apellido.trim()) user.apellido = req.body.apellido.trim();
@@ -796,13 +785,13 @@ exports.updateStudent = async (req, res, next) => {
       if (!dni) return res.status(400).json({ message: "dni es requerido" });
       user.dni = dni;
     }
-    if (typeof req.body.anioId === "string" && req.body.anioId.trim()) user.anioId = req.body.anioId.trim();
+    if (typeof req.body.cursoId === "string" && req.body.cursoId.trim()) user.cursoId = req.body.cursoId.trim();
     if (typeof req.body.division === "string") user.division = req.body.division.trim();
     if (typeof req.body.password === "string" && req.body.password) user.passwordHash = await bcrypt.hash(req.body.password, 10);
 
     await user.save();
 
-    var saved = await Usuario.findById(user._id).select(studentSelect()).populate("anioId", "numero nombre division turno");
+    var saved = await Usuario.findById(user._id).select(studentSelect()).populate("cursoId", "numero nombre division turno");
     normalizeStudent(saved);
     res.json({ student: saved });
   } catch (err) {
@@ -825,10 +814,7 @@ exports.deleteStudent = async (req, res, next) => {
       return res.status(400).json({ message: "Solo se puede eliminar estudiantes" });
     }
 
-    if (!isDirectivoLike(req.user)) {
-      var puede = user.anioId ? await docentePuedeGestionarAnio(req.user, user.anioId) : false;
-      if (!puede) return res.status(403).json({ message: "Solo puedes gestionar estudiantes de tus materias" });
-    }
+    if (!isDirectivoLike(req.user)) return res.status(403).json({ message: "Forbidden" });
 
     await Usuario.deleteOne({ _id: id });
     res.json({ message: "Student deleted" });
@@ -849,7 +835,7 @@ exports.importStudentsCsv = async (req, res, next) => {
 
     for (var i = 0; i < parsed.rows.length; i++) {
       var r = parsed.rows[i];
-      if (!r.nombre || !r.apellido || !r.dni || !r.email || !r.anio) {
+      if (!r.nombre || !r.apellido || !r.dni || !r.email || !r.curso) {
         results.skipped++;
         results.errors.push({ line: r.line, message: "Campos incompletos" });
         continue;
@@ -877,21 +863,14 @@ exports.importStudentsCsv = async (req, res, next) => {
         continue;
       }
 
-      var anio = await findAnio(r.anio);
-      if (!anio) {
+      var curso = await findCurso(r.curso);
+      if (!curso) {
         results.skipped++;
-        results.errors.push({ line: r.line, message: "Anio no encontrado: " + r.anio });
+        results.errors.push({ line: r.line, message: "Curso no encontrado: " + r.curso });
         continue;
       }
 
-      if (!isDirectivoLike(req.user)) {
-        var puede = await docentePuedeGestionarAnio(req.user, anio._id);
-        if (!puede) {
-          results.skipped++;
-          results.errors.push({ line: r.line, message: "No tienes permisos para el anio: " + r.anio });
-          continue;
-        }
-      }
+      if (!isDirectivoLike(req.user)) return res.status(403).json({ message: "Forbidden" });
 
       try {
         resolveStudentRole(r.role, req.body && (req.body.defaultRole || req.body.defaultRoles));
@@ -913,7 +892,7 @@ exports.importStudentsCsv = async (req, res, next) => {
           email: email,
           passwordHash: passwordHash,
           roles: ["estudiante"],
-          anioId: anio._id,
+          cursoId: curso._id,
           division: r.division || ""
         });
         results.created++;

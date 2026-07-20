@@ -17,15 +17,18 @@
   }
 
   function getApiBase() {
+    if (window.EEPAuth) return window.EEPAuth.getApiBase();
     var saved = localStorage.getItem(STORAGE_API_BASE);
     return saved || "http://localhost:4000/api";
   }
 
   function setApiBase(v) {
+    if (window.EEPAuth) return window.EEPAuth.setApiBase(v);
     localStorage.setItem(STORAGE_API_BASE, v);
   }
 
   function getToken() {
+    if (window.EEPAuth) return window.EEPAuth.getToken();
     return localStorage.getItem(STORAGE_TOKEN) || "";
   }
 
@@ -34,6 +37,7 @@
   }
 
   function getUser() {
+    if (window.EEPAuth) return window.EEPAuth.getUser();
     var raw = localStorage.getItem(STORAGE_USER);
     if (!raw) return null;
     try {
@@ -95,6 +99,10 @@
       var err = new Error(msg);
       err.status = res.status;
       err.data = data;
+      if (res.status === 401) {
+        if (window.EEPAuth) window.EEPAuth.clearSession();
+        window.location.href = "login.html";
+      }
       throw err;
     }
     return data;
@@ -336,8 +344,11 @@
     var btn = $("#logout");
     if (!btn) return;
     btn.addEventListener("click", function () {
-      setToken("");
-      setUser(null);
+      if (window.EEPAuth) window.EEPAuth.clearSession();
+      else {
+        setToken("");
+        setUser(null);
+      }
       sessionStorage.removeItem(STORAGE_LAST_PANEL);
       window.location.href = "login.html";
     });

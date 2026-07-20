@@ -90,7 +90,7 @@
               </div>
               <div class="cols">
                 <div class="field">
-                  <label for="sAnio">Anio</label>
+                  <label for="sAnio">Curso</label>
                   <select id="sAnio" required>
                     <option value="" selected disabled>Seleccionar</option>
                   </select>
@@ -136,7 +136,7 @@
               </div>
               <div class="panel-note">
                 Columnas: <span class="mono">nombre</span>, <span class="mono">apellido</span>, <span class="mono">dni</span>,
-                <span class="mono">email</span>, <span class="mono">anio</span>, <span class="mono">rol</span>, opcionales: <span class="mono">division</span>,
+                <span class="mono">email</span>, <span class="mono">curso</span>, <span class="mono">rol</span>, opcionales: <span class="mono">division</span>,
                 <span class="mono">fecha de nacimiento</span>, <span class="mono">password</span>.
               </div>
               <div id="studentsImportMsg" class="msg" role="status" aria-live="polite"></div>
@@ -148,14 +148,14 @@
             <div class="panel-head">
               <div>
                 <div class="panel-title">Filtros</div>
-                <div class="panel-sub">Por anio, docente y materia</div>
+                <div class="panel-sub">Por curso, docente y materia</div>
               </div>
               <button id="studentsRefresh" class="btn btn-secondary" type="button">Actualizar</button>
             </div>
 
             <div class="cols">
               <div class="field">
-                <label for="filterAnio">Anio</label>
+                <label for="filterAnio">Curso</label>
                 <select id="filterAnio">
                   <option value="">Todos</option>
                 </select>
@@ -202,7 +202,7 @@
                     <th>Nombre</th>
                     <th>Apellido</th>
                     <th>DNI</th>
-                    <th>Anio</th>
+                    <th>Curso</th>
                     <th>Division</th>
                     <th>Email</th>
                     <th>Acciones</th>
@@ -259,7 +259,7 @@
                 </div>
                 <div class="cols">
                   <div class="field">
-                    <label for="editStudentAnio">Anio</label>
+                    <label for="editStudentAnio">Curso</label>
                     <select id="editStudentAnio" required>
                       <option value="" selected disabled>Seleccionar</option>
                     </select>
@@ -288,6 +288,7 @@
       </div>
     </footer>
 
+    <script src="../js/auth-session.js" defer></script>
     <script src="../js/script.js" defer></script>
     <script src="../js/estudiantes.js" defer></script>
   </body>

@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const AnioSchema = new mongoose.Schema(
+const CursoSchema = new mongoose.Schema(
   {
     numero: { type: Number, required: true, min: 1 },
     nombre: { type: String, required: true, trim: true },
@@ -11,6 +11,6 @@ const AnioSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-AnioSchema.index({ numero: 1, division: 1, turno: 1 }, { unique: true });
+CursoSchema.index({ numero: 1, division: 1, turno: 1 }, { unique: true });
 
-module.exports = mongoose.model("Anio", AnioSchema);
+module.exports = mongoose.model("Curso", CursoSchema, "cursos");

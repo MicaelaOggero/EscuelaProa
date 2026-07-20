@@ -16,11 +16,13 @@
   }
 
   function getApiBase() {
+    if (window.EEPAuth) return window.EEPAuth.getApiBase();
     var saved = localStorage.getItem(STORAGE_API_BASE);
     return saved || "http://localhost:4000/api";
   }
 
   function setApiBase(v) {
+    if (window.EEPAuth) return window.EEPAuth.setApiBase(v);
     localStorage.setItem(STORAGE_API_BASE, v);
   }
 
@@ -72,6 +74,15 @@
     var msgEl = $("#msg");
     if (!form) return;
 
+    if (window.EEPAuth && window.EEPAuth.isAuthenticated()) {
+      var currentUser = window.EEPAuth.getUser();
+      var currentRoles = window.EEPAuth.rolesOf(currentUser);
+      if (currentRoles.indexOf("superadmin") !== -1) window.location.href = "admin.html";
+      else if (currentRoles.indexOf("directivo") !== -1) window.location.href = "directivo.html";
+      else if (currentRoles.indexOf("docente") !== -1) window.location.href = "docente.html";
+      else if (currentRoles.indexOf("estudiante") !== -1) window.location.href = "estudiante.html";
+    }
+
     form.addEventListener("submit", async function (e) {
       e.preventDefault();
       setMsg(msgEl, "Ingresando...", "");
@@ -79,13 +90,16 @@
         var email = $("#email").value;
         var password = $("#password").value;
 
-        var data = await api("/auth/login-staff", {
+        var data = await api("/auth/login", {
           method: "POST",
           body: JSON.stringify({ email: email, password: password })
         });
 
-        setToken(data.token);
-        setUser(data.user);
+        if (window.EEPAuth) window.EEPAuth.saveSession(data);
+        else {
+          setToken(data.token);
+          setUser(data.user);
+        }
         setMsg(msgEl, "OK", "ok");
 
         var role = data.user && data.user.role;
@@ -98,8 +112,10 @@
           window.location.href = "directivo.html";
         } else if (roles.indexOf("docente") !== -1) {
           window.location.href = "docente.html";
+        } else if (roles.indexOf("estudiante") !== -1) {
+          window.location.href = "estudiante.html";
         } else {
-          window.location.href = "index.html";
+          window.location.href = "../index.html";
         }
       } catch (err) {
         setMsg(msgEl, err.message || "Error", "error");

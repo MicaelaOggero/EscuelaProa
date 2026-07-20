@@ -1,5 +1,5 @@
 const Contenido = require("../models/Contenido");
-const MateriaAnio = require("../models/MateriaAnio");
+const MateriaCurso = require("../models/MateriaCurso");
 const Usuario = require("../models/Usuario");
 
 function hasRole(user, role) {
@@ -7,20 +7,14 @@ function hasRole(user, role) {
   return roles.indexOf(role) !== -1;
 }
 
-function parseCicloLectivo(value) {
-  var num = Number(value);
-  if (!Number.isInteger(num) || num < 2000 || num > 2100) return null;
-  return num;
-}
-
 function contenidoPopulate(query) {
   return query
-    .populate("anioId", "numero nombre division turno")
+    .populate("cursoId", "numero nombre division turno")
     .populate({
-      path: "materiaAnioId",
-      select: "materia anioId cicloLectivo docenteId activo",
+      path: "materiaCursoId",
+      select: "materia cursoId cicloLectivo docenteId activo",
       populate: [
-        { path: "anioId", select: "numero nombre division turno" },
+        { path: "cursoId", select: "numero nombre division turno" },
         { path: "docenteId", select: "nombre apellido email" }
       ]
     })
@@ -30,23 +24,18 @@ function contenidoPopulate(query) {
 exports.list = async (req, res, next) => {
   try {
     const filter = { publicado: true };
-    const { anioId, materiaAnioId, tipo, cicloLectivo } = req.query;
+    const { cursoId, materiaCursoId, tipo } = req.query;
 
-    // If logged student: force scope by student's anioId
+    // If logged student: force scope by student's cursoId
     if (req.user && req.user.id && hasRole(req.user, "estudiante")) {
-      const me = await Usuario.findById(req.user.id).select("anioId");
-      if (me && me.anioId) filter.anioId = me.anioId;
+      const me = await Usuario.findById(req.user.id).select("cursoId");
+      if (me && me.cursoId) filter.cursoId = me.cursoId;
     } else {
-      if (anioId) filter.anioId = anioId;
+      if (cursoId) filter.cursoId = cursoId;
     }
 
-    if (materiaAnioId) filter.materiaAnioId = materiaAnioId;
+    if (materiaCursoId) filter.materiaCursoId = materiaCursoId;
     if (tipo) filter.tipo = tipo;
-    if (typeof cicloLectivo !== "undefined" && cicloLectivo !== "") {
-      const ciclo = parseCicloLectivo(cicloLectivo);
-      if (ciclo === null) return res.status(400).json({ message: "cicloLectivo invalido" });
-      filter.cicloLectivo = ciclo;
-    }
 
     const rows = await contenidoPopulate(Contenido.find(filter))
       .sort({ fecha: -1, createdAt: -1 });
@@ -68,13 +57,13 @@ exports.mine = async (req, res, next) => {
 
 exports.create = async (req, res, next) => {
   try {
-    const { materiaAnioId, tipo, titulo, resumen, contenido, fecha, publicado } = req.body;
-    if (!materiaAnioId || !tipo || !titulo) {
-      return res.status(400).json({ message: "materiaAnioId, tipo y titulo son requeridos" });
+    const { materiaCursoId, tipo, titulo, resumen, contenido, fecha, publicado } = req.body;
+    if (!materiaCursoId || !tipo || !titulo) {
+      return res.status(400).json({ message: "materiaCursoId, tipo y titulo son requeridos" });
     }
 
-    const ma = await MateriaAnio.findById(materiaAnioId);
-    if (!ma) return res.status(404).json({ message: "MateriaAnio not found" });
+    const ma = await MateriaCurso.findById(materiaCursoId);
+    if (!ma) return res.status(404).json({ message: "MateriaCurso not found" });
 
     const isPrivileged = hasRole(req.user, "superadmin") || hasRole(req.user, "directivo");
     const isDocenteOfAsignacion = String(ma.docenteId) === String(req.user.id);
@@ -88,9 +77,8 @@ exports.create = async (req, res, next) => {
       fecha,
       publicado: typeof publicado === "boolean" ? publicado : true,
       archivos: Array.isArray(req.body.archivos) ? req.body.archivos : [],
-      materiaAnioId,
-      anioId: ma.anioId,
-      cicloLectivo: ma.cicloLectivo,
+      materiaCursoId,
+      cursoId: ma.cursoId,
       createdBy: req.user.id
     });
 

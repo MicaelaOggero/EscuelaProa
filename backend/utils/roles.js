@@ -3,9 +3,7 @@ function normalizeRoles(input) {
 
   roles = roles
     .map(function (role) {
-      var value = String(role || "").trim();
-      if (value === "comunidad-estudiantes") return "estudiante";
-      return value;
+      return String(role || "").trim();
     })
     .filter(Boolean);
 

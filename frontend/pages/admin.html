@@ -46,43 +46,11 @@
     </header>
 
     <main id="contenido" class="main" role="main">
-      <section class="panel-hero" aria-label="Panel">
-        <div class="container">
-          <div class="panel-hero-card reveal">
-            <div class="panel-hero-left">
-              <div class="badge">
-                <span class="badge-dot" aria-hidden="true"></span>
-                Gestion central
-              </div>
-              <h1 class="panel-title">Panel Superadmin</h1>
-              <p class="panel-lead">
-                Gestiona altas, ediciones y bajas de usuarios con rol <strong>directivo</strong>
-                o <strong>docente</strong>. Para
-                estudiantes, usá la vista <strong>Estudiantes</strong>.
-              </p>
-            </div>
-            <div class="panel-hero-right">
-              <div class="api-box">
-                <div class="api-box-title">API base</div>
-                <div class="api-box-row">
-                  <input id="apiBase" class="api-input" type="url" placeholder="http://localhost:4000/api" />
-                  <button id="saveApi" class="btn btn-secondary" type="button">Guardar</button>
-                </div>
-                <div class="api-hint">Tip: si tu backend corre en otro puerto, cambialo aca.</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       <section id="staff" class="section" aria-label="Directivos y docentes">
         <div class="container">
           <div class="section-head reveal">
             <div>
               <h2 class="section-title">Gestion de directivos y docentes</h2>
-              <p class="section-subtitle">
-                CRUD sobre <span class="mono">/users/staff</span>. Solo superadmin.
-              </p>
             </div>
           </div>
 
@@ -90,7 +58,6 @@
             <form id="createStaffForm" class="panel-card reveal" aria-label="Crear usuario staff">
               <div class="panel-card-head">
                 <div class="panel-card-title">Crear usuario</div>
-                <div class="panel-card-sub">POST <span class="mono">/users/staff</span></div>
               </div>
 
               <div class="field">
@@ -134,7 +101,6 @@
             <div class="panel-card reveal" style="--reveal-delay: 45ms" aria-label="Importar staff por CSV">
               <div class="panel-card-head">
                 <div class="panel-card-title">Importar CSV</div>
-                <div class="panel-card-sub">POST <span class="mono">/users/staff/import-csv</span></div>
               </div>
 
               <div class="field">
@@ -163,7 +129,6 @@
             <div class="panel-card reveal" style="--reveal-delay: 90ms" aria-label="Listado staff">
               <div class="panel-card-head">
                 <div class="panel-card-title">Listado</div>
-                <div class="panel-card-sub">GET <span class="mono">/users/staff</span></div>
               </div>
 
               <div class="toolbar" aria-label="Filtros y acciones">
@@ -274,6 +239,7 @@
       </div>
     </footer>
 
+    <script src="../js/auth-session.js" defer></script>
     <script src="../js/script.js" defer></script>
     <script src="../js/admin.js" defer></script>
   </body>

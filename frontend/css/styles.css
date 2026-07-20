@@ -823,6 +823,99 @@ img {
   font-size: 0.92rem;
 }
 
+.assignment-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+  padding: 1rem 1.05rem 0;
+}
+
+.assignment-stat {
+  border-radius: 18px;
+  border: 1px solid rgba(23, 19, 32, 0.10);
+  background: rgba(231, 224, 255, 0.28);
+  padding: 0.8rem 0.9rem;
+}
+
+.assignment-stat strong {
+  display: block;
+  font-family: "Space Grotesk", "Plus Jakarta Sans", sans-serif;
+  font-size: 1.25rem;
+  letter-spacing: -0.02em;
+}
+
+.assignment-stat span {
+  color: var(--muted-2);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.assignment-groups {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem 1.05rem 1.05rem;
+}
+
+.assignment-group {
+  border-radius: 20px;
+  border: 1px solid rgba(23, 19, 32, 0.10);
+  background: rgba(255, 255, 255, 0.64);
+  overflow: hidden;
+}
+
+.assignment-group-head {
+  padding: 0.9rem 0.95rem 0.75rem;
+  border-bottom: 1px solid rgba(23, 19, 32, 0.08);
+  background: rgba(231, 224, 255, 0.18);
+}
+
+.combo-box {
+  position: relative;
+}
+
+.combo-results {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 0.35rem);
+  z-index: 20;
+  border-radius: 16px;
+  border: 1px solid rgba(23, 19, 32, 0.12);
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 18px 36px rgba(23, 19, 32, 0.12);
+  overflow: hidden;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.combo-option {
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid rgba(23, 19, 32, 0.08);
+  background: transparent;
+  text-align: left;
+  padding: 0.8rem 0.9rem;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.combo-option:last-child {
+  border-bottom: 0;
+}
+
+.combo-option:hover,
+.combo-option:focus-visible {
+  background: rgba(231, 224, 255, 0.42);
+  outline: none;
+}
+
+.combo-empty {
+  padding: 0.8rem 0.9rem;
+  color: var(--muted-2);
+  font-weight: 700;
+}
+
 .panel-stats {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1218,6 +1311,10 @@ textarea:focus {
   }
 
   .contact-items {
+    grid-template-columns: 1fr;
+  }
+
+  .assignment-stats {
     grid-template-columns: 1fr;
   }
 

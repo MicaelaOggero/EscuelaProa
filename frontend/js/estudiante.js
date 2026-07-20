@@ -17,15 +17,18 @@
   }
 
   function getApiBase() {
+    if (window.EEPAuth) return window.EEPAuth.getApiBase();
     var saved = localStorage.getItem(STORAGE_API_BASE);
     return saved || "http://localhost:4000/api";
   }
 
   function getToken() {
+    if (window.EEPAuth) return window.EEPAuth.getToken();
     return localStorage.getItem(STORAGE_TOKEN) || "";
   }
 
   function getUser() {
+    if (window.EEPAuth) return window.EEPAuth.getUser();
     var raw = localStorage.getItem(STORAGE_USER);
     if (!raw) return null;
     try {
@@ -42,16 +45,14 @@
   function rolesOf(u) {
     var roles = (u && (u.roles || (u.role ? [u.role] : []))) || [];
     if (!Array.isArray(roles)) return [];
-    return roles.map(function (role) {
-      return role === "comunidad-estudiantes" ? "estudiante" : role;
-    });
+    return roles;
   }
 
   function guard() {
     var u = getUser();
     var t = getToken();
     if (!u || !t) {
-      window.location.href = "login-estudiante.html";
+      window.location.href = "login.html";
       return false;
     }
     var roles = rolesOf(u);
@@ -81,6 +82,10 @@
     }
     if (!res.ok) {
       var msg = (data && (data.message || data.error)) || res.statusText || "Request failed";
+      if (res.status === 401) {
+        if (window.EEPAuth) window.EEPAuth.clearSession();
+        window.location.href = "login.html";
+      }
       throw new Error(msg);
     }
     return data;
@@ -98,7 +103,7 @@
 
   function anioLabel(a) {
     if (!a) return "";
-    var base = a.nombre || (a.numero ? String(a.numero) + "o" : "Anio");
+    var base = a.nombre || (a.numero ? String(a.numero) + "o" : "Curso");
     var div = a.division ? " " + a.division : "";
     var turno = a.turno ? " · " + a.turno : "";
     return base + div + turno;
@@ -107,7 +112,7 @@
   function materiaConAnioLabel(m) {
     if (!m) return "Materia";
     var materia = m.materia || "Materia";
-    var anio = anioLabel(m.anioId);
+    var anio = anioLabel(m.cursoId);
     var ciclo = m.cicloLectivo ? String(m.cicloLectivo) : "";
     var label = anio ? materia + " · " + anio : materia;
     return ciclo ? label + " · " + ciclo : label;
@@ -117,8 +122,11 @@
     var btn = $("#logout");
     if (!btn) return;
     btn.addEventListener("click", function () {
-      localStorage.removeItem(STORAGE_TOKEN);
-      localStorage.removeItem(STORAGE_USER);
+      if (window.EEPAuth) window.EEPAuth.clearSession();
+      else {
+        localStorage.removeItem(STORAGE_TOKEN);
+        localStorage.removeItem(STORAGE_USER);
+      }
       window.location.href = "../index.html";
     });
   }
@@ -129,7 +137,7 @@
     sel.innerHTML = '<option value="">Todas</option>';
     try {
       var cicloActual = new Date().getFullYear();
-      var rows = await api("/materias-anio?cicloLectivo=" + encodeURIComponent(cicloActual), { method: "GET" });
+      var rows = await api("/materias-curso?cicloLectivo=" + encodeURIComponent(cicloActual), { method: "GET" });
       (rows || []).forEach(function (m) {
         var opt = document.createElement("option");
         opt.value = m._id;
@@ -148,7 +156,7 @@
     if (!rows.length) {
       var empty = document.createElement("div");
       empty.className = "card";
-      empty.textContent = "Aun no hay contenido publicado para tu anio.";
+      empty.textContent = "Aun no hay contenido publicado para tu curso.";
       wrap.appendChild(empty);
       return;
     }
@@ -159,7 +167,7 @@
       meta.className = "meta";
       var chip = document.createElement("div");
       chip.className = "chip";
-      chip.textContent = materiaConAnioLabel(r.materiaAnioId);
+      chip.textContent = materiaConAnioLabel(r.materiaCursoId);
       var date = document.createElement("div");
       date.className = "date";
       date.textContent = formatFecha(r.fecha || r.createdAt);
@@ -177,8 +185,8 @@
       var by = document.createElement("div");
       by.className = "byline";
       var who = r.createdBy ? [r.createdBy.apellido, r.createdBy.nombre].filter(Boolean).join(", ") : "";
-      var curso = anioLabel((r.materiaAnioId && r.materiaAnioId.anioId) || r.anioId);
-      var ciclo = (r.materiaAnioId && r.materiaAnioId.cicloLectivo) || r.cicloLectivo;
+      var curso = anioLabel((r.materiaCursoId && r.materiaCursoId.cursoId) || r.cursoId);
+      var ciclo = r.materiaCursoId && r.materiaCursoId.cicloLectivo;
       by.textContent = [r.tipo, curso, ciclo ? String(ciclo) : "", who].filter(Boolean).join(" · ");
 
       card.appendChild(meta);
@@ -196,10 +204,8 @@
       var q = [];
       var materia = $("#materia").value;
       var tipo = $("#tipo").value;
-      var cicloActual = new Date().getFullYear();
-      if (materia) q.push("materiaAnioId=" + encodeURIComponent(materia));
+      if (materia) q.push("materiaCursoId=" + encodeURIComponent(materia));
       if (tipo) q.push("tipo=" + encodeURIComponent(tipo));
-      if (!materia) q.push("cicloLectivo=" + encodeURIComponent(cicloActual));
       var data = await api("/contenidos" + (q.length ? "?" + q.join("&") : ""), { method: "GET" });
       renderCards(Array.isArray(data) ? data : []);
       setMsg(msg, "OK", "ok");
@@ -213,16 +219,16 @@
     if (!label) return;
     try {
       var me = await api("/users/me", { method: "GET" });
-      if (me && me.anioId && typeof me.anioId === "object") {
-        var a = me.anioId;
-        var base = a.nombre || (a.numero ? String(a.numero) + "o" : "Anio");
+      if (me && me.cursoId && typeof me.cursoId === "object") {
+        var a = me.cursoId;
+        var base = a.nombre || (a.numero ? String(a.numero) + "o" : "Curso");
         var div = a.division ? " " + a.division : "";
-        label.textContent = "Tu anio: " + base + div;
+        label.textContent = "Tu curso: " + base + div;
       } else {
-        label.textContent = "Tu anio: (sin asignar)";
+        label.textContent = "Tu curso: (sin asignar)";
       }
     } catch (e) {
-      label.textContent = "Tu anio";
+        label.textContent = "Tu curso";
     }
   }
 

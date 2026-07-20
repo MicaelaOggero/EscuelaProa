@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Aula - Estudiantes - Escuela Experimental Porteña</title>
-    <meta name="description" content="Contenidos por materia segun el anio del estudiante." />
+    <meta name="description" content="Contenidos por materia segun el curso del estudiante." />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -49,14 +49,14 @@
             <div class="panel-head">
               <div>
                 <div class="panel-title">Filtros</div>
-                <div class="panel-sub">El contenido se filtra automaticamente por tu anio.</div>
+                <div class="panel-sub">El contenido se filtra automaticamente por tu curso.</div>
               </div>
               <button id="refresh" class="btn btn-secondary" type="button">Actualizar</button>
             </div>
 
             <div class="filters">
               <div class="field">
-                <label for="materia">Materia, anio y ciclo</label>
+                <label for="materia">Materia, curso y ciclo</label>
                 <select id="materia">
                   <option value="">Todas</option>
                 </select>
@@ -87,6 +87,7 @@
       </div>
     </footer>
 
+    <script src="../js/auth-session.js" defer></script>
     <script src="../js/script.js" defer></script>
     <script src="../js/estudiante.js" defer></script>
   </body>

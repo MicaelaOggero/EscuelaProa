@@ -34,14 +34,17 @@
   }
 
   function getApiBase() {
+    if (window.EEPAuth) return window.EEPAuth.getApiBase();
     return localStorage.getItem(STORAGE_API_BASE) || "http://localhost:4000/api";
   }
 
   function getToken() {
+    if (window.EEPAuth) return window.EEPAuth.getToken();
     return localStorage.getItem(STORAGE_TOKEN) || "";
   }
 
   function getUser() {
+    if (window.EEPAuth) return window.EEPAuth.getUser();
     var raw = localStorage.getItem(STORAGE_USER);
     if (!raw) return null;
     try {
@@ -92,6 +95,10 @@
     }
     if (!res.ok) {
       var msg = (data && (data.message || data.error)) || res.statusText || "Request failed";
+      if (res.status === 401) {
+        if (window.EEPAuth) window.EEPAuth.clearSession();
+        window.location.href = "login.html";
+      }
       throw new Error(msg);
     }
     return data;
@@ -116,8 +123,8 @@
     var roleIntro = $("#roleIntro");
     if (roleIntro) {
       roleIntro.textContent = state.directivoLike
-        ? "Puedes crear, editar, importar y filtrar todos los estudiantes por anio, docente y materia."
-        : "Puedes consultar estudiantes de los anios donde dictas materias y filtrarlos por tus materias activas.";
+        ? "Puedes crear, editar, importar y filtrar todos los estudiantes por curso, docente y materia."
+        : "Puedes consultar estudiantes de los cursos donde dictas materias y filtrarlos por tus materias activas.";
     }
 
     var staffLink = $("#staffLink");
@@ -142,8 +149,11 @@
     var btn = $("#logout");
     if (!btn) return;
     btn.addEventListener("click", function () {
-      localStorage.removeItem(STORAGE_TOKEN);
-      localStorage.removeItem(STORAGE_USER);
+      if (window.EEPAuth) window.EEPAuth.clearSession();
+      else {
+        localStorage.removeItem(STORAGE_TOKEN);
+        localStorage.removeItem(STORAGE_USER);
+      }
       window.location.href = "../index.html";
     });
   }
@@ -161,15 +171,15 @@
   }
 
   function anioLabel(a) {
-    if (!a) return "Anio";
-    var base = a.nombre || (a.numero ? String(a.numero) + "o" : "Anio");
+    if (!a) return "Curso";
+    var base = a.nombre || (a.numero ? String(a.numero) + "o" : "Curso");
     var div = a.division ? " " + a.division : "";
     var turno = a.turno ? " · " + a.turno : "";
     return base + div + turno;
   }
 
   function materiaLabel(m) {
-    return (m.materia || "Materia") + " · " + anioLabel(m.anioId);
+    return (m.materia || "Materia") + " · " + anioLabel(m.cursoId);
   }
 
   function toDateInputValue(v) {
@@ -203,12 +213,12 @@
 
   function refreshMateriaFilterOptions() {
     var materias = state.materias.slice();
-    var anioId = $("#filterAnio") ? $("#filterAnio").value : "";
+    var cursoId = $("#filterAnio") ? $("#filterAnio").value : "";
     var docenteId = state.directivoLike && $("#filterDocente") ? $("#filterDocente").value : "";
 
-    if (anioId) {
+    if (cursoId) {
       materias = materias.filter(function (m) {
-        return m.anioId && String(m.anioId._id || m.anioId) === anioId;
+        return m.cursoId && String(m.cursoId._id || m.cursoId) === cursoId;
       });
     }
     if (docenteId) {
@@ -241,18 +251,18 @@
 
   async function loadContext() {
     if (state.directivoLike) {
-      var anios = await api("/anios", { method: "GET" });
+      var anios = await api("/cursos", { method: "GET" });
       var docentes = await api("/users/staff?role=docente", { method: "GET" });
-      var materias = await api("/materias-anio", { method: "GET" });
+      var materias = await api("/materias-curso", { method: "GET" });
       state.anios = sortByLabel(uniqueById(anios || []), anioLabel);
       state.docentes = sortByLabel(uniqueById(docentes || []), function (u) {
         return [u.apellido, u.nombre].filter(Boolean).join(", ") || u.email || "Docente";
       });
       state.materias = Array.isArray(materias) ? materias : [];
     } else {
-      var materiasDoc = await api("/materias-anio/mine", { method: "GET" });
+      var materiasDoc = await api("/materias-curso/mine", { method: "GET" });
       state.materias = Array.isArray(materiasDoc) ? materiasDoc : [];
-      state.anios = sortByLabel(uniqueById(state.materias.map(function (m) { return m.anioId; })), anioLabel);
+      state.anios = sortByLabel(uniqueById(state.materias.map(function (m) { return m.cursoId; })), anioLabel);
       state.docentes = [state.user];
     }
 
@@ -271,14 +281,14 @@
 
   function buildStudentQuery() {
     var params = new URLSearchParams();
-    var anioId = $("#filterAnio") ? $("#filterAnio").value : "";
+    var cursoId = $("#filterAnio") ? $("#filterAnio").value : "";
     var docenteId = $("#filterDocente") ? $("#filterDocente").value : "";
-    var materiaAnioId = $("#filterMateria") ? $("#filterMateria").value : "";
+    var materiaCursoId = $("#filterMateria") ? $("#filterMateria").value : "";
     var search = $("#filterSearch") ? $("#filterSearch").value.trim() : "";
 
-    if (anioId) params.set("anioId", anioId);
+    if (cursoId) params.set("cursoId", cursoId);
     if (state.directivoLike && docenteId) params.set("docenteId", docenteId);
-    if (materiaAnioId) params.set("materiaAnioId", materiaAnioId);
+    if (materiaCursoId) params.set("materiaCursoId", materiaCursoId);
     if (search) params.set("search", search);
 
     var query = params.toString();
@@ -302,7 +312,7 @@
 
     rows.forEach(function (u) {
       var tr = document.createElement("tr");
-      [u.nombre || "-", u.apellido || "-", u.dni || "-", u.anioId ? anioLabel(u.anioId) : "-", u.division || "-", u.email || "-"].forEach(function (value) {
+      [u.nombre || "-", u.apellido || "-", u.dni || "-", u.cursoId ? anioLabel(u.cursoId) : "-", u.division || "-", u.email || "-"].forEach(function (value) {
         var td = document.createElement("td");
         td.textContent = value;
         tr.appendChild(td);
@@ -402,7 +412,7 @@
             email: $("#sEmail").value,
             password: $("#sPass").value,
             role: $("#sRole").value,
-            anioId: $("#sAnio").value,
+            cursoId: $("#sAnio").value,
             division: $("#sDivision").value
           })
         });
@@ -429,7 +439,7 @@
     $("#editStudentEmail").value = student.email || "";
     $("#editStudentPass").value = "";
     $("#editStudentDivision").value = student.division || "";
-    if (student.anioId && student.anioId._id) $("#editStudentAnio").value = student.anioId._id;
+    if (student.cursoId && student.cursoId._id) $("#editStudentAnio").value = student.cursoId._id;
     setMsg($("#studentEditMsg"), "", "");
     modal.classList.add("is-open");
     modal.setAttribute("aria-hidden", "false");
@@ -469,7 +479,7 @@
           fechaNacimiento: $("#editStudentFecha").value,
           email: $("#editStudentEmail").value,
           password: $("#editStudentPass").value,
-          anioId: $("#editStudentAnio").value,
+          cursoId: $("#editStudentAnio").value,
           division: $("#editStudentDivision").value
         };
         if (!payload.password) delete payload.password;

@@ -28,15 +28,18 @@
   }
 
   function getApiBase() {
+    if (window.EEPAuth) return window.EEPAuth.getApiBase();
     var saved = localStorage.getItem(STORAGE_API_BASE);
     return saved || "http://localhost:4000/api";
   }
 
   function getToken() {
+    if (window.EEPAuth) return window.EEPAuth.getToken();
     return localStorage.getItem(STORAGE_TOKEN) || "";
   }
 
   function getUser() {
+    if (window.EEPAuth) return window.EEPAuth.getUser();
     var raw = localStorage.getItem(STORAGE_USER);
     if (!raw) return null;
     try {
@@ -141,6 +144,10 @@
       var err = new Error(msg);
       err.status = res.status;
       err.data = data;
+      if (res.status === 401) {
+        if (window.EEPAuth) window.EEPAuth.clearSession();
+        window.location.href = "login.html";
+      }
       throw err;
     }
     return data;
@@ -229,8 +236,8 @@
   }
 
   function anioLabel(a) {
-    if (!a) return "Anio";
-    var base = a.nombre || (a.numero ? String(a.numero) + "o" : "Anio");
+    if (!a) return "Curso";
+    var base = a.nombre || (a.numero ? String(a.numero) + "o" : "Curso");
     var div = a.division ? " " + a.division : "";
     var turno = a.turno ? " · " + a.turno : "";
     return base + div + turno;
@@ -356,8 +363,11 @@
     var btn = $("#logout");
     if (!btn) return;
     btn.addEventListener("click", function () {
-      localStorage.removeItem(STORAGE_TOKEN);
-      localStorage.removeItem(STORAGE_USER);
+      if (window.EEPAuth) window.EEPAuth.clearSession();
+      else {
+        localStorage.removeItem(STORAGE_TOKEN);
+        localStorage.removeItem(STORAGE_USER);
+      }
       window.location.href = "../index.html";
     });
   }
