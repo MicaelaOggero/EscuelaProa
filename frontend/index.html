@@ -66,7 +66,7 @@
     </header>
 
     <main id="contenido" class="main" role="main">
-      <section class="hero" aria-label="Portada">
+      <section class="hero" data-home-view aria-label="Portada">
         <div class="hero-bg" aria-hidden="true">
           <div class="hero-orb orb-1"></div>
           <div class="hero-orb orb-2"></div>
@@ -127,7 +127,7 @@
         </div>
       </section>
 
-      <section id="novedades" class="section section-news" aria-label="Novedades">
+      <section id="novedades" class="section section-news" data-home-view aria-label="Novedades">
         <div class="container">
           <div class="section-head reveal">
             <div>
@@ -136,7 +136,7 @@
                 Información institucional, actividades y anuncios importantes.
               </p>
             </div>
-            <a class="link-pill" href="#">Ver todas</a>
+            <button id="openAllNews" class="link-pill link-pill--button" type="button">Ver todas</button>
           </div>
 
           <div id="newsGrid" class="cards-grid" aria-live="polite">
@@ -152,7 +152,34 @@
         </div>
       </section>
 
-      <section id="agenda" class="section section-agenda" aria-label="Próximos eventos">
+      <div id="newsModal" class="news-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="newsModalTitle">
+        <div class="news-modal-backdrop" data-news-close="true"></div>
+        <div class="news-modal-panel" role="document">
+          <div class="news-modal-head">
+            <div>
+              <div id="newsModalKicker" class="news-modal-kicker">Noticia</div>
+              <h3 id="newsModalTitle" class="news-modal-title">Detalle de noticia</h3>
+            </div>
+            <button class="btn btn-ghost btn-sm" type="button" data-news-close="true">Cerrar</button>
+          </div>
+          <div id="newsModalBody" class="news-modal-body"></div>
+        </div>
+      </div>
+
+      <section id="noticias-archivo" class="section section-news section-news-archive" hidden aria-label="Todas las noticias">
+        <div class="container">
+          <div class="section-head reveal is-visible">
+            <div>
+              <h2 id="allNewsTitle" class="section-title">Todas las noticias</h2>
+              <p class="section-subtitle">Archivo completo de novedades institucionales publicadas.</p>
+            </div>
+            <button id="closeAllNews" class="btn btn-secondary" type="button">Volver al inicio</button>
+          </div>
+          <div id="allNewsGrid" class="cards-grid" aria-live="polite"></div>
+        </div>
+      </section>
+
+      <section id="agenda" class="section section-agenda" data-home-view aria-label="Próximos eventos">
         <div class="container">
           <div class="section-head reveal">
             <div>
@@ -173,7 +200,7 @@
         </div>
       </section>
 
-      <section id="accesos" class="section section-access" aria-label="Accesos rápidos">
+      <section id="accesos" class="section section-access" data-home-view aria-label="Accesos rápidos">
         <div class="container">
           <div class="section-head reveal">
             <div>
@@ -252,7 +279,7 @@
         </div>
       </section>
 
-      <section id="escuela" class="section section-about" aria-label="Nuestra escuela">
+      <section id="escuela" class="section section-about" data-home-view aria-label="Nuestra escuela">
         <div class="container about-grid">
           <div class="about-copy reveal">
             <h2 class="section-title">Nuestra escuela</h2>
@@ -339,7 +366,7 @@
         </div>
       </section>
 
-      <section id="contacto" class="section section-contact" aria-label="Contacto">
+      <section id="contacto" class="section section-contact" data-home-view aria-label="Contacto">
         <div class="container contact">
           <div class="contact-card reveal">
             <div class="contact-copy">

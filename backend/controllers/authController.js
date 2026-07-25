@@ -17,6 +17,37 @@ function tokenExpiresAt(token) {
   return new Date(payload.exp * 1000).toISOString();
 }
 
+function parseFechaNacimiento(value) {
+  if (typeof value === "undefined" || value === null || value === "") return { ok: true, value: undefined };
+
+  var text = String(value || "").trim();
+  if (!text) return { ok: true, value: undefined };
+
+  var matchIso = text.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (matchIso) {
+    var isoDate = new Date(matchIso[1] + "-" + matchIso[2] + "-" + matchIso[3] + "T00:00:00.000Z");
+    if (!isNaN(isoDate.getTime())) return { ok: true, value: isoDate };
+  }
+
+  var matchLatam = text.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (matchLatam) {
+    var day = Number(matchLatam[1]);
+    var month = Number(matchLatam[2]);
+    var year = Number(matchLatam[3]);
+    var latamDate = new Date(Date.UTC(year, month - 1, day));
+    if (
+      !isNaN(latamDate.getTime()) &&
+      latamDate.getUTCFullYear() === year &&
+      latamDate.getUTCMonth() === month - 1 &&
+      latamDate.getUTCDate() === day
+    ) {
+      return { ok: true, value: latamDate };
+    }
+  }
+
+  return { ok: false, message: "fechaNacimiento invalida. Usa YYYY-MM-DD o DD/MM/YYYY" };
+}
+
 function toUserResponse(user) {
   var roles = normalizeRoles(user.roles && user.roles.length ? user.roles : user.role ? [user.role] : []);
   return {
@@ -41,6 +72,8 @@ function toAuthResponse(user, token) {
 exports.register = async (req, res, next) => {
   try {
     const { nombre, apellido, fechaNacimiento, email, password } = req.body;
+    var parsedFechaNacimiento = parseFechaNacimiento(fechaNacimiento);
+    if (!parsedFechaNacimiento.ok) return res.status(400).json({ message: parsedFechaNacimiento.message });
     const existing = await Usuario.findOne({ email });
     if (existing) return res.status(409).json({ message: "Email already in use" });
 
@@ -49,7 +82,7 @@ exports.register = async (req, res, next) => {
     const user = await Usuario.create({
       nombre,
       apellido,
-      fechaNacimiento,
+      fechaNacimiento: parsedFechaNacimiento.value,
       email,
       passwordHash,
       roles: ["estudiante"]
@@ -124,6 +157,8 @@ exports.bootstrapSuperadmin = async (req, res, next) => {
     if (!nombre || !email || !password) {
       return res.status(400).json({ message: "nombre, email y password son requeridos" });
     }
+    var parsedFechaNacimiento = parseFechaNacimiento(fechaNacimiento);
+    if (!parsedFechaNacimiento.ok) return res.status(400).json({ message: parsedFechaNacimiento.message });
 
     const existingEmail = await Usuario.findOne({ email });
     if (existingEmail) return res.status(409).json({ message: "Email already in use" });
@@ -132,7 +167,7 @@ exports.bootstrapSuperadmin = async (req, res, next) => {
     const user = await Usuario.create({
       nombre,
       apellido,
-      fechaNacimiento,
+      fechaNacimiento: parsedFechaNacimiento.value,
       email,
       passwordHash,
       roles: ["superadmin"]

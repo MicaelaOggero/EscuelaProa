@@ -96,6 +96,9 @@
     }
     if (!res.ok) {
       var msg = (data && (data.message || data.error)) || res.statusText || "Request failed";
+      if (window.EEPAuth && window.EEPAuth.translateErrorMessage) {
+        msg = window.EEPAuth.translateErrorMessage(msg, res.status);
+      }
       var err = new Error(msg);
       err.status = res.status;
       err.data = data;

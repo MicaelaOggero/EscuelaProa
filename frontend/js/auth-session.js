@@ -19,6 +19,45 @@
     global.localStorage.removeItem(STORAGE_TOKEN_EXP);
   }
 
+  function translateErrorMessage(message, status) {
+    var text = String(message || "").trim();
+    var exact = {
+      "Request failed": "No se pudo completar la solicitud.",
+      "Missing token": "Tu sesion no es valida o ya vencio.",
+      "Invalid credentials": "Credenciales invalidas.",
+      "Email already in use": "El email ya esta en uso.",
+      "DNI already in use": "El DNI ya esta en uso.",
+      "User not found": "Usuario no encontrado.",
+      "Curso not found": "Curso no encontrado.",
+      "Docente not found": "Docente no encontrado.",
+      "MateriaCurso not found": "Materia no encontrada.",
+      "MateriaCurso already exists": "La materia ya existe para ese curso y ciclo lectivo.",
+      "Not found": "No encontrado.",
+      "Forbidden": "No tienes permisos para realizar esta accion.",
+      "Staff only": "Solo el personal autorizado puede ingresar aqui.",
+      "Bootstrap disabled": "La inicializacion esta deshabilitada.",
+      "BOOTSTRAP_TOKEN not set": "Falta configurar el token de inicializacion.",
+      "Invalid bootstrap token": "El token de inicializacion es invalido.",
+      "Superadmin already exists": "El superadministrador ya existe.",
+      "Superadmin created": "Superadministrador creado.",
+      "Deleted": "Eliminado.",
+      "User deleted": "Usuario eliminado.",
+      "Student deleted": "Estudiante eliminado.",
+      "Server error": "Ocurrio un error en el servidor."
+    };
+
+    if (!text) {
+      if (status === 401) return "Tu sesion vencio o las credenciales no son validas.";
+      if (status === 403) return "No tienes permisos para realizar esta accion.";
+      if (status === 404) return "No se encontro el recurso solicitado.";
+      if (status >= 500) return "Ocurrio un error en el servidor.";
+      return "Ocurrio un error inesperado.";
+    }
+
+    if (exact[text]) return exact[text];
+    return text;
+  }
+
   function decodeBase64Url(value) {
     var normalized = String(value || "").replace(/-/g, "+").replace(/_/g, "/");
     while (normalized.length % 4) normalized += "=";
@@ -108,15 +147,15 @@
   async function request(path, opts, authenticated) {
     var base = getApiBase().replace(/\/$/, "");
     var headers = Object.assign({ "Content-Type": "application/json" }, (opts && opts.headers) || {});
-    if (authenticated) {
-      var token = getToken();
-      if (!token) {
-        var missing = new Error("Missing token");
-        missing.status = 401;
-        throw missing;
+      if (authenticated) {
+        var token = getToken();
+        if (!token) {
+        var missing = new Error(translateErrorMessage("Missing token", 401));
+          missing.status = 401;
+          throw missing;
+        }
+        headers.Authorization = "Bearer " + token;
       }
-      headers.Authorization = "Bearer " + token;
-    }
 
     var response = await global.fetch(base + path, Object.assign({}, opts || {}, { headers: headers }));
     var text = await response.text();
@@ -129,7 +168,9 @@
 
     if (!response.ok) {
       if (authenticated && response.status === 401) clearSession();
-      var error = new Error((data && (data.message || data.error)) || response.statusText || "Request failed");
+      var error = new Error(
+        translateErrorMessage((data && (data.message || data.error)) || response.statusText || "Request failed", response.status)
+      );
       error.status = response.status;
       error.data = data;
       throw error;
@@ -151,6 +192,7 @@
     request: request,
     rolesOf: rolesOf,
     saveSession: saveSession,
-    setApiBase: setApiBase
+    setApiBase: setApiBase,
+    translateErrorMessage: translateErrorMessage
   };
 })(window);

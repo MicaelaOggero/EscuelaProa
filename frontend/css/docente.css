@@ -110,7 +110,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.85rem 1rem;
+  padding: 0.45rem 1rem;
+  min-height: 64px;
   background: rgba(251, 251, 254, 0.70);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -139,12 +140,16 @@
 
 .topbar-title {
   min-width: 0;
+  display: grid;
+  align-content: center;
+  gap: 0.1rem;
 }
 
 .topbar-kicker {
   color: var(--muted-2);
   font-weight: 850;
   font-size: 0.88rem;
+  line-height: 1.1;
 }
 
 .topbar-name {
@@ -152,6 +157,7 @@
   letter-spacing: -0.03em;
   font-size: 1.25rem;
   font-weight: 900;
+  line-height: 1.05;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

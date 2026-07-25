@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Aula - Estudiantes - Escuela Experimental Porteña</title>
-    <meta name="description" content="Contenidos por materia segun el curso del estudiante." />
+    <meta name="description" content="Contenidos por materia según el curso del estudiante." />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -29,8 +29,8 @@
           </div>
         </a>
         <div class="header-actions">
-          <a class="btn btn-ghost" href="../index.html">Sitio publico</a>
-          <button id="logout" class="btn btn-primary" type="button">Cerrar sesion</button>
+          <a class="btn btn-ghost" href="../index.html">Sitio público</a>
+          <button id="logout" class="btn btn-primary" type="button">Cerrar sesión</button>
         </div>
       </div>
     </header>
@@ -40,42 +40,49 @@
         <div class="container">
           <div class="section-head reveal">
             <div>
-              <h1 class="section-title">Contenidos por materia</h1>
+              <h1 class="section-title">Aula por materias</h1>
               <p id="anioLabel" class="section-subtitle">-</p>
             </div>
           </div>
 
-          <div class="panel reveal">
-            <div class="panel-head">
-              <div>
-                <div class="panel-title">Filtros</div>
-                <div class="panel-sub">El contenido se filtra automaticamente por tu curso.</div>
+          <div class="student-shell reveal">
+            <aside class="student-sidebar" aria-label="Menú de materias">
+              <div class="student-sidebar-head">
+                <div class="student-sidebar-title">Materias</div>
+                <div class="student-sidebar-sub">Selecciona una materia para ver sus materiales, actividades y publicaciones.</div>
               </div>
-              <button id="refresh" class="btn btn-secondary" type="button">Actualizar</button>
-            </div>
 
-            <div class="filters">
-              <div class="field">
-                <label for="materia">Materia, curso y ciclo</label>
-                <select id="materia">
-                  <option value="">Todas</option>
-                </select>
-              </div>
-              <div class="field">
-                <label for="tipo">Tipo</label>
-                <select id="tipo">
-                  <option value="">Todos</option>
-                  <option value="publicacion">Publicaciones</option>
-                  <option value="material">Materiales</option>
-                  <option value="actividad">Actividades</option>
-                </select>
-              </div>
-            </div>
+              <div id="materiasNav" class="subject-list" aria-label="Listado de materias"></div>
+            </aside>
 
-            <div id="msg" class="msg" role="status" aria-live="polite"></div>
+            <section class="student-content" aria-label="Contenido de la materia seleccionada">
+              <div class="panel student-focus-panel">
+                <div class="panel-head panel-head--student">
+                  <div>
+                    <div id="selectedMateriaTitle" class="panel-title">Selecciona una materia</div>
+                    <div id="selectedMateriaMeta" class="panel-sub">El contenido se filtra automáticamente por tu curso.</div>
+                  </div>
+                  <button id="refresh" class="btn btn-secondary" type="button">Actualizar</button>
+                </div>
+
+                <div class="student-toolbar">
+                  <div class="field">
+                    <label for="tipo">Tipo</label>
+                    <select id="tipo">
+                      <option value="">Todos</option>
+                      <option value="publicacion">Publicaciones</option>
+                      <option value="material">Materiales</option>
+                      <option value="actividad">Actividades</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div id="msg" class="msg" role="status" aria-live="polite"></div>
+              </div>
+
+              <div id="cards" class="cards" aria-label="Listado contenidos"></div>
+            </section>
           </div>
-
-          <div id="cards" class="cards reveal" style="--reveal-delay: 90ms" aria-label="Listado contenidos"></div>
         </div>
       </section>
     </main>

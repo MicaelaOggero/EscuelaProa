@@ -95,6 +95,9 @@
     }
     if (!res.ok) {
       var msg = (data && (data.message || data.error)) || res.statusText || "Request failed";
+      if (window.EEPAuth && window.EEPAuth.translateErrorMessage) {
+        msg = window.EEPAuth.translateErrorMessage(msg, res.status);
+      }
       if (res.status === 401) {
         if (window.EEPAuth) window.EEPAuth.clearSession();
         window.location.href = "login.html";
@@ -123,26 +126,22 @@
     var roleIntro = $("#roleIntro");
     if (roleIntro) {
       roleIntro.textContent = state.directivoLike
-        ? "Puedes crear, editar, importar y filtrar todos los estudiantes por curso, docente y materia."
-        : "Puedes consultar estudiantes de los cursos donde dictas materias y filtrarlos por tus materias activas.";
+        ? "Puedes crear, editar, importar y filtrar todos los estudiantes por curso."
+        : "Puedes consultar estudiantes de los cursos donde dictas materias.";
     }
 
     var staffLink = $("#staffLink");
     var academicLink = $("#academicLink");
+    var docenteLink = $("#docenteLink");
     if (staffLink) staffLink.hidden = !hasRole("superadmin");
     if (academicLink) academicLink.hidden = !state.directivoLike;
+    if (docenteLink) docenteLink.hidden = !hasRole("docente");
 
     var studentForm = $("#studentForm");
     var importPanel = $("#studentsImportPanel");
     if (studentForm) studentForm.hidden = !state.directivoLike;
     if (importPanel) importPanel.hidden = !state.directivoLike;
 
-    var filterDocente = $("#filterDocente");
-    if (!state.directivoLike && filterDocente) {
-      var label = [state.user.apellido, state.user.nombre].filter(Boolean).join(", ") || state.user.email || "Mi usuario";
-      filterDocente.innerHTML = '<option value="' + escapeHtml(state.user._id || state.user.id || "") + '" selected>' + escapeHtml(label) + "</option>";
-      filterDocente.disabled = true;
-    }
   }
 
   function initLogout() {
@@ -178,10 +177,6 @@
     return base + div + turno;
   }
 
-  function materiaLabel(m) {
-    return (m.materia || "Materia") + " · " + anioLabel(m.cursoId);
-  }
-
   function toDateInputValue(v) {
     if (!v) return "";
     var d = v instanceof Date ? v : new Date(v);
@@ -211,26 +206,6 @@
     });
   }
 
-  function refreshMateriaFilterOptions() {
-    var materias = state.materias.slice();
-    var cursoId = $("#filterAnio") ? $("#filterAnio").value : "";
-    var docenteId = state.directivoLike && $("#filterDocente") ? $("#filterDocente").value : "";
-
-    if (cursoId) {
-      materias = materias.filter(function (m) {
-        return m.cursoId && String(m.cursoId._id || m.cursoId) === cursoId;
-      });
-    }
-    if (docenteId) {
-      materias = materias.filter(function (m) {
-        return m.docenteId && String(m.docenteId._id || m.docenteId) === docenteId;
-      });
-    }
-
-    materias = sortByLabel(uniqueById(materias), materiaLabel);
-    fillSelect($("#filterMateria"), materias, function (m) { return m._id; }, materiaLabel, "Todas", true);
-  }
-
   function renderCredentials(el, title, rows, passwordKey) {
     if (!el) return;
     if (!rows || !rows.length) {
@@ -252,43 +227,24 @@
   async function loadContext() {
     if (state.directivoLike) {
       var anios = await api("/cursos", { method: "GET" });
-      var docentes = await api("/users/staff?role=docente", { method: "GET" });
-      var materias = await api("/materias-curso", { method: "GET" });
       state.anios = sortByLabel(uniqueById(anios || []), anioLabel);
-      state.docentes = sortByLabel(uniqueById(docentes || []), function (u) {
-        return [u.apellido, u.nombre].filter(Boolean).join(", ") || u.email || "Docente";
-      });
-      state.materias = Array.isArray(materias) ? materias : [];
     } else {
       var materiasDoc = await api("/materias-curso/mine", { method: "GET" });
       state.materias = Array.isArray(materiasDoc) ? materiasDoc : [];
       state.anios = sortByLabel(uniqueById(state.materias.map(function (m) { return m.cursoId; })), anioLabel);
-      state.docentes = [state.user];
     }
 
     fillSelect($("#sAnio"), state.anios, function (a) { return a._id; }, anioLabel, "Seleccionar", false);
     fillSelect($("#editStudentAnio"), state.anios, function (a) { return a._id; }, anioLabel, "Seleccionar", false);
     fillSelect($("#filterAnio"), state.anios, function (a) { return a._id; }, anioLabel, "Todos", true);
-
-    if (state.directivoLike) {
-      fillSelect($("#filterDocente"), state.docentes, function (u) { return u._id || u.id; }, function (u) {
-        return [u.apellido, u.nombre].filter(Boolean).join(", ") || u.email || "Docente";
-      }, "Todos", true);
-    }
-
-    refreshMateriaFilterOptions();
   }
 
   function buildStudentQuery() {
     var params = new URLSearchParams();
     var cursoId = $("#filterAnio") ? $("#filterAnio").value : "";
-    var docenteId = $("#filterDocente") ? $("#filterDocente").value : "";
-    var materiaCursoId = $("#filterMateria") ? $("#filterMateria").value : "";
     var search = $("#filterSearch") ? $("#filterSearch").value.trim() : "";
 
     if (cursoId) params.set("cursoId", cursoId);
-    if (state.directivoLike && docenteId) params.set("docenteId", docenteId);
-    if (materiaCursoId) params.set("materiaCursoId", materiaCursoId);
     if (search) params.set("search", search);
 
     var query = params.toString();
@@ -302,7 +258,7 @@
     if (!rows.length) {
       var tr0 = document.createElement("tr");
       var td0 = document.createElement("td");
-      td0.colSpan = 7;
+      td0.colSpan = 6;
       td0.className = "table-empty";
       td0.textContent = "Sin estudiantes";
       tr0.appendChild(td0);
@@ -312,7 +268,7 @@
 
     rows.forEach(function (u) {
       var tr = document.createElement("tr");
-      [u.nombre || "-", u.apellido || "-", u.dni || "-", u.cursoId ? anioLabel(u.cursoId) : "-", u.division || "-", u.email || "-"].forEach(function (value) {
+      [u.nombre || "-", u.apellido || "-", u.dni || "-", u.cursoId ? anioLabel(u.cursoId) : "-", u.email || "-"].forEach(function (value) {
         var td = document.createElement("td");
         td.textContent = value;
         tr.appendChild(td);
@@ -365,15 +321,11 @@
 
   function initFilters() {
     var anio = $("#filterAnio");
-    var docente = $("#filterDocente");
-    var materia = $("#filterMateria");
     var apply = $("#applyFilters");
     var clear = $("#clearFilters");
     var refresh = $("#studentsRefresh");
 
-    if (anio) anio.addEventListener("change", refreshMateriaFilterOptions);
-    if (docente) docente.addEventListener("change", refreshMateriaFilterOptions);
-    if (materia) materia.addEventListener("change", loadStudents);
+    if (anio) anio.addEventListener("change", loadStudents);
     if (apply) apply.addEventListener("click", loadStudents);
     if (refresh) refresh.addEventListener("click", function () {
       loadContext().then(loadStudents).catch(function (e) {
@@ -383,9 +335,7 @@
     if (clear) {
       clear.addEventListener("click", function () {
         if (anio) anio.value = "";
-        if (state.directivoLike && docente) docente.value = "";
         if ($("#filterSearch")) $("#filterSearch").value = "";
-        refreshMateriaFilterOptions();
         loadStudents();
       });
     }
@@ -411,9 +361,7 @@
             fechaNacimiento: $("#sFecha").value,
             email: $("#sEmail").value,
             password: $("#sPass").value,
-            role: $("#sRole").value,
-            cursoId: $("#sAnio").value,
-            division: $("#sDivision").value
+            cursoId: $("#sAnio").value
           })
         });
         form.reset();
@@ -438,7 +386,6 @@
     $("#editStudentFecha").value = toDateInputValue(student.fechaNacimiento);
     $("#editStudentEmail").value = student.email || "";
     $("#editStudentPass").value = "";
-    $("#editStudentDivision").value = student.division || "";
     if (student.cursoId && student.cursoId._id) $("#editStudentAnio").value = student.cursoId._id;
     setMsg($("#studentEditMsg"), "", "");
     modal.classList.add("is-open");
@@ -479,8 +426,7 @@
           fechaNacimiento: $("#editStudentFecha").value,
           email: $("#editStudentEmail").value,
           password: $("#editStudentPass").value,
-          cursoId: $("#editStudentAnio").value,
-          division: $("#editStudentDivision").value
+          cursoId: $("#editStudentAnio").value
         };
         if (!payload.password) delete payload.password;
         await api("/users/students/" + encodeURIComponent($("#editStudentId").value), {
@@ -529,7 +475,7 @@
         setMsg(msg, "Importando...", "");
         var res = await api("/users/students/import-csv", {
           method: "POST",
-          body: JSON.stringify({ csv: text, defaultRole: $("#studentsImportRole") ? $("#studentsImportRole").value : "estudiante" })
+          body: JSON.stringify({ csv: text })
         });
         setMsg(msg, "OK · creados: " + String(res.created || 0) + " · omitidos: " + String(res.skipped || 0), "ok");
         if (res && Array.isArray(res.credentials) && res.credentials.length) {

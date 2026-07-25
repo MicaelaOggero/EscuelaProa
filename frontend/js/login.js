@@ -52,6 +52,9 @@
     }
     if (!res.ok) {
       var msg = (data && (data.message || data.error)) || res.statusText || "Request failed";
+      if (window.EEPAuth && window.EEPAuth.translateErrorMessage) {
+        msg = window.EEPAuth.translateErrorMessage(msg, res.status);
+      }
       throw new Error(msg);
     }
     return data;

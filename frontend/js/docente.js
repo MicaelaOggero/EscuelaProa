@@ -141,6 +141,9 @@
     }
     if (!res.ok) {
       var msg = (data && (data.message || data.error)) || res.statusText || "Request failed";
+      if (window.EEPAuth && window.EEPAuth.translateErrorMessage) {
+        msg = window.EEPAuth.translateErrorMessage(msg, res.status);
+      }
       var err = new Error(msg);
       err.status = res.status;
       err.data = data;
@@ -559,7 +562,7 @@
         t.textContent = ev.titulo || "Evento";
         var s = document.createElement("div");
         s.className = "item-sub";
-        s.textContent = ev.descripcion || ev.tipo || "Evento publico";
+        s.textContent = ev.descripcion || ev.tipo || "Evento público";
         left.appendChild(t);
         left.appendChild(s);
         var meta = document.createElement("div");

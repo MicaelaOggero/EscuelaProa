@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Gestion de Estudiantes - Escuela Experimental Porteña</title>
-    <meta name="description" content="Alta, edicion, importacion y filtrado de estudiantes." />
+    <title>Gestión de Estudiantes - Escuela Experimental Porteña</title>
+    <meta name="description" content="Alta, edición, importación y filtrado de estudiantes." />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -25,27 +25,28 @@
           <img class="brand-logo" src="../assets/logo.svg" alt="Logo" width="44" height="44" />
           <div class="brand-text">
             <span class="brand-name">Escuela Experimental Porteña</span>
-            <span class="brand-tag">Gestion de estudiantes</span>
+            <span class="brand-tag">Gestión de estudiantes</span>
           </div>
         </a>
         <div class="header-actions">
-          <a class="btn btn-ghost" href="../index.html">Sitio publico</a>
+          <a class="btn btn-ghost" href="../index.html">Sitio público</a>
           <a id="staffLink" class="btn btn-secondary" href="admin.html" hidden>Directivos/Docentes</a>
+          <a id="docenteLink" class="btn btn-secondary" href="docente.html" hidden>Panel docente</a>
           <a id="academicLink" class="btn btn-secondary" href="directivo.html" hidden>Años y materias</a>
           <a class="btn btn-secondary" href="estudiantes.html">Estudiantes</a>
-          <button id="logout" class="btn btn-primary" type="button">Cerrar sesion</button>
+          <button id="logout" class="btn btn-primary" type="button">Cerrar sesión</button>
         </div>
       </div>
     </header>
 
     <main id="contenido" class="main" role="main">
-      <section class="section" aria-label="Gestion de estudiantes">
+        <section class="section" aria-label="Gestión de estudiantes">
         <div class="container">
           <div class="section-head reveal">
             <div>
               <h1 class="section-title">Estudiantes</h1>
               <p id="roleIntro" class="section-subtitle">
-                Gestion individual o por CSV para estudiantes segun tus permisos.
+                Gestión individual o por CSV para estudiantes según tus permisos.
               </p>
             </div>
           </div>
@@ -55,7 +56,6 @@
               <div class="panel-head">
                 <div>
                   <div class="panel-title">Crear estudiante</div>
-                  <div class="panel-sub">POST <span class="mono">/users/students</span></div>
                 </div>
               </div>
               <div class="cols">
@@ -96,18 +96,9 @@
                   </select>
                 </div>
                 <div class="field">
-                  <label for="sRole">Rol</label>
-                  <select id="sRole" required>
-                    <option value="estudiante" selected>Estudiante</option>
-                  </select>
+                  <label>Rol</label>
+                  <input value="Estudiante" readonly />
                 </div>
-              </div>
-              <div class="cols">
-                <div class="field">
-                  <label for="sDivision">Division (opcional)</label>
-                  <input id="sDivision" type="text" />
-                </div>
-                <div class="field"></div>
               </div>
               <button class="btn btn-primary" type="submit">Crear estudiante</button>
               <div id="studentMsg" class="msg" role="status" aria-live="polite"></div>
@@ -118,7 +109,6 @@
               <div class="panel-head">
                 <div>
                   <div class="panel-title">Importar estudiantes desde CSV</div>
-                  <div class="panel-sub">POST <span class="mono">/users/students/import-csv</span></div>
                 </div>
               </div>
               <div class="import">
@@ -126,17 +116,11 @@
                   <label for="studentsCsvFile">Archivo CSV</label>
                   <input id="studentsCsvFile" type="file" accept=".csv,text/csv" />
                 </div>
-                <div class="field">
-                  <label for="studentsImportRole">Rol por defecto</label>
-                  <select id="studentsImportRole">
-                    <option value="estudiante" selected>Estudiante</option>
-                  </select>
-                </div>
                 <button id="studentsImportBtn" class="btn btn-primary" type="button">Importar</button>
               </div>
               <div class="panel-note">
                 Columnas: <span class="mono">nombre</span>, <span class="mono">apellido</span>, <span class="mono">dni</span>,
-                <span class="mono">email</span>, <span class="mono">curso</span>, <span class="mono">rol</span>, opcionales: <span class="mono">division</span>,
+                <span class="mono">email</span>, <span class="mono">curso</span>, opcionales:
                 <span class="mono">fecha de nacimiento</span>, <span class="mono">password</span>.
               </div>
               <div id="studentsImportMsg" class="msg" role="status" aria-live="polite"></div>
@@ -148,7 +132,7 @@
             <div class="panel-head">
               <div>
                 <div class="panel-title">Filtros</div>
-                <div class="panel-sub">Por curso, docente y materia</div>
+                <div class="panel-sub">Por curso y busqueda general</div>
               </div>
               <button id="studentsRefresh" class="btn btn-secondary" type="button">Actualizar</button>
             </div>
@@ -158,20 +142,6 @@
                 <label for="filterAnio">Curso</label>
                 <select id="filterAnio">
                   <option value="">Todos</option>
-                </select>
-              </div>
-              <div class="field">
-                <label for="filterDocente">Docente</label>
-                <select id="filterDocente">
-                  <option value="">Todos</option>
-                </select>
-              </div>
-            </div>
-            <div class="cols">
-              <div class="field">
-                <label for="filterMateria">Materia</label>
-                <select id="filterMateria">
-                  <option value="">Todas</option>
                 </select>
               </div>
               <div class="field">
@@ -189,7 +159,6 @@
             <div class="panel-head">
               <div>
                 <div class="panel-title">Listado de estudiantes</div>
-                <div class="panel-sub">GET <span class="mono">/users/students</span></div>
               </div>
             </div>
 
@@ -203,13 +172,12 @@
                     <th>Apellido</th>
                     <th>DNI</th>
                     <th>Curso</th>
-                    <th>Division</th>
                     <th>Email</th>
                     <th>Acciones</th>
                   </tr>
                 </thead>
                 <tbody id="studentsTbody">
-                  <tr><td colspan="7" class="table-empty">Sin estudiantes</td></tr>
+                  <tr><td colspan="6" class="table-empty">Sin estudiantes</td></tr>
                 </tbody>
               </table>
             </div>
@@ -221,7 +189,6 @@
               <div class="modal-head">
                 <div>
                   <div id="studentEditTitle" class="modal-title">Editar estudiante</div>
-                  <div class="modal-sub">PUT <span class="mono">/users/students/:id</span></div>
                 </div>
                 <button class="btn btn-ghost btn-sm" type="button" data-close="true">Cerrar</button>
               </div>
@@ -263,10 +230,6 @@
                     <select id="editStudentAnio" required>
                       <option value="" selected disabled>Seleccionar</option>
                     </select>
-                  </div>
-                  <div class="field">
-                    <label for="editStudentDivision">Division (opcional)</label>
-                    <input id="editStudentDivision" type="text" />
                   </div>
                 </div>
                 <div class="modal-actions">

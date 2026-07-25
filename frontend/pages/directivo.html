@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Gestion Academica - Escuela Experimental Porteña</title>
-    <meta name="description" content="Gestion de cursos, materias y asignaciones docentes." />
+    <title>Gestión Académica - Escuela Experimental Porteña</title>
+    <meta name="description" content="Gestión de cursos, materias y asignaciones docentes." />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -19,47 +19,83 @@
   <body>
     <a class="skip-link" href="#contenido">Saltar al contenido</a>
 
-    <header class="site-header" role="banner">
-      <div class="container header-inner">
-        <a class="brand" href="../index.html" aria-label="Volver al inicio">
-          <img class="brand-logo" src="../assets/logo.svg" alt="Logo" width="44" height="44" />
-          <div class="brand-text">
-            <span class="brand-name">Escuela Experimental Porteña</span>
-            <span class="brand-tag">Gestion academica</span>
+    <div class="app">
+      <aside class="sidebar" aria-label="Sidebar directivo">
+        <a class="side-brand" href="../index.html" aria-label="Inicio">
+          <img src="../assets/logo.svg" alt="Logo" width="40" height="40" />
+          <div>
+            <div class="side-title">Panel Directivo</div>
+            <div class="side-sub">Escuela Experimental Porteña</div>
           </div>
         </a>
-        <div class="header-actions">
-          <a class="btn btn-ghost" href="../index.html">Sitio publico</a>
-          <a id="staffLink" class="btn btn-secondary" href="admin.html" hidden>Directivos/Docentes</a>
-          <a class="btn btn-secondary" href="directivo.html">Años y materias</a>
-          <a class="btn btn-secondary" href="estudiantes.html">Estudiantes</a>
-          <button id="logout" class="btn btn-primary" type="button">Cerrar sesion</button>
+
+        <nav class="side-nav" aria-label="Navegacion directiva">
+          <a class="side-link is-active" href="#gestion" data-view="gestion" aria-current="page">
+            <span class="ico" aria-hidden="true">{book}</span>
+            Docentes y materias
+          </a>
+          <a class="side-link" href="#noticias" data-view="noticias">
+            <span class="ico" aria-hidden="true">{news}</span>
+            Noticias
+          </a>
+          <a class="side-link" href="estudiantes.html">
+            <span class="ico" aria-hidden="true">{users}</span>
+            Estudiantes
+          </a>
+          <button id="logout" class="side-link side-link--danger" type="button">
+            <span class="ico" aria-hidden="true">{logout}</span>
+            Cerrar sesion
+          </button>
+        </nav>
+
+        <div class="side-footer">
+          <div class="pill">Academico</div>
+          <div class="pill">Organizacion</div>
+          <div class="pill">Comunidad</div>
         </div>
-      </div>
-    </header>
+      </aside>
 
-    <main id="contenido" class="main" role="main">
-      <section class="section" aria-label="Gestion">
-        <div class="container">
-          <div class="section-head reveal">
-            <div>
-              <h1 class="section-title">Años, materias y asignaciones</h1>
-            </div>
+      <div class="main">
+        <header class="topbar" role="banner">
+          <button id="sideToggle" class="icon-btn" type="button" aria-label="Abrir menu">
+            <span class="hamb" aria-hidden="true"></span>
+          </button>
+          <div class="topbar-title">
+            <div class="topbar-kicker">Directivo</div>
+            <div id="directivoNombre" class="topbar-name">Gestion academica</div>
           </div>
+          <div class="topbar-actions">
+            <a class="btn btn-ghost" href="../index.html">Sitio publico</a>
+            <a id="staffLink" class="btn btn-secondary" href="admin.html" hidden>Panel superadmin</a>
+            <a id="docenteLink" class="btn btn-secondary" href="docente.html" hidden>Panel docente</a>
+          </div>
+        </header>
 
-          <div id="docentesPanel" class="panel reveal" style="--reveal-delay: 90ms" aria-label="Gestion de docentes">
-            <div class="panel-head">
+        <main id="contenido" class="content" role="main">
+          <section class="view is-visible" data-view="gestion" aria-label="Gestion academica">
+            <div class="view-head">
               <div>
-                <div class="panel-title">Docentes</div>
-                <div class="panel-sub">Crear, editar y eliminar docentes · <span class="mono">/users/staff</span></div>
+                <h1 class="view-title">Docentes, materias y asignaciones</h1>
+                <p class="view-sub">Administra el equipo docente, crea materias por curso y organiza las asignaciones del ciclo lectivo.</p>
               </div>
-              <button id="refreshDocentes" class="btn btn-secondary" type="button">Actualizar</button>
             </div>
 
+          <section class="management-block management-block--docentes reveal" style="--reveal-delay: 90ms" aria-label="Bloque docentes">
+            <div class="management-block-head">
+              <div>
+                <div class="management-eyebrow">Gestión de docentes</div>
+              </div>
+            </div>
+
+          <div id="docentesPanel" class="panel" aria-label="Gestión de docentes">
             <div class="docentes-grid">
               <div class="docente-tools">
+                
                 <form id="docenteForm" class="docente-form" aria-label="Crear docente">
+                  <div class="panel-title">Crear docente</div><br>
+                
                   <div class="field">
+                    
                     <label for="dNombre">Nombre</label>
                     <input id="dNombre" type="text" required />
                   </div>
@@ -80,10 +116,8 @@
                     <input id="dPass" type="password" required />
                   </div>
                   <div class="field">
-                    <label for="dRole">Rol</label>
-                    <select id="dRole" required>
-                      <option value="docente" selected>Docente</option>
-                    </select>
+                    <label>Rol</label>
+                    <input value="Docente" readonly />
                   </div>
                   <button class="btn btn-primary" type="submit">Crear docente</button>
                   <div id="docMsg" class="msg" role="status" aria-live="polite"></div>
@@ -91,16 +125,13 @@
 
                 <div class="docente-form import-card" aria-label="Importar docentes por CSV">
                   <div class="panel-title">Importar docentes por CSV</div>
-                  <div class="panel-sub">POST <span class="mono">/users/staff/import-csv</span></div>
                   <div class="field">
                     <label for="docCsvFile">Archivo CSV</label>
                     <input id="docCsvFile" type="file" accept=".csv,text/csv" />
                   </div>
                   <div class="field">
-                    <label for="docImportRole">Rol por defecto</label>
-                    <select id="docImportRole">
-                      <option value="docente" selected>Docente</option>
-                    </select>
+                    <label>Rol por defecto</label>
+                    <input value="Docente" readonly />
                   </div>
                   <button id="docImportBtn" class="btn btn-secondary" type="button">Importar docentes</button>
                   <div class="panel-note">
@@ -111,6 +142,8 @@
                 </div>
               </div>
 
+              <div class="docente-list-card">
+                <div class="panel-title">Listado de docentes</div>
               <div class="table-wrap">
                 <table class="table" aria-label="Tabla docentes">
                   <thead>
@@ -127,11 +160,21 @@
                   </tbody>
                 </table>
               </div>
+              </div>
             </div>
           </div>
+          </section>
 
-          <div class="grid">
-            <form id="anioForm" class="panel reveal" aria-label="Crear curso">
+          <section class="management-block management-block--academico reveal" style="--reveal-delay: 110ms" aria-label="Bloque cursos y materias">
+            <div class="management-block-head">
+              <div>
+                <div class="management-eyebrow">Gestión de materias</div>
+                
+              </div>
+            </div>
+
+          <div class="grid management-grid">
+            <form id="anioForm" class="panel" aria-label="Crear curso">
               <div class="panel-head">
                 <div>
                   <div class="panel-title">Crear curso</div>
@@ -160,11 +203,11 @@
               <button class="btn btn-primary" type="submit">Crear</button>
               <div id="anioMsg" class="msg" role="status" aria-live="polite"></div>
             </form>
-            <form id="maForm" class="panel reveal" style="--reveal-delay: 80ms" aria-label="Crear materia por curso">
+            <form id="maForm" class="panel" aria-label="Crear materia por curso">
               <div class="panel-head">
                 <div>
                   <div class="panel-title">Crear materia por curso</div>
-                  <div class="panel-sub">Primero crea la materia en un curso. La asignacion docente se hace despues.</div>
+                  <div class="panel-sub">Primero crea la materia en un curso. La asignación docente se hace después.</div>
                 </div>
               </div>
               <div class="cols">
@@ -194,7 +237,7 @@
             </form>
           </div>
 
-          <div class="panel reveal" style="--reveal-delay: 100ms" aria-label="Importar CSV">
+          <div class="panel" aria-label="Importar CSV">
             <div class="panel-head">
               <div>
                 <div class="panel-title">Importar materias desde CSV</div>
@@ -211,30 +254,31 @@
               Columnas: <span class="mono">materia</span>, <span class="mono">curso</span>, <span class="mono">ciclo lectivo</span>.
             </div>
             <div class="panel-note">
-              Esta importacion solo crea materias por curso. La asignacion de docentes se realiza por separado desde el listado.
+              Esta importación solo crea materias por curso. La asignación de docentes se realiza por separado desde el listado.
             </div>
             <div id="importMsg" class="msg" role="status" aria-live="polite"></div>
           </div>
+          </section>
 
-          <div class="panel reveal" style="--reveal-delay: 120ms" aria-label="Materias por curso">
-            <div class="panel-head">
+          <section class="management-block management-block--asignaciones reveal" style="--reveal-delay: 130ms" aria-label="Bloque asignaciones docentes">
+            <div class="management-block-head">
               <div>
-                <div class="panel-title">Asignar docentes a materias</div>
-                <div class="panel-sub">Usa editar para vincular una materia existente con un docente validado.</div>
+                <div class="management-eyebrow">Asignación de docentes a materias</div>
+                
               </div>
-              <button id="refresh" class="btn btn-secondary" type="button">Actualizar datos</button>
             </div>
 
-            <div id="asigMsg" class="msg" role="status" aria-live="polite"></div>
+          <div class="panel" aria-label="Materias por curso">
+            
 
             <div class="assignment-stats">
               <div class="assignment-stat">
                 <strong id="sinDocenteCount">0</strong>
-                <span>Sin docente</span>
+                <span>Materias sin docente asignado</span>
               </div>
               <div class="assignment-stat">
                 <strong id="conDocenteCount">0</strong>
-                <span>Con docente</span>
+                <span>Materia con docente asignado</span>
               </div>
             </div>
 
@@ -243,7 +287,7 @@
                 <div class="assignment-group-head">
                   <div>
                     <div class="panel-title">Materias sin docente</div>
-                    <div class="panel-sub">Asignalas cuando el docente ya exista en el sistema.</div>
+                    <div class="panel-sub">Realizar la asignación cuando el docente ya exista en el sistema. Puede editar o eliminar las materias.</div>
                   </div>
                 </div>
                 <div class="table-wrap">
@@ -267,7 +311,7 @@
                 <div class="assignment-group-head">
                   <div>
                     <div class="panel-title">Materias con docente asignado</div>
-                    <div class="panel-sub">Puedes cambiar o quitar la asignacion docente. Para editar o eliminar la materia, primero quita el docente.</div>
+                    <div class="panel-sub">Puede cambiar o quitar la asignación docente.</div>
                   </div>
                 </div>
                 <div class="table-wrap">
@@ -289,6 +333,7 @@
               </div>
             </div>
           </div>
+          </section>
 
           <div id="editModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="editTitle">
             <div class="modal-backdrop" data-close="true"></div>
@@ -385,16 +430,113 @@
               </form>
             </div>
           </div>
-        </div>
-      </section>
-    </main>
+          </section>
 
-    <footer class="site-footer" role="contentinfo">
-      <div class="container footer-bottom">
-        <div>© <span id="year"></span> Escuela Experimental Porteña</div>
-        <div class="footer-bottom-links"><a href="../index.html">Inicio</a></div>
+          <section id="noticias" class="view" data-view="noticias" aria-label="Noticias institucionales">
+            <div class="view-head">
+              <div>
+                <h2 class="view-title">Noticias institucionales</h2>
+                <p class="view-sub">Publica, actualiza o elimina las novedades visibles en el sitio publico.</p>
+              </div>
+              <div class="view-cta">
+                <button class="btn btn-primary" type="button" data-open="crear-noticia">Publicar noticia</button>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-head">
+                <div>
+                  <div class="panel-title">Registro de noticias</div>
+                  <div class="panel-sub">Se publican en la portada institucional y pueden destacarse.</div>
+                </div>
+                <button id="refreshNoticias" class="btn btn-secondary" type="button">Actualizar</button>
+              </div>
+              <div class="table-wrap">
+                <table class="table" aria-label="Tabla noticias institucionales">
+                  <thead>
+                    <tr>
+                      <th>Titulo</th>
+                      <th>Categoria</th>
+                      <th>Fecha</th>
+                      <th>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody id="noticiasTbody">
+                    <tr><td colspan="4" class="table-empty">Sin noticias publicadas</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div id="noticiasMsg" class="msg" role="status" aria-live="polite"></div>
+            </div>
+          </section>
+        </main>
       </div>
-    </footer>
+    </div>
+
+    <div id="noticiaModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="noticiaTitle">
+      <div class="modal-backdrop" data-close="true"></div>
+      <div class="modal-panel" role="document">
+        <div class="modal-head">
+          <div>
+            <div id="noticiaTitle" class="modal-title">Publicar noticia</div>
+          </div>
+          <button class="btn btn-ghost btn-sm" type="button" data-close="true">Cerrar</button>
+        </div>
+        <form id="noticiaForm" class="modal-body" aria-label="Formulario de noticia institucional">
+          <input id="noticiaId" type="hidden" />
+          <div class="field">
+            <label for="noticiaTitulo">Titulo</label>
+            <input id="noticiaTitulo" type="text" required />
+          </div>
+          <div class="field">
+            <label for="noticiaCategoria">Categoria</label>
+            <select id="noticiaCategoria" required>
+              <option value="Institucional">Institucional</option>
+              <option value="Proyectos">Proyectos</option>
+              <option value="Comunidad">Comunidad</option>
+              <option value="Actividades">Actividades</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="noticiaResumen">Resumen</label>
+            <input id="noticiaResumen" type="text" placeholder="Breve descripcion" />
+          </div>
+          <div class="field">
+            <label for="noticiaContenido">Contenido</label>
+            <textarea id="noticiaContenido" rows="5" placeholder="Escribe el contenido"></textarea>
+          </div>
+          <div class="field">
+            <label for="noticiaImagenes">Imagenes</label>
+            <input id="noticiaImagenes" type="file" accept="image/*" multiple />
+            <div class="panel-note">Puedes subir hasta 8 imagenes por noticia. Luego se podran mostrar como carrusel en el sitio publico.</div>
+          </div>
+          <div class="field">
+            <label>Imagenes actuales</label>
+            <div id="noticiaImagenesActuales" class="news-images-manager">
+              <div class="empty">Todavia no hay imagenes cargadas.</div>
+            </div>
+          </div>
+          <div class="field">
+            <label>Nuevas imagenes seleccionadas</label>
+            <div id="noticiaImagenesPreview" class="news-images-manager">
+              <div class="empty">Selecciona una o varias imagenes para agregarlas.</div>
+            </div>
+          </div>
+          <div class="field">
+            <label class="switch">
+              <input id="noticiaDestacada" type="checkbox" />
+              <span>Marcar como destacada</span>
+            </label>
+          </div>
+          <div class="modal-actions">
+            <button id="noticiaSubmit" class="btn btn-primary" type="submit">Publicar</button>
+            <button id="noticiaCancelEdit" class="btn btn-secondary" type="button" hidden>Cancelar edicion</button>
+            <button class="btn btn-secondary" type="button" data-close="true">Cerrar</button>
+          </div>
+          <div id="noticiaFormMsg" class="msg" role="status" aria-live="polite"></div>
+        </form>
+      </div>
+    </div>
 
     <script src="../js/auth-session.js" defer></script>
     <script src="../js/script.js" defer></script>

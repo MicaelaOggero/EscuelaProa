@@ -3,6 +3,10 @@
   var STORAGE_TOKEN = "eep_token";
   var STORAGE_USER = "eep_user";
   var STORAGE_LAST_PANEL = "eep_last_panel_path";
+  var state = {
+    materias: [],
+    selectedMateriaId: ""
+  };
 
   function $(sel) {
     return document.querySelector(sel);
@@ -82,6 +86,9 @@
     }
     if (!res.ok) {
       var msg = (data && (data.message || data.error)) || res.statusText || "Request failed";
+      if (window.EEPAuth && window.EEPAuth.translateErrorMessage) {
+        msg = window.EEPAuth.translateErrorMessage(msg, res.status);
+      }
       if (res.status === 401) {
         if (window.EEPAuth) window.EEPAuth.clearSession();
         window.location.href = "login.html";
@@ -131,21 +138,77 @@
     });
   }
 
+  function renderMateriasNav() {
+    var nav = $("#materiasNav");
+    if (!nav) return;
+    nav.innerHTML = "";
+
+    if (!state.materias.length) {
+      var empty = document.createElement("div");
+      empty.className = "subject-item-meta";
+      empty.textContent = "No hay materias asociadas todavía.";
+      nav.appendChild(empty);
+      return;
+    }
+
+    state.materias.forEach(function (m) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "subject-item" + (state.selectedMateriaId === String(m._id) ? " is-active" : "");
+
+      var name = document.createElement("div");
+      name.className = "subject-item-name";
+      name.textContent = m.materia || "Materia";
+
+      var meta = document.createElement("div");
+      meta.className = "subject-item-meta";
+      meta.textContent = [anioLabel(m.cursoId), m.cicloLectivo ? String(m.cicloLectivo) : ""].filter(Boolean).join(" · ");
+
+      btn.appendChild(name);
+      btn.appendChild(meta);
+      btn.addEventListener("click", function () {
+        state.selectedMateriaId = String(m._id || "");
+        updateSelectedMateriaHeader();
+        renderMateriasNav();
+        loadContenido();
+      });
+      nav.appendChild(btn);
+    });
+  }
+
+  function updateSelectedMateriaHeader() {
+    var title = $("#selectedMateriaTitle");
+    var meta = $("#selectedMateriaMeta");
+    var selected = state.materias.find(function (m) {
+      return String(m._id) === String(state.selectedMateriaId);
+    });
+
+    if (!title || !meta) return;
+
+    if (!selected) {
+      title.textContent = "Selecciona una materia";
+      meta.textContent = "El contenido se filtra automáticamente por tu curso.";
+      return;
+    }
+
+    title.textContent = selected.materia || "Materia";
+    meta.textContent = [anioLabel(selected.cursoId), selected.cicloLectivo ? "Ciclo lectivo " + String(selected.cicloLectivo) : ""].filter(Boolean).join(" · ");
+  }
+
   async function loadMaterias() {
-    var sel = $("#materia");
-    if (!sel) return;
-    sel.innerHTML = '<option value="">Todas</option>';
     try {
       var cicloActual = new Date().getFullYear();
       var rows = await api("/materias-curso?cicloLectivo=" + encodeURIComponent(cicloActual), { method: "GET" });
-      (rows || []).forEach(function (m) {
-        var opt = document.createElement("option");
-        opt.value = m._id;
-        opt.textContent = materiaConAnioLabel(m);
-        sel.appendChild(opt);
-      });
+      state.materias = Array.isArray(rows) ? rows : [];
+      if (state.materias.length && !state.selectedMateriaId) state.selectedMateriaId = String(state.materias[0]._id || "");
+      if (!state.materias.length) state.selectedMateriaId = "";
+      updateSelectedMateriaHeader();
+      renderMateriasNav();
     } catch (e) {
-      // ignore
+      state.materias = [];
+      state.selectedMateriaId = "";
+      updateSelectedMateriaHeader();
+      renderMateriasNav();
     }
   }
 
@@ -156,7 +219,9 @@
     if (!rows.length) {
       var empty = document.createElement("div");
       empty.className = "card";
-      empty.textContent = "Aun no hay contenido publicado para tu curso.";
+      empty.textContent = state.selectedMateriaId
+        ? "Aún no hay contenido publicado para esta materia."
+        : "No hay materias asociadas o todavía no tienen contenido publicado.";
       wrap.appendChild(empty);
       return;
     }
@@ -198,14 +263,14 @@
   }
 
   async function loadContenido() {
-    var msg = $("#msg");
-    setMsg(msg, "Cargando...", "");
-    try {
-      var q = [];
-      var materia = $("#materia").value;
-      var tipo = $("#tipo").value;
-      if (materia) q.push("materiaCursoId=" + encodeURIComponent(materia));
-      if (tipo) q.push("tipo=" + encodeURIComponent(tipo));
+      var msg = $("#msg");
+      setMsg(msg, "Cargando...", "");
+      try {
+        var q = [];
+        var materia = state.selectedMateriaId;
+        var tipo = $("#tipo").value;
+        if (materia) q.push("materiaCursoId=" + encodeURIComponent(materia));
+        if (tipo) q.push("tipo=" + encodeURIComponent(tipo));
       var data = await api("/contenidos" + (q.length ? "?" + q.join("&") : ""), { method: "GET" });
       renderCards(Array.isArray(data) ? data : []);
       setMsg(msg, "OK", "ok");
@@ -233,16 +298,16 @@
   }
 
   function initFilters() {
-    $("#materia").addEventListener("change", loadContenido);
     $("#tipo").addEventListener("change", loadContenido);
-    $("#refresh").addEventListener("click", loadContenido);
+    $("#refresh").addEventListener("click", function () {
+      loadMaterias().then(loadContenido);
+    });
   }
 
   if (!guard()) return;
   rememberPanelPath();
   initLogout();
   initFilters();
-  loadMaterias();
+  loadMaterias().then(loadContenido);
   loadAnioLabel();
-  loadContenido();
 })();

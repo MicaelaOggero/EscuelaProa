@@ -1,4 +1,5 @@
 const express = require("express");
+const path = require("path");
 const cors = require("cors");
 const morgan = require("morgan");
 require("dotenv").config();
@@ -29,6 +30,7 @@ app.use(
 );
 app.use(express.json({ limit: "1mb" }));
 app.use(morgan("dev"));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.get("/health", (req, res) => {
   res.json({ ok: true });
@@ -50,6 +52,18 @@ app.use((req, res) => {
 app.use((err, req, res, next) => {
   // eslint-disable-next-line no-unused-vars
   console.error(err);
+  if (err && err.message === "Solo se permiten imagenes.") {
+    res.status(400).json({ message: err.message });
+    return;
+  }
+  if (err && err.code === "LIMIT_FILE_SIZE") {
+    res.status(400).json({ message: "Cada imagen debe pesar menos de 5 MB." });
+    return;
+  }
+  if (err && err.code === "LIMIT_FILE_COUNT") {
+    res.status(400).json({ message: "Solo puedes subir hasta 8 imagenes por noticia." });
+    return;
+  }
   res.status(500).json({ message: "Server error" });
 });
 

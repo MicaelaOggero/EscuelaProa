@@ -39,6 +39,44 @@ function parseCicloLectivo(value) {
   return num;
 }
 
+function parseFechaNacimiento(value) {
+  if (typeof value === "undefined" || value === null || value === "") {
+    return { ok: true, value: undefined };
+  }
+
+  if (value instanceof Date) {
+    if (isNaN(value.getTime())) return { ok: false, message: "fechaNacimiento invalida" };
+    return { ok: true, value: value };
+  }
+
+  var text = String(value || "").trim();
+  if (!text) return { ok: true, value: undefined };
+
+  var matchIso = text.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (matchIso) {
+    var isoDate = new Date(matchIso[1] + "-" + matchIso[2] + "-" + matchIso[3] + "T00:00:00.000Z");
+    if (!isNaN(isoDate.getTime())) return { ok: true, value: isoDate };
+  }
+
+  var matchLatam = text.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (matchLatam) {
+    var day = Number(matchLatam[1]);
+    var month = Number(matchLatam[2]);
+    var year = Number(matchLatam[3]);
+    var latamDate = new Date(Date.UTC(year, month - 1, day));
+    if (
+      !isNaN(latamDate.getTime()) &&
+      latamDate.getUTCFullYear() === year &&
+      latamDate.getUTCMonth() === month - 1 &&
+      latamDate.getUTCDate() === day
+    ) {
+      return { ok: true, value: latamDate };
+    }
+  }
+
+  return { ok: false, message: "fechaNacimiento invalida. Usa YYYY-MM-DD o DD/MM/YYYY" };
+}
+
 function normalizeStudent(user) {
   if (!user) return user;
   user.roles = normalizeRoles(user.roles && user.roles.length ? user.roles : user.role ? [user.role] : []);
@@ -84,12 +122,34 @@ function resolveStudentRole(input, fallback) {
 async function findCurso(anioStr) {
   var s = String(anioStr || "").trim();
   if (!s) return null;
-  var n = parseInt(s, 10);
-  if (!isNaN(n)) {
-    var byNum = await Curso.findOne({ numero: n });
-    if (byNum) return byNum;
+
+  function normalizeCursoText(value) {
+    return String(value || "").trim().toLowerCase().replace(/\s+/g, " ");
   }
-  return await Curso.findOne({ nombre: s });
+
+  function variantsOf(curso) {
+    var out = [];
+    var nombre = normalizeCursoText(curso && curso.nombre);
+    var division = normalizeCursoText(curso && curso.division);
+    var numero = curso && typeof curso.numero !== "undefined" && curso.numero !== null ? String(curso.numero).trim() : "";
+
+    if (nombre) out.push(nombre);
+    if (nombre && division) out.push(nombre + " " + division);
+    if (numero) out.push(numero);
+    if (numero && division) out.push(numero + " " + division);
+    return out;
+  }
+
+  var needle = normalizeCursoText(s);
+  var rows = await Curso.find().select("_id numero nombre division");
+  var exact = rows.find(function (curso) {
+    return variantsOf(curso).indexOf(needle) !== -1;
+  });
+  if (exact) return exact;
+
+  return rows.find(function (curso) {
+    return normalizeCursoText(curso && curso.nombre) === needle;
+  }) || null;
 }
 
 async function docenteVisibleCursoIds(reqUser, filters) {
@@ -394,8 +454,11 @@ exports.create = async (req, res, next) => {
       if (existingDni) return res.status(409).json({ message: "DNI already in use" });
     }
 
+    var parsedFechaNacimiento = parseFechaNacimiento(fechaNacimiento);
+    if (!parsedFechaNacimiento.ok) return res.status(400).json({ message: parsedFechaNacimiento.message });
+
     const passwordHash = await bcrypt.hash(password, 10);
-    const user = await Usuario.create({ nombre, apellido, fechaNacimiento, dni: dni || undefined, email, passwordHash, roles });
+    const user = await Usuario.create({ nombre, apellido, fechaNacimiento: parsedFechaNacimiento.value, dni: dni || undefined, email, passwordHash, roles });
     res.status(201).json({
       id: user._id,
       nombre: user.nombre,
@@ -448,8 +511,11 @@ exports.createStaff = async (req, res, next) => {
       if (existingDni) return res.status(409).json({ message: "DNI already in use" });
     }
 
+    var parsedFechaNacimiento = parseFechaNacimiento(fechaNacimiento);
+    if (!parsedFechaNacimiento.ok) return res.status(400).json({ message: parsedFechaNacimiento.message });
+
     const passwordHash = await bcrypt.hash(password, 10);
-    const user = await Usuario.create({ nombre, apellido, fechaNacimiento, dni: dni || undefined, email, passwordHash, roles });
+    const user = await Usuario.create({ nombre, apellido, fechaNacimiento: parsedFechaNacimiento.value, dni: dni || undefined, email, passwordHash, roles });
     res.status(201).json({
       id: user._id,
       nombre: user.nombre,
@@ -526,7 +592,11 @@ exports.updateStaff = async (req, res, next) => {
 
     if (typeof nombre === "string" && nombre.trim()) user.nombre = nombre.trim();
     if (typeof apellido === "string") user.apellido = apellido.trim();
-    if (typeof fechaNacimiento !== "undefined") user.fechaNacimiento = fechaNacimiento;
+    if (typeof fechaNacimiento !== "undefined") {
+      var parsedFechaNacimiento = parseFechaNacimiento(fechaNacimiento);
+      if (!parsedFechaNacimiento.ok) return res.status(400).json({ message: parsedFechaNacimiento.message });
+      user.fechaNacimiento = parsedFechaNacimiento.value;
+    }
     if (typeof email === "string" && email.trim()) user.email = email.trim().toLowerCase();
     if (typeof req.body.dni !== "undefined") user.dni = dni || undefined;
     if (roles.length) user.roles = roles;
@@ -586,7 +656,13 @@ exports.importStaffCsv = async (req, res, next) => {
       var r = parsed.rows[i];
       var nombre = String(r.nombre || "").trim();
       var apellido = String(r.apellido || "").trim();
-      var fechaNacimiento = r.fechaNacimiento || undefined;
+      var parsedFechaNacimiento = parseFechaNacimiento(r.fechaNacimiento);
+      if (!parsedFechaNacimiento.ok) {
+        results.skipped++;
+        results.errors.push({ line: r.line, message: parsedFechaNacimiento.message });
+        continue;
+      }
+      var fechaNacimiento = parsedFechaNacimiento.value;
       var email = String(r.email || "").trim().toLowerCase();
       var dni = normalizeDni(r.dni);
 
@@ -718,6 +794,9 @@ exports.createStudent = async (req, res, next) => {
 
     if (!isDirectivoLike(req.user)) return res.status(403).json({ message: "Forbidden" });
 
+    var parsedFechaNacimiento = parseFechaNacimiento(fechaNacimiento);
+    if (!parsedFechaNacimiento.ok) return res.status(400).json({ message: parsedFechaNacimiento.message });
+
     var existingDni = await Usuario.findOne({ dni: dni }).select("_id");
     if (existingDni) return res.status(409).json({ message: "DNI already in use" });
 
@@ -734,7 +813,7 @@ exports.createStudent = async (req, res, next) => {
     var user = await Usuario.create({
       nombre: nombre,
       apellido: apellido,
-      fechaNacimiento: fechaNacimiento || undefined,
+      fechaNacimiento: parsedFechaNacimiento.value,
       dni: dni,
       email: email,
       passwordHash: passwordHash,
@@ -778,7 +857,11 @@ exports.updateStudent = async (req, res, next) => {
 
     if (typeof req.body.nombre === "string" && req.body.nombre.trim()) user.nombre = req.body.nombre.trim();
     if (typeof req.body.apellido === "string" && req.body.apellido.trim()) user.apellido = req.body.apellido.trim();
-    if (typeof req.body.fechaNacimiento !== "undefined") user.fechaNacimiento = req.body.fechaNacimiento || undefined;
+    if (typeof req.body.fechaNacimiento !== "undefined") {
+      var parsedFechaNacimiento = parseFechaNacimiento(req.body.fechaNacimiento);
+      if (!parsedFechaNacimiento.ok) return res.status(400).json({ message: parsedFechaNacimiento.message });
+      user.fechaNacimiento = parsedFechaNacimiento.value;
+    }
     if (typeof req.body.email === "string" && req.body.email.trim()) user.email = req.body.email.trim().toLowerCase();
     if (typeof req.body.dni !== "undefined") {
       var dni = normalizeDni(req.body.dni);
@@ -870,6 +953,13 @@ exports.importStudentsCsv = async (req, res, next) => {
         continue;
       }
 
+      var parsedFechaNacimiento = parseFechaNacimiento(r.fechaNacimiento);
+      if (!parsedFechaNacimiento.ok) {
+        results.skipped++;
+        results.errors.push({ line: r.line, message: parsedFechaNacimiento.message });
+        continue;
+      }
+
       if (!isDirectivoLike(req.user)) return res.status(403).json({ message: "Forbidden" });
 
       try {
@@ -887,7 +977,7 @@ exports.importStudentsCsv = async (req, res, next) => {
         await Usuario.create({
           nombre: r.nombre,
           apellido: r.apellido,
-          fechaNacimiento: r.fechaNacimiento || undefined,
+          fechaNacimiento: parsedFechaNacimiento.value,
           dni: dni,
           email: email,
           passwordHash: passwordHash,

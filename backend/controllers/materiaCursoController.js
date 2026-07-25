@@ -280,13 +280,34 @@ function parseCSV(text) {
 async function findCurso(anioStr) {
   var s = String(anioStr || "").trim();
   if (!s) return null;
-  // Try numeric
-  var n = parseInt(s, 10);
-  if (!isNaN(n)) {
-    var byNum = await Curso.findOne({ numero: n });
-    if (byNum) return byNum;
+
+  function normalizeCursoText(value) {
+    return String(value || "").trim().toLowerCase().replace(/\s+/g, " ");
   }
-  return await Curso.findOne({ nombre: s });
+
+  function variantsOf(curso) {
+    var out = [];
+    var nombre = normalizeCursoText(curso && curso.nombre);
+    var division = normalizeCursoText(curso && curso.division);
+    var numero = curso && typeof curso.numero !== "undefined" && curso.numero !== null ? String(curso.numero).trim() : "";
+
+    if (nombre) out.push(nombre);
+    if (nombre && division) out.push(nombre + " " + division);
+    if (numero) out.push(numero);
+    if (numero && division) out.push(numero + " " + division);
+    return out;
+  }
+
+  var needle = normalizeCursoText(s);
+  var rows = await Curso.find().select("_id numero nombre division");
+  var exact = rows.find(function (curso) {
+    return variantsOf(curso).indexOf(needle) !== -1;
+  });
+  if (exact) return exact;
+
+  return rows.find(function (curso) {
+    return normalizeCursoText(curso && curso.nombre) === needle;
+  }) || null;
 }
 
 exports.importCsv = async (req, res, next) => {
