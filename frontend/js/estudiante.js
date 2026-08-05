@@ -30,6 +30,7 @@
 
   function getApiBase() {
     if (window.EEPAuth) return window.EEPAuth.getApiBase();
+    if (window.EEPEnv) return window.EEPEnv.getApiBase();
     var saved = localStorage.getItem(STORAGE_API_BASE);
     return saved || "http://localhost:4001/api";
   }

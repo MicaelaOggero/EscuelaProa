@@ -35,6 +35,7 @@
 
   function getApiBase() {
     if (window.EEPAuth) return window.EEPAuth.getApiBase();
+    if (window.EEPEnv) return window.EEPEnv.getApiBase();
     return localStorage.getItem(STORAGE_API_BASE) || "http://localhost:4001/api";
   }
 

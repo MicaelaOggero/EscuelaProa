@@ -17,17 +17,38 @@ const contenidoRoutes = require("./routes/contenidoRoutes");
 
 const app = express();
 
-const corsOrigin = process.env.CORS_ORIGIN;
-app.use(
-  cors(
-    corsOrigin
-      ? {
-          origin: corsOrigin.split(",").map((s) => s.trim()),
-          credentials: true
-        }
-      : undefined
+const defaultAllowedOrigins = [
+  "https://escuelaproa.onrender.com",
+  "http://localhost:3000",
+  "http://localhost:4000",
+  "http://localhost:4001",
+  "http://127.0.0.1:3000",
+  "http://127.0.0.1:4000",
+  "http://127.0.0.1:4001"
+];
+
+const allowedOrigins = Array.from(
+  new Set(
+    defaultAllowedOrigins.concat(
+      String(process.env.CORS_ORIGIN || "")
+        .split(",")
+        .map((value) => value.trim())
+        .filter(Boolean)
+    )
   )
 );
+
+const corsOptions = {
+  origin(origin, callback) {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error("Not allowed by CORS"));
+  },
+  credentials: true
+};
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 app.use(express.json({ limit: "1mb" }));
 app.use(morgan("dev"));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
@@ -52,6 +73,10 @@ app.use((req, res) => {
 app.use((err, req, res, next) => {
   // eslint-disable-next-line no-unused-vars
   console.error(err);
+  if (err && err.message === "Not allowed by CORS") {
+    res.status(403).json({ message: err.message });
+    return;
+  }
   if (err && err.message === "Solo se permiten imagenes.") {
     res.status(400).json({ message: err.message });
     return;
@@ -76,6 +101,7 @@ const PORT = process.env.PORT || 4000;
 (async function bootstrap() {
   await connectDB();
   app.listen(PORT, () => {
-    console.log(`Backend listening on http://localhost:${PORT}`);
+    console.log(`Backend listening on port ${PORT}`);
+    console.log(`Allowed CORS origins: ${allowedOrigins.join(", ")}`);
   });
 })();

@@ -5,6 +5,9 @@
   var STORAGE_TOKEN_EXP = "eep_token_exp";
 
   function getApiBase() {
+    if (global.EEPEnv && typeof global.EEPEnv.getApiBase === "function") {
+      return global.localStorage.getItem(STORAGE_API_BASE) || global.EEPEnv.getApiBase();
+    }
     var saved = global.localStorage.getItem(STORAGE_API_BASE);
     return saved || "http://localhost:4001/api";
   }

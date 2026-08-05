@@ -6,6 +6,7 @@ function initYear() {
 
 function getApiBase() {
   if (window.EEPAuth) return window.EEPAuth.getApiBase().replace(/\/$/, "");
+  if (window.EEPEnv) return window.EEPEnv.getApiBase().replace(/\/$/, "");
   var saved = localStorage.getItem("eep_api_base");
   return (saved || "http://localhost:4001/api").replace(/\/$/, "");
 }
