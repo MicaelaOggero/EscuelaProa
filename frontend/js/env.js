@@ -2,7 +2,7 @@
   global.__EEP_ENV__ = Object.assign(
     {
       API_BASE_LOCAL: "http://localhost:4001/api",
-      API_BASE_PRODUCTION: "https://escuelaproa.onrender.com"
+      API_BASE_PRODUCTION: "https://escuelaproa.onrender.com/api"
     },
     global.__EEP_ENV__ || {}
   );
