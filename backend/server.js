@@ -18,7 +18,7 @@ const contenidoRoutes = require("./routes/contenidoRoutes");
 const app = express();
 
 const defaultAllowedOrigins = [
-  "https://escuelaproa.onrender.com",
+  "https://escuela-proa.vercel.app",
   "http://localhost:3000",
   "http://localhost:4000",
   "http://localhost:4001",
