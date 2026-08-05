@@ -10,21 +10,21 @@ router.get("/", noticiaController.list);
 router.post(
   "/",
   authMiddleware,
-  roleMiddleware("superadmin", "directivo", "docente"),
+  roleMiddleware("superadmin", "directivo"),
   noticiaUpload.array("imagenes", 8),
   noticiaController.create
 );
 router.put(
   "/:id",
   authMiddleware,
-  roleMiddleware("superadmin", "directivo", "docente"),
+  roleMiddleware("superadmin", "directivo"),
   noticiaUpload.array("imagenes", 8),
   noticiaController.update
 );
 router.delete(
   "/:id",
   authMiddleware,
-  roleMiddleware("superadmin", "directivo", "docente"),
+  roleMiddleware("superadmin", "directivo"),
   noticiaController.remove
 );
 

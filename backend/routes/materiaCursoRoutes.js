@@ -5,6 +5,8 @@ const roleMiddleware = require("../middlewares/roleMiddleware");
 
 const router = express.Router();
 
+router.get("/public", materiaCursoController.publicList);
+
 // Staff and students can list (students are scoped server-side to their cursoId)
 router.get("/", authMiddleware, roleMiddleware("directivo", "docente", "estudiante"), materiaCursoController.list);
 router.get("/mine", authMiddleware, roleMiddleware("docente"), materiaCursoController.mine);

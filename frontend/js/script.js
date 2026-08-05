@@ -7,7 +7,7 @@ function initYear() {
 function getApiBase() {
   if (window.EEPAuth) return window.EEPAuth.getApiBase().replace(/\/$/, "");
   var saved = localStorage.getItem("eep_api_base");
-  return (saved || "http://localhost:4000/api").replace(/\/$/, "");
+  return (saved || "http://localhost:4001/api").replace(/\/$/, "");
 }
 
 async function api(path, opts) {
@@ -78,6 +78,11 @@ function revealStyle(index) {
 
 var currentNewsItems = [];
 var allNewsItems = [];
+var homeCalendarState = {
+  monthCursor: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+  eventos: [],
+  selectedId: ""
+};
 
 function newsItemKey(item, fallbackIndex) {
   if (item && (item._id || item.id)) return String(item._id || item.id);
@@ -246,6 +251,7 @@ function initNewsModal() {
 
 function setNewsArchiveView(open) {
   var archive = document.getElementById("noticias-archivo");
+  var propuesta = document.getElementById("propuesta");
   if (!archive) return;
 
   Array.prototype.slice.call(document.querySelectorAll("[data-home-view]")).forEach(function (section) {
@@ -253,6 +259,7 @@ function setNewsArchiveView(open) {
   });
 
   archive.hidden = !open;
+  if (propuesta) propuesta.hidden = true;
   if (open) {
     window.location.hash = "noticias-archivo";
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -277,6 +284,45 @@ function initAllNewsView() {
   }
 
   if (window.location.hash === "#noticias-archivo") setNewsArchiveView(true);
+}
+
+function setPropuestaView(open) {
+  var propuesta = document.getElementById("propuesta");
+  var archive = document.getElementById("noticias-archivo");
+  if (!propuesta) return;
+
+  Array.prototype.slice.call(document.querySelectorAll("[data-home-view]")).forEach(function (section) {
+    section.hidden = !!open;
+  });
+
+  propuesta.hidden = !open;
+  if (archive) archive.hidden = true;
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function initPropuestaView() {
+  var btn = document.getElementById("openPropuesta");
+  var closeBtn = document.getElementById("closePropuesta");
+  var brandLink = document.getElementById("homeBrandLink");
+  if (btn) {
+    btn.addEventListener("click", function () {
+      setPropuestaView(true);
+    });
+  }
+  if (closeBtn) {
+    closeBtn.addEventListener("click", function () {
+      setPropuestaView(false);
+    });
+  }
+  if (brandLink) {
+    brandLink.addEventListener("click", function (e) {
+      e.preventDefault();
+      setNewsArchiveView(false);
+      setPropuestaView(false);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  }
+
 }
 
 function initNewsCards() {
@@ -328,30 +374,245 @@ function renderNews(items) {
   renderNewsCards("allNewsGrid", allNewsItems);
 }
 
-function renderEvents(items) {
-  var grid = document.getElementById("eventsGrid");
-  if (!grid) return;
+function pad(value) {
+  return String(value).padStart(2, "0");
+}
 
-  if (!items.length) {
-    grid.innerHTML =
-      '<article class="agenda-card status-card reveal is-visible"><h3 class="agenda-title">No hay eventos proximos cargados</h3><p class="agenda-text">La agenda institucional aparecera aca cuando se publiquen nuevas fechas.</p></article>';
+function monthLabel(date) {
+  return new Intl.DateTimeFormat("es-AR", {
+    month: "long",
+    year: "numeric"
+  }).format(date);
+}
+
+function dayKey(value) {
+  var date = value instanceof Date ? value : new Date(value);
+  if (isNaN(date.getTime())) return "";
+  return date.getFullYear() + "-" + pad(date.getMonth() + 1) + "-" + pad(date.getDate());
+}
+
+function timeLabel(value) {
+  if (!value) return "Sin hora";
+  var date = value instanceof Date ? value : new Date(value);
+  if (isNaN(date.getTime())) return "Sin hora";
+  return pad(date.getHours()) + ":" + pad(date.getMinutes());
+}
+
+function formatDateTime(value) {
+  if (!value) return "Fecha a confirmar";
+  var date = value instanceof Date ? value : new Date(value);
+  if (isNaN(date.getTime())) return "Fecha a confirmar";
+  return new Intl.DateTimeFormat("es-AR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  }).format(date);
+}
+
+function closeEventModal() {
+  var modal = document.getElementById("eventModal");
+  if (!modal) return;
+  modal.classList.remove("is-open");
+  modal.setAttribute("aria-hidden", "true");
+}
+
+function openEventModal(item) {
+  var modal = document.getElementById("eventModal");
+  var body = document.getElementById("eventModalBody");
+  var title = document.getElementById("eventModalTitle");
+  var kicker = document.getElementById("eventModalKicker");
+  if (!item || !modal || !body || !title || !kicker) return;
+
+  homeCalendarState.selectedId = String(item._id || item.id || "");
+  title.textContent = item.titulo || "Detalle del evento";
+  kicker.textContent = item.tipo || "Evento publico";
+  body.innerHTML =
+    '<div class="event-modal-meta">' +
+      '<span class="event-modal-chip">Publico</span>' +
+      '<span class="event-modal-chip">' + escapeHtml(formatDateTime(item.inicio)) + '</span>' +
+      (item.fin ? '<span class="event-modal-chip">Hasta ' + escapeHtml(formatDateTime(item.fin)) + '</span>' : '') +
+    '</div>' +
+    '<div class="event-modal-details">' +
+      '<div class="event-modal-row"><strong>Ubicacion</strong><span>' + escapeHtml(item.ubicacion || "A confirmar") + '</span></div>' +
+      '<div class="event-modal-row"><strong>Tipo</strong><span>' + escapeHtml(item.tipo || "Evento institucional") + '</span></div>' +
+    '</div>' +
+    '<div class="news-modal-content">' + escapeHtml(item.descripcion || "Sin descripcion disponible.").replace(/\n/g, "<br>") + '</div>';
+  modal.classList.add("is-open");
+  modal.setAttribute("aria-hidden", "false");
+}
+
+function renderEvents(items) {
+  var root = document.getElementById("eventsGrid");
+  var label = document.getElementById("eventsMonthLabel");
+  var status = document.getElementById("eventsStatus");
+  if (!root) return;
+
+  root.innerHTML = "";
+  if (label) label.textContent = monthLabel(homeCalendarState.monthCursor);
+  var visibleRowsInMonth = (items || []).filter(function (row) {
+    var date = new Date(row && row.inicio);
+    if (isNaN(date.getTime())) return false;
+    return date.getFullYear() === homeCalendarState.monthCursor.getFullYear() && date.getMonth() === homeCalendarState.monthCursor.getMonth();
+  }).length;
+  setStatus(status, visibleRowsInMonth ? "" : "No hay eventos publicos cargados para este mes.", "");
+
+  ["Lun", "Mar", "Mie", "Jue", "Vie", "Sab", "Dom"].forEach(function (day) {
+    var head = document.createElement("div");
+    head.className = "calendar-weekday";
+    head.textContent = day;
+    root.appendChild(head);
+  });
+
+  var monthStart = new Date(homeCalendarState.monthCursor.getFullYear(), homeCalendarState.monthCursor.getMonth(), 1);
+  var startOffset = (monthStart.getDay() + 6) % 7;
+  var gridStart = new Date(monthStart);
+  gridStart.setDate(monthStart.getDate() - startOffset);
+  var todayKey = dayKey(new Date());
+
+  for (var i = 0; i < 42; i += 1) {
+    var cellDate = new Date(gridStart);
+    cellDate.setDate(gridStart.getDate() + i);
+    var key = dayKey(cellDate);
+    var dayRows = (items || []).filter(function (row) {
+      return dayKey(row.inicio) === key;
+    });
+
+    var cell = document.createElement("div");
+    cell.className = "calendar-day";
+    if (cellDate.getMonth() !== homeCalendarState.monthCursor.getMonth()) cell.classList.add("is-other-month");
+    if (key === todayKey) cell.classList.add("is-today");
+
+    var headRow = document.createElement("div");
+    headRow.className = "calendar-day-head";
+    var num = document.createElement("div");
+    num.className = "calendar-day-number";
+    num.textContent = String(cellDate.getDate());
+    var count = document.createElement("div");
+    count.className = "calendar-day-count";
+    count.textContent = dayRows.length ? String(dayRows.length) : "";
+    headRow.appendChild(num);
+    headRow.appendChild(count);
+
+    var eventsWrap = document.createElement("div");
+    eventsWrap.className = "calendar-events";
+    dayRows.slice(0, 3).forEach(function (row) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "calendar-event-pill calendar-event-pill--publico";
+      btn.innerHTML = '<span class="calendar-event-time">' + escapeHtml(timeLabel(row.inicio)) + '</span><span class="calendar-event-title">' + escapeHtml(row.titulo || "Evento") + '</span>';
+      btn.addEventListener("click", function () {
+        openEventModal(row);
+      });
+      eventsWrap.appendChild(btn);
+    });
+
+    cell.appendChild(headRow);
+    cell.appendChild(eventsWrap);
+    root.appendChild(cell);
+  }
+}
+
+function propuestaCourseNumber(row) {
+  var curso = row && row.cursoId;
+  return Number(curso && curso.numero) || 0;
+}
+
+function propuestaCourseLabel(curso) {
+  if (!curso) return "Año";
+  var base = curso.nombre || (curso.numero ? String(curso.numero) + "° año" : "Año");
+  var extras = [];
+  if (curso.division) extras.push(curso.division);
+  if (curso.turno) extras.push(curso.turno);
+  return extras.length ? base + " · " + extras.join(" · ") : base;
+}
+
+function renderPropuesta(items) {
+  var root = document.getElementById("propuestaGrid");
+  var yearsCount = document.getElementById("propuestaYearsCount");
+  var subjectsCount = document.getElementById("propuestaSubjectsCount");
+  if (!root) return;
+
+  var rows = Array.isArray(items) ? items.slice() : [];
+  var groups = {};
+  rows.forEach(function (row) {
+    var curso = row && row.cursoId;
+    var key = curso && curso._id ? String(curso._id) : "sin-curso";
+    if (!groups[key]) {
+      groups[key] = {
+        curso: curso,
+        materias: []
+      };
+    }
+    groups[key].materias.push(String(row.materia || "").trim());
+  });
+
+  var cards = Object.keys(groups)
+    .map(function (key) {
+      var group = groups[key];
+      var materias = group.materias.filter(Boolean).sort(function (a, b) {
+        return a.localeCompare(b, "es", { sensitivity: "base" });
+      });
+      return {
+        curso: group.curso,
+        materias: materias
+      };
+    })
+    .sort(function (a, b) {
+      return propuestaCourseNumber(a.curso) - propuestaCourseNumber(b.curso);
+    });
+
+  if (yearsCount) yearsCount.textContent = String(cards.length);
+  if (subjectsCount) {
+    subjectsCount.textContent = String(
+      cards.reduce(function (total, card) {
+        return total + card.materias.length;
+      }, 0)
+    );
+  }
+
+  if (!cards.length) {
+    root.innerHTML =
+      '<article class="propuesta-card propuesta-card--placeholder reveal is-visible"><div class="propuesta-card-head"><span class="propuesta-badge">Sin datos</span><strong>Propuesta en actualización</strong></div><p class="propuesta-empty">Todavía no hay materias activas cargadas para mostrar en la web pública.</p></article>';
     return;
   }
 
-  grid.innerHTML = items
-    .map(function (item, index) {
+  root.innerHTML = cards
+    .map(function (card, index) {
       return (
-        '<article class="agenda-card reveal" ' + revealStyle(index) + '>' +
-          '<div class="agenda-date">' + escapeHtml(formatEventDate(item.inicio)) + '</div>' +
-          '<h3 class="agenda-title">' + escapeHtml(item.titulo || "Evento institucional") + '</h3>' +
-          '<p class="agenda-text">' + escapeHtml(item.descripcion || "Sin descripcion disponible.") + '</p>' +
-          '<div class="agenda-meta">' + escapeHtml(item.ubicacion || item.tipo || "Comunidad educativa") + '</div>' +
+        '<article class="propuesta-card reveal" ' + revealStyle(index) + '>' +
+          '<div class="propuesta-card-head">' +
+            '<span class="propuesta-badge">' + escapeHtml(String(propuestaCourseNumber(card.curso) || index + 1) + "°") + '</span>' +
+            '<strong>' + escapeHtml(propuestaCourseLabel(card.curso)) + '</strong>' +
+          '</div>' +
+          '<div class="propuesta-card-meta">' + escapeHtml(String(card.materias.length)) + ' materias activas</div>' +
+          '<div class="propuesta-subjects">' +
+            card.materias.map(function (materia) {
+              return '<span class="propuesta-subject-chip">' + escapeHtml(materia) + '</span>';
+            }).join("") +
+          '</div>' +
         '</article>'
       );
     })
     .join("");
 
   initReveal();
+}
+
+async function loadPropuesta() {
+  var status = document.getElementById("propuestaStatus");
+  var root = document.getElementById("propuestaGrid");
+  if (!root) return;
+
+  try {
+    var data = await api("/materias-curso/public");
+    renderPropuesta(Array.isArray(data) ? data : []);
+    setStatus(status, "", "");
+  } catch (e) {
+    renderPropuesta([]);
+    setStatus(status, "No pudimos cargar la propuesta académica. Revisa la conexión con el backend.", "error");
+  }
 }
 
 async function loadNoticias() {
@@ -370,15 +631,57 @@ async function loadNoticias() {
 }
 
 async function loadCalendario() {
-  var grid = document.getElementById("eventsGrid");
-  if (!grid) return;
+  var root = document.getElementById("eventsGrid");
+  var status = document.getElementById("eventsStatus");
+  if (!root) return;
 
   try {
     var data = await api("/calendario");
-    renderEvents(Array.isArray(data) ? data.slice(0, 3) : []);
+    homeCalendarState.eventos = (Array.isArray(data) ? data : []).filter(function (item) {
+      return !item || !item.visibilidad || item.visibilidad === "publico";
+    });
+    renderEvents(homeCalendarState.eventos);
   } catch (e) {
-    grid.innerHTML =
-      '<article class="agenda-card status-card reveal is-visible"><h3 class="agenda-title">No pudimos cargar la agenda</h3><p class="agenda-text">Revisa la conexion con el backend para ver los proximos eventos.</p></article>';
+    homeCalendarState.eventos = [];
+    renderEvents([]);
+    setStatus(status, "No pudimos cargar la agenda publica. Revisa la conexion con el backend.", "error");
+  }
+}
+
+function initEventCalendar() {
+  Array.prototype.slice.call(document.querySelectorAll("#eventModal [data-event-close='true']")).forEach(function (el) {
+    el.addEventListener("click", function () {
+      closeEventModal();
+    });
+  });
+
+  var modal = document.getElementById("eventModal");
+  if (modal) {
+    modal.addEventListener("click", function (e) {
+      var target = e.target;
+      if (!(target instanceof Element)) return;
+      if (target.getAttribute("data-event-close") === "true") closeEventModal();
+    });
+  }
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") closeEventModal();
+  });
+
+  var prev = document.getElementById("prevEventsMonth");
+  if (prev) {
+    prev.addEventListener("click", function () {
+      homeCalendarState.monthCursor = new Date(homeCalendarState.monthCursor.getFullYear(), homeCalendarState.monthCursor.getMonth() - 1, 1);
+      renderEvents(homeCalendarState.eventos);
+    });
+  }
+
+  var next = document.getElementById("nextEventsMonth");
+  if (next) {
+    next.addEventListener("click", function () {
+      homeCalendarState.monthCursor = new Date(homeCalendarState.monthCursor.getFullYear(), homeCalendarState.monthCursor.getMonth() + 1, 1);
+      renderEvents(homeCalendarState.eventos);
+    });
   }
 }
 
@@ -526,9 +829,12 @@ function initAuthHeader() {
 initYear();
 initNewsModal();
 initAllNewsView();
+initPropuestaView();
 initNavToggle();
 initReveal();
 initAuthHeader();
+initEventCalendar();
+loadPropuesta();
 loadNoticias();
 loadCalendario();
 initContactForm();

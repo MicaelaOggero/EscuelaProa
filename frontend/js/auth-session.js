@@ -6,7 +6,7 @@
 
   function getApiBase() {
     var saved = global.localStorage.getItem(STORAGE_API_BASE);
-    return saved || "http://localhost:4000/api";
+    return saved || "http://localhost:4001/api";
   }
 
   function setApiBase(value) {

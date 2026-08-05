@@ -30,13 +30,25 @@
         </a>
 
         <nav class="side-nav" aria-label="Navegacion directiva">
-          <a class="side-link is-active" href="#gestion" data-view="gestion" aria-current="page">
+          <a class="side-link is-active" href="#docentes" data-view="docentes" aria-current="page">
             <span class="ico" aria-hidden="true">{book}</span>
-            Docentes y materias
+            Docentes
+          </a>
+          <a class="side-link" href="#materias" data-view="materias">
+            <span class="ico" aria-hidden="true">{subjects}</span>
+            Materias
           </a>
           <a class="side-link" href="#noticias" data-view="noticias">
             <span class="ico" aria-hidden="true">{news}</span>
             Noticias
+          </a>
+          <a class="side-link" href="#eventos" data-view="eventos">
+            <span class="ico" aria-hidden="true">{calendar}</span>
+            Eventos
+          </a>
+          <a class="side-link" href="#consultas" data-view="consultas">
+            <span class="ico" aria-hidden="true">{news}</span>
+            Consultas
           </a>
           <a class="side-link" href="estudiantes.html">
             <span class="ico" aria-hidden="true">{users}</span>
@@ -72,11 +84,11 @@
         </header>
 
         <main id="contenido" class="content" role="main">
-          <section class="view is-visible" data-view="gestion" aria-label="Gestion academica">
+          <section class="view is-visible" data-view="docentes" aria-label="Gestion de docentes">
             <div class="view-head">
               <div>
-                <h1 class="view-title">Docentes, materias y asignaciones</h1>
-                <p class="view-sub">Administra el equipo docente, crea materias por curso y organiza las asignaciones del ciclo lectivo.</p>
+                <h1 class="view-title">Docentes</h1>
+                <p class="view-sub">Administra el equipo docente, crea nuevos perfiles y actualiza la informacion del plantel.</p>
               </div>
             </div>
 
@@ -164,6 +176,15 @@
             </div>
           </div>
           </section>
+          </section>
+
+          <section class="view" data-view="materias" aria-label="Gestion de materias">
+            <div class="view-head">
+              <div>
+                <h2 class="view-title">Materias y asignaciones</h2>
+                <p class="view-sub">Crea cursos, registra materias por ciclo lectivo y organiza la asignacion de docentes.</p>
+              </div>
+            </div>
 
           <section class="management-block management-block--academico reveal" style="--reveal-delay: 110ms" aria-label="Bloque cursos y materias">
             <div class="management-block-head">
@@ -436,7 +457,7 @@
             <div class="view-head">
               <div>
                 <h2 class="view-title">Noticias institucionales</h2>
-                <p class="view-sub">Publica, actualiza o elimina las novedades visibles en el sitio publico.</p>
+                <p class="view-sub">Publica, actualiza o elimina novedades institucionales, tanto publicas como privadas por rol.</p>
               </div>
               <div class="view-cta">
                 <button class="btn btn-primary" type="button" data-open="crear-noticia">Publicar noticia</button>
@@ -446,8 +467,20 @@
             <div class="panel">
               <div class="panel-head">
                 <div>
+                  <div class="panel-title">Privadas para directivos</div>
+                  <div class="panel-sub">Comunicados internos visibles para el rol directivo.</div>
+                </div>
+              </div>
+              <div id="noticiasDirectivoList" class="list compact-list" aria-label="Noticias privadas para directivos">
+                <div class="empty">No hay noticias privadas asignadas a directivos.</div>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-head">
+                <div>
                   <div class="panel-title">Registro de noticias</div>
-                  <div class="panel-sub">Se publican en la portada institucional y pueden destacarse.</div>
+                  <div class="panel-sub">Incluye noticias publicas para el sitio y privadas visibles segun el rol asignado.</div>
                 </div>
                 <button id="refreshNoticias" class="btn btn-secondary" type="button">Actualizar</button>
               </div>
@@ -457,16 +490,193 @@
                     <tr>
                       <th>Titulo</th>
                       <th>Categoria</th>
+                      <th>Visibilidad</th>
                       <th>Fecha</th>
                       <th>Acciones</th>
                     </tr>
                   </thead>
                   <tbody id="noticiasTbody">
-                    <tr><td colspan="4" class="table-empty">Sin noticias publicadas</td></tr>
+                    <tr><td colspan="5" class="table-empty">Sin noticias publicadas</td></tr>
                   </tbody>
                 </table>
               </div>
               <div id="noticiasMsg" class="msg" role="status" aria-live="polite"></div>
+            </div>
+          </section>
+
+          <section id="eventos" class="view" data-view="eventos" aria-label="Eventos institucionales">
+            <div class="view-head">
+              <div>
+                <h2 class="view-title">Eventos institucionales</h2>
+                <p class="view-sub">Administra eventos publicos y privados, con visibilidad segun el rol asignado.</p>
+              </div>
+              <div class="view-cta">
+                <button class="btn btn-primary" type="button" data-open="crear-evento">Crear evento</button>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-head">
+                <div>
+                  <div class="panel-title">Privados para directivos</div>
+                  <div class="panel-sub">Eventos internos visibles para el rol directivo.</div>
+                </div>
+              </div>
+              <div id="eventosDirectivoList" class="list compact-list" aria-label="Eventos privados para directivos">
+                <div class="empty">No hay eventos privados asignados a directivos.</div>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-head">
+                <div>
+                  <div class="panel-title">Almanaque de eventos</div>
+                  <div class="panel-sub">Visualiza eventos publicos y privados en un calendario mensual interactivo.</div>
+                </div>
+                <div class="view-cta">
+                  <button id="prevEventosMes" class="btn btn-secondary" type="button">Mes anterior</button>
+                  <div id="eventosMesLabel" class="calendar-month-label">-</div>
+                  <button id="nextEventosMes" class="btn btn-secondary" type="button">Mes siguiente</button>
+                  <button id="refreshEventos" class="btn btn-secondary" type="button">Actualizar</button>
+                </div>
+              </div>
+              <div class="calendar-legend" aria-label="Referencias de eventos">
+                <span class="legend-chip legend-chip--publico">Publico</span>
+                <span class="legend-chip legend-chip--privado">Privado</span>
+              </div>
+              <div class="eventos-layout">
+                <div>
+                  <div id="eventosCalendar" class="calendar-grid" aria-label="Calendario de eventos"></div>
+                </div>
+                <aside class="evento-detail-panel" aria-label="Detalle del evento seleccionado">
+                  <div class="panel-head panel-head--compact">
+                    <div>
+                      <div id="eventoDetalleTitle" class="panel-title">Selecciona un evento</div>
+                      <div id="eventoDetalleMeta" class="panel-sub">Haz clic en un evento del calendario para ver el detalle.</div>
+                    </div>
+                  </div>
+                  <div class="profile" role="list">
+                    <div class="kv" role="listitem"><div class="kv-k">Visibilidad</div><div id="eventoDetalleVisibilidad" class="kv-v">-</div></div>
+                    <div class="kv" role="listitem"><div class="kv-k">Ubicacion</div><div id="eventoDetalleUbicacion" class="kv-v">-</div></div>
+                    <div class="kv" role="listitem"><div class="kv-k">Roles</div><div id="eventoDetalleRoles" class="kv-v">-</div></div>
+                  </div>
+                  <div id="eventoDetalleDescripcion" class="panel-note">Selecciona un evento para ver su descripcion.</div>
+                  <div class="modal-actions">
+                    <button id="eventoDetalleEditar" class="btn btn-primary" type="button" disabled>Editar</button>
+                    <button id="eventoDetalleEliminar" class="btn btn-secondary" type="button" disabled>Eliminar</button>
+                  </div>
+                </aside>
+              </div>
+              <div class="panel-head panel-head--compact">
+                <div>
+                  <div class="panel-title">Lista del mes</div>
+                  <div class="panel-sub">Selecciona un evento del calendario o desde esta lista para ver el detalle.</div>
+                </div>
+              </div>
+              <div id="eventosMonthList" class="list compact-list" aria-label="Eventos del mes visible">
+                <div class="empty">Sin eventos en este mes.</div>
+              </div>
+              <div id="eventosMsg" class="msg" role="status" aria-live="polite"></div>
+            </div>
+          </section>
+
+          <section id="consultas" class="view" data-view="consultas" aria-label="Consultas del sitio">
+            <div class="view-head">
+              <div>
+                <h2 class="view-title">Consultas del sitio</h2>
+                <p class="view-sub">Centraliza mensajes recibidos desde el formulario público y haz seguimiento de su estado.</p>
+              </div>
+              <div class="view-cta">
+                <button id="refreshConsultas" class="btn btn-secondary" type="button">Actualizar</button>
+              </div>
+            </div>
+
+            <div class="grid consultas-grid">
+              <div class="panel" aria-label="Estado del canal de consultas">
+                <div class="panel-head">
+                  <div>
+                    <div class="panel-title">Notificaciones por correo</div>
+                    <div class="panel-sub">Configura SMTP en el backend para avisar automáticamente cuando entra una nueva consulta.</div>
+                  </div>
+                </div>
+                <div class="consultas-status-card">
+                  <div class="consultas-status-row">
+                    <span class="consultas-status-label">Estado</span>
+                    <span id="consultasMailBadge" class="status-badge status-badge--pending">Sin verificar</span>
+                  </div>
+                  <div id="consultasMailSummary" class="panel-note">Cargando configuración de correo...</div>
+                  <div id="consultasMailMeta" class="panel-note"></div>
+                </div>
+              </div>
+
+              <div class="panel" aria-label="Filtros de consultas">
+                <div class="panel-head">
+                  <div>
+                    <div class="panel-title">Bandeja</div>
+                    <div class="panel-sub">Filtra por estado o busca por nombre, email, motivo o mensaje.</div>
+                  </div>
+                </div>
+                <div class="consultas-toolbar">
+                  <div class="field">
+                    <label for="consultaEstadoFiltro">Estado</label>
+                    <select id="consultaEstadoFiltro">
+                      <option value="">Todos</option>
+                      <option value="nueva">Nuevas</option>
+                      <option value="en_proceso">En proceso</option>
+                      <option value="cerrada">Cerradas</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label for="consultaSearch">Buscar</label>
+                    <input id="consultaSearch" type="search" placeholder="Nombre, email, motivo o mensaje" />
+                  </div>
+                </div>
+                <div class="consultas-kpis">
+                  <div class="assignment-stat">
+                    <strong id="consultasTotalCount">0</strong>
+                    <span>Total</span>
+                  </div>
+                  <div class="assignment-stat">
+                    <strong id="consultasNuevasCount">0</strong>
+                    <span>Nuevas</span>
+                  </div>
+                  <div class="assignment-stat">
+                    <strong id="consultasProcesoCount">0</strong>
+                    <span>En proceso</span>
+                  </div>
+                  <div class="assignment-stat">
+                    <strong id="consultasCerradasCount">0</strong>
+                    <span>Cerradas</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel" aria-label="Listado de consultas recibidas">
+              <div class="panel-head">
+                <div>
+                  <div class="panel-title">Consultas recibidas</div>
+                  <div class="panel-sub">Abre una consulta para leer el mensaje completo y actualizar su seguimiento.</div>
+                </div>
+              </div>
+              <div class="table-wrap">
+                <table class="table" aria-label="Tabla de consultas">
+                  <thead>
+                    <tr>
+                      <th>Contacto</th>
+                      <th>Motivo</th>
+                      <th>Fecha</th>
+                      <th>Estado</th>
+                      <th>Correo</th>
+                      <th>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody id="consultasTbody">
+                    <tr><td colspan="6" class="table-empty">Sin consultas registradas</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div id="consultasMsg" class="msg" role="status" aria-live="polite"></div>
             </div>
           </section>
         </main>
@@ -506,6 +716,22 @@
             <textarea id="noticiaContenido" rows="5" placeholder="Escribe el contenido"></textarea>
           </div>
           <div class="field">
+            <label for="noticiaTipo">Visibilidad</label>
+            <select id="noticiaTipo" required>
+              <option value="publica">Publica</option>
+              <option value="privada">Privada</option>
+            </select>
+          </div>
+          <div id="noticiaRolesField" class="field" hidden>
+            <label>Visible para roles</label>
+            <div class="role-check-grid">
+              <label class="switch"><input type="checkbox" name="noticiaVisibleRol" value="directivo" /><span>Directivo</span></label>
+              <label class="switch"><input type="checkbox" name="noticiaVisibleRol" value="docente" /><span>Docente</span></label>
+              <label class="switch"><input type="checkbox" name="noticiaVisibleRol" value="estudiante" /><span>Estudiante</span></label>
+            </div>
+            <div class="panel-note">Las noticias privadas no aparecen en el sitio publico; solo se muestran a los roles seleccionados.</div>
+          </div>
+          <div class="field">
             <label for="noticiaImagenes">Imagenes</label>
             <input id="noticiaImagenes" type="file" accept="image/*" multiple />
             <div class="panel-note">Puedes subir hasta 8 imagenes por noticia. Luego se podran mostrar como carrusel en el sitio publico.</div>
@@ -534,6 +760,126 @@
             <button class="btn btn-secondary" type="button" data-close="true">Cerrar</button>
           </div>
           <div id="noticiaFormMsg" class="msg" role="status" aria-live="polite"></div>
+        </form>
+      </div>
+    </div>
+
+    <div id="eventoModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="eventoTitle">
+      <div class="modal-backdrop" data-close="true"></div>
+      <div class="modal-panel" role="document">
+        <div class="modal-head">
+          <div>
+            <div id="eventoTitle" class="modal-title">Crear evento</div>
+          </div>
+          <button class="btn btn-ghost btn-sm" type="button" data-close="true">Cerrar</button>
+        </div>
+        <form id="eventoForm" class="modal-body" aria-label="Formulario de evento institucional">
+          <input id="eventoId" type="hidden" />
+          <div class="field">
+            <label for="eventoTitulo">Titulo</label>
+            <input id="eventoTitulo" type="text" required />
+          </div>
+          <div class="field">
+            <label for="eventoTipo">Tipo</label>
+            <input id="eventoTipo" type="text" placeholder="Acto, reunion, jornada..." />
+          </div>
+          <div class="cols-2">
+            <div class="field">
+              <label for="eventoInicio">Inicio</label>
+              <input id="eventoInicio" type="datetime-local" required />
+            </div>
+            <div class="field">
+              <label for="eventoFin">Fin</label>
+              <input id="eventoFin" type="datetime-local" />
+            </div>
+          </div>
+          <div class="field">
+            <label for="eventoUbicacion">Ubicacion</label>
+            <input id="eventoUbicacion" type="text" placeholder="Patio, SUM, aula..." />
+          </div>
+          <div class="field">
+            <label for="eventoDescripcion">Descripcion</label>
+            <textarea id="eventoDescripcion" rows="4" placeholder="Detalles del evento"></textarea>
+          </div>
+          <div class="field">
+            <label for="eventoVisibilidad">Visibilidad</label>
+            <select id="eventoVisibilidad" required>
+              <option value="publico">Publico</option>
+              <option value="privado">Privado</option>
+            </select>
+          </div>
+          <div id="eventoRolesField" class="field" hidden>
+            <label>Visible para roles</label>
+            <div class="role-check-grid">
+              <label class="switch"><input type="checkbox" name="eventoVisibleRol" value="directivo" /><span>Directivo</span></label>
+              <label class="switch"><input type="checkbox" name="eventoVisibleRol" value="docente" /><span>Docente</span></label>
+              <label class="switch"><input type="checkbox" name="eventoVisibleRol" value="estudiante" /><span>Estudiante</span></label>
+            </div>
+            <div class="panel-note">Los eventos privados no aparecen en el sitio publico; solo se muestran a los roles seleccionados.</div>
+          </div>
+          <div class="modal-actions">
+            <button id="eventoSubmit" class="btn btn-primary" type="submit">Crear evento</button>
+            <button id="eventoCancelEdit" class="btn btn-secondary" type="button" hidden>Cancelar edicion</button>
+            <button class="btn btn-secondary" type="button" data-close="true">Cerrar</button>
+          </div>
+          <div id="eventoFormMsg" class="msg" role="status" aria-live="polite"></div>
+        </form>
+      </div>
+    </div>
+
+    <div id="consultaModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="consultaTitle">
+      <div class="modal-backdrop" data-close="true"></div>
+      <div class="modal-panel" role="document">
+        <div class="modal-head">
+          <div>
+            <div id="consultaTitle" class="modal-title">Detalle de consulta</div>
+            <div id="consultaMeta" class="modal-sub">-</div>
+          </div>
+          <button class="btn btn-ghost btn-sm" type="button" data-close="true">Cerrar</button>
+        </div>
+        <form id="consultaForm" class="modal-body" aria-label="Actualizar consulta">
+          <input id="consultaId" type="hidden" />
+          <div class="cols-2">
+            <div class="field">
+              <label for="consultaNombre">Nombre</label>
+              <input id="consultaNombre" type="text" readonly />
+            </div>
+            <div class="field">
+              <label for="consultaEmail">Email</label>
+              <input id="consultaEmail" type="text" readonly />
+            </div>
+          </div>
+          <div class="field">
+            <label for="consultaMotivo">Motivo</label>
+            <input id="consultaMotivo" type="text" readonly />
+          </div>
+          <div class="field">
+            <label for="consultaMensaje">Mensaje</label>
+            <textarea id="consultaMensaje" rows="6" readonly></textarea>
+          </div>
+          <div class="cols-2">
+            <div class="field">
+              <label for="consultaEstado">Estado</label>
+              <select id="consultaEstado" required>
+                <option value="nueva">Nueva</option>
+                <option value="en_proceso">En proceso</option>
+                <option value="cerrada">Cerrada</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="consultaNotificacion">Notificación</label>
+              <input id="consultaNotificacion" type="text" readonly />
+            </div>
+          </div>
+          <div class="field">
+            <label for="consultaNotas">Notas internas</label>
+            <textarea id="consultaNotas" rows="4" placeholder="Seguimiento, derivación o resolución interna"></textarea>
+          </div>
+          <div class="modal-actions">
+            <button class="btn btn-primary" type="submit">Guardar seguimiento</button>
+            <button class="btn btn-secondary" type="button" data-close="true">Cerrar</button>
+          </div>
+          <div id="consultaFormMsg" class="msg" role="status" aria-live="polite"></div>
         </form>
       </div>
     </div>

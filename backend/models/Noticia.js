@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
 
+const ROLES_VISIBLES = ["directivo", "docente", "estudiante"];
+
 const NoticiaImagenSchema = new mongoose.Schema(
   {
     url: { type: String, required: true, trim: true },
@@ -17,7 +19,13 @@ const NoticiaSchema = new mongoose.Schema(
     contenido: { type: String, default: "", trim: true },
     fecha: { type: Date, default: Date.now },
     destacada: { type: Boolean, default: false },
-    imagenes: { type: [NoticiaImagenSchema], default: [] }
+    imagenes: { type: [NoticiaImagenSchema], default: [] },
+    tipo: { type: String, enum: ["publica", "privada"], default: "publica" },
+    visibleParaRoles: {
+      type: [String],
+      enum: ROLES_VISIBLES,
+      default: []
+    }
   },
   { timestamps: true }
 );

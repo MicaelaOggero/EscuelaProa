@@ -35,7 +35,7 @@
 
   function getApiBase() {
     if (window.EEPAuth) return window.EEPAuth.getApiBase();
-    return localStorage.getItem(STORAGE_API_BASE) || "http://localhost:4000/api";
+    return localStorage.getItem(STORAGE_API_BASE) || "http://localhost:4001/api";
   }
 
   function getToken() {
@@ -61,6 +61,58 @@
 
   function hasRole(role) {
     return state.roles.indexOf(role) !== -1;
+  }
+
+  function injectIcons() {
+    var icons = {
+      home:
+        '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 11.2 12 4l8 7.2V20a1.6 1.6 0 0 1-1.6 1.6H5.6A1.6 1.6 0 0 1 4 20v-8.8Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M9.2 21.6v-6.2c0-.9.7-1.6 1.6-1.6h2.4c.9 0 1.6.7 1.6 1.6v6.2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>',
+      posts:
+        '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6.5 5h11C18.88 5 20 6.12 20 7.5v9c0 1.38-1.12 2.5-2.5 2.5h-11C5.12 19 4 17.88 4 16.5v-9C4 6.12 5.12 5 6.5 5Z" stroke="currentColor" stroke-width="1.7"/><path d="M7.8 9h8.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M7.8 12.5h5.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M7.8 16h7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>',
+      files:
+        '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 3.8h7l3 3V20.2c0 .99-.81 1.8-1.8 1.8H7.8c-.99 0-1.8-.81-1.8-1.8V5.6c0-.99.81-1.8 1.8-1.8Z" stroke="currentColor" stroke-width="1.7"/><path d="M14 3.8v3.4h3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M8.5 12h6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M8.5 15.5h4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>',
+      tasks:
+        '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 4.8h12" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M7 9.8h12" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M7 14.8h12" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M7 19.2h12" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M3.8 5.2 4.6 6l1.8-1.8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M3.8 10.2 4.6 11l1.8-1.8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      book:
+        '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6.5 5.2h9.8a2.2 2.2 0 0 1 2.2 2.2v11.4a.8.8 0 0 1-1.2.7 4.3 4.3 0 0 0-2.1-.5H7.8A2.3 2.3 0 0 0 6 19.8V6.7c0-.83.67-1.5 1.5-1.5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M6 7.2a2 2 0 0 1 1.8-1h7.4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>',
+      subjects:
+        '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 5 4.5 8.7 12 12.4l7.5-3.7L12 5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M7.2 10.7v3.5c0 .7.5 1.3 1.1 1.6.9.5 2.2 1 3.7 1s2.8-.5 3.7-1c.6-.3 1.1-.9 1.1-1.6v-3.5" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M19.5 8.8v4.7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>',
+      news:
+        '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 6.2A2.2 2.2 0 0 1 7.2 4h9.6A2.2 2.2 0 0 1 19 6.2v11.6A2.2 2.2 0 0 1 16.8 20H7.2A2.2 2.2 0 0 1 5 17.8V6.2Z" stroke="currentColor" stroke-width="1.7"/><path d="M8.3 8.2h7.4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M8.3 11.8h7.4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M8.3 15.4h4.2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>',
+      calendar:
+        '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 3.5v3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M17 3.5v3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M4.5 8.5h15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M6.5 6.5h11c1.1 0 2 .9 2 2v10c0 1.1-.9 2-2 2h-11c-1.1 0-2-.9-2-2v-10c0-1.1.9-2 2-2Z" stroke="currentColor" stroke-width="1.7"/></svg>',
+      users:
+        '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8.2 11.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z" stroke="currentColor" stroke-width="1.7"/><path d="M15.8 10.2a2.6 2.6 0 1 0 0-5.2 2.6 2.6 0 0 0 0 5.2Z" stroke="currentColor" stroke-width="1.7"/><path d="M3.8 19.2c1.2-2.8 3.4-4.2 5.5-4.2 2 0 4.2 1.4 5.4 4.2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M14.2 18.2c.8-1.8 2.2-2.8 3.8-2.8 1.1 0 2.2.5 3.2 1.7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>',
+      user:
+        '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 12.2a4.2 4.2 0 1 0 0-8.4 4.2 4.2 0 0 0 0 8.4Z" stroke="currentColor" stroke-width="1.7"/><path d="M4.8 20.2c1.6-3.6 4.6-5.4 7.2-5.4s5.6 1.8 7.2 5.4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>',
+      logout:
+        '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10 7V5.6c0-.99.81-1.8 1.8-1.8h6.4c.99 0 1.8.81 1.8 1.8v12.8c0 .99-.81 1.8-1.8 1.8h-6.4c-.99 0-1.8-.81-1.8-1.8V17" stroke="currentColor" stroke-width="1.7"/><path d="M4 12h9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M7 9l-3 3 3 3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+    };
+
+    Array.prototype.slice.call(document.querySelectorAll(".ico")).forEach(function (el) {
+      var key = String(el.textContent || "").trim().replace(/[{}]/g, "");
+      if (icons[key]) el.innerHTML = icons[key];
+    });
+  }
+
+  function initSidebarToggle() {
+    var toggle = $("#sideToggle");
+    var sidebar = document.querySelector(".sidebar");
+    if (!toggle || !sidebar) return;
+
+    toggle.addEventListener("click", function () {
+      sidebar.classList.toggle("is-open");
+    });
+
+    Array.prototype.slice.call(sidebar.querySelectorAll("a, button")).forEach(function (el) {
+      el.addEventListener("click", function () {
+        sidebar.classList.remove("is-open");
+      });
+    });
+
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") sidebar.classList.remove("is-open");
+    });
   }
 
   function guard() {
@@ -123,7 +175,54 @@
   }
 
   function initHeader() {
+    var sideTitle = $("#studentsSideTitle");
+    var sideSub = $("#studentsSideSub");
+    var topbarKicker = $("#studentsTopbarKicker");
+    var navInicio = $("#studentsNavInicio");
+    var navMateriales = $("#studentsNavMateriales");
+    var navActividades = $("#studentsNavActividades");
+    var navAcademicas = $("#studentsNavAcademicas");
+    var navPerfil = $("#studentsNavPerfil");
+    var navDocentes = $("#studentsNavDocentes");
+    var navMaterias = $("#studentsNavMaterias");
+    var navNoticias = $("#studentsNavNoticias");
+    var navEventos = $("#studentsNavEventos");
+    var navConsultas = $("#studentsNavConsultas");
+    var navDocentePanel = $("#studentsNavDocentePanel");
     var roleIntro = $("#roleIntro");
+
+    if (!state.directivoLike && hasRole("docente")) {
+      if (sideTitle) sideTitle.textContent = "Panel Docente";
+      if (sideSub) sideSub.textContent = "Escuela Experimental Porteña";
+      if (topbarKicker) topbarKicker.textContent = "Docente";
+      if (navInicio) navInicio.hidden = false;
+      if (navMateriales) navMateriales.hidden = false;
+      if (navActividades) navActividades.hidden = false;
+      if (navAcademicas) navAcademicas.hidden = false;
+      if (navPerfil) navPerfil.hidden = false;
+      if (navDocentes) navDocentes.hidden = true;
+      if (navMaterias) navMaterias.hidden = true;
+      if (navNoticias) navNoticias.hidden = true;
+      if (navEventos) navEventos.hidden = true;
+      if (navConsultas) navConsultas.hidden = true;
+      if (navDocentePanel) navDocentePanel.hidden = true;
+    } else {
+      if (sideTitle) sideTitle.textContent = "Panel Directivo";
+      if (sideSub) sideSub.textContent = "Escuela Experimental Porteña";
+      if (topbarKicker) topbarKicker.textContent = "Directivo";
+      if (navInicio) navInicio.hidden = true;
+      if (navMateriales) navMateriales.hidden = true;
+      if (navActividades) navActividades.hidden = true;
+      if (navAcademicas) navAcademicas.hidden = true;
+      if (navPerfil) navPerfil.hidden = true;
+      if (navDocentes) navDocentes.hidden = false;
+      if (navMaterias) navMaterias.hidden = false;
+      if (navNoticias) navNoticias.hidden = false;
+      if (navEventos) navEventos.hidden = false;
+      if (navConsultas) navConsultas.hidden = false;
+      if (navDocentePanel) navDocentePanel.hidden = true;
+    }
+
     if (roleIntro) {
       roleIntro.textContent = state.directivoLike
         ? "Puedes crear, editar, importar y filtrar todos los estudiantes por curso."
@@ -131,11 +230,14 @@
     }
 
     var staffLink = $("#staffLink");
-    var academicLink = $("#academicLink");
     var docenteLink = $("#docenteLink");
     if (staffLink) staffLink.hidden = !hasRole("superadmin");
-    if (academicLink) academicLink.hidden = !state.directivoLike;
     if (docenteLink) docenteLink.hidden = !hasRole("docente");
+
+    var nombreEl = $("#directivoNombre");
+    if (nombreEl && state.user) {
+      nombreEl.textContent = [state.user.nombre, state.user.apellido].filter(Boolean).join(" ") || state.user.email || "Gestion de estudiantes";
+    }
 
     var studentForm = $("#studentForm");
     var importPanel = $("#studentsImportPanel");
@@ -490,6 +592,8 @@
   }
 
   if (!guard()) return;
+  injectIcons();
+  initSidebarToggle();
   initHeader();
   initLogout();
   initFilters();

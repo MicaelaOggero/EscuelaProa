@@ -61,6 +61,27 @@ exports.list = async (req, res, next) => {
   }
 };
 
+exports.publicList = async (req, res, next) => {
+  try {
+    const rows = await materiaCursoPopulate(MateriaCurso.find({ activo: true }))
+      .sort({ cicloLectivo: -1, createdAt: -1, materia: 1 });
+
+    const seen = new Set();
+    const uniqueRows = rows.filter(function (row) {
+      const cursoId = row && row.cursoId && row.cursoId._id ? String(row.cursoId._id) : "";
+      const materia = String(row && row.materia || "").trim().toLowerCase();
+      const key = cursoId + "::" + materia;
+      if (!cursoId || !materia || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+    res.json(uniqueRows);
+  } catch (err) {
+    next(err);
+  }
+};
+
 exports.mine = async (req, res, next) => {
   try {
     const rows = await materiaCursoPopulate(MateriaCurso.find({ docenteId: req.user.id, activo: true }))

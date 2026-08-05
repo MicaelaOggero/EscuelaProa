@@ -1,6 +1,10 @@
 const Noticia = require("../models/Noticia");
-const fs = require("fs");
 const path = require("path");
+const jwt = require("jsonwebtoken");
+const { normalizeRoles } = require("../utils/roles");
+const { storeUploadedFile, deleteStoredFile } = require("../utils/storage");
+
+const ROLES_VISIBLES = ["directivo", "docente", "estudiante"];
 
 function toBoolean(value) {
   if (typeof value === "boolean") return value;
@@ -8,28 +12,49 @@ function toBoolean(value) {
   return false;
 }
 
-function buildImageUrl(req, fileName) {
-  return req.protocol + "://" + req.get("host") + "/uploads/noticias/" + fileName;
+function parseVisibleRoles(value) {
+  let roles = value;
+  if (typeof roles === "string") {
+    try {
+      roles = JSON.parse(roles);
+    } catch (err) {
+      roles = roles.split(",");
+    }
+  }
+  return normalizeRoles(roles).filter((role) => ROLES_VISIBLES.indexOf(role) !== -1);
 }
 
-function removeImageByUrl(url) {
+function parseOptionalUser(req) {
+  const header = req.headers.authorization || "";
+  const token = header.startsWith("Bearer ") ? header.slice(7) : null;
+  if (!token) return null;
+
+  try {
+    const secret = process.env.JWT_SECRET;
+    if (!secret) return null;
+    const payload = jwt.verify(token, secret);
+    const roles = normalizeRoles(payload.roles && payload.roles.length ? payload.roles : payload.role);
+    return { id: payload.id, roles };
+  } catch (err) {
+    return null;
+  }
+}
+
+async function removeImageByUrl(url) {
   if (!url) return;
   try {
-    const fileName = String(url).split("/uploads/noticias/")[1];
-    if (!fileName) return;
-    const filePath = path.join(__dirname, "..", "uploads", "noticias", fileName);
-    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+    await deleteStoredFile(url);
   } catch (err) {
     console.error(err);
   }
 }
 
-function removeUploadedFiles(files) {
-  (files || []).forEach((file) => {
-    if (file && file.filename) {
-      removeImageByUrl("/uploads/noticias/" + file.filename);
-    }
-  });
+async function removeTrackedUploads(req) {
+  const urls = Array.isArray(req && req._storedUploadUrls) ? req._storedUploadUrls.slice() : [];
+  req._storedUploadUrls = [];
+  for (const url of urls) {
+    await removeImageByUrl(url);
+  }
 }
 
 function parseExistingImages(raw, fallbackAlt) {
@@ -49,18 +74,30 @@ function parseExistingImages(raw, fallbackAlt) {
   }
 }
 
-function mapUploadedImages(req, files, fallbackAlt, startIndex) {
-  return (files || []).map((file, index) => ({
-    url: buildImageUrl(req, file.filename),
-    alt: fallbackAlt || path.basename(file.originalname || "imagen", path.extname(file.originalname || "")),
-    orden: startIndex + index
-  }));
+async function mapUploadedImages(req, files, fallbackAlt, startIndex) {
+  const rows = [];
+  const list = files || [];
+  for (let index = 0; index < list.length; index += 1) {
+    const file = list[index];
+    const stored = await storeUploadedFile(req, file, {
+      folder: "noticias",
+      fallbackName: "imagen",
+      maxBaseLength: 40
+    });
+    rows.push({
+      url: stored.url,
+      alt: fallbackAlt || path.basename(file.originalname || "imagen", path.extname(file.originalname || "")),
+      orden: startIndex + index
+    });
+    req._storedUploadUrls = (req._storedUploadUrls || []).concat(stored.url);
+  }
+  return rows;
 }
 
-function normalizeImages(req, noticia) {
+async function normalizeImages(req, noticia) {
   const fallbackAlt = String((noticia && noticia.titulo) || "Noticia institucional").trim();
   const existingImages = parseExistingImages(req.body.imagenesExistentes, fallbackAlt);
-  const uploadedImages = mapUploadedImages(req, req.files, fallbackAlt, existingImages.length);
+  const uploadedImages = await mapUploadedImages(req, req.files, fallbackAlt, existingImages.length);
   return existingImages.concat(uploadedImages).map((image, index) => ({
     url: image.url,
     alt: String(image.alt || fallbackAlt).trim(),
@@ -68,15 +105,17 @@ function normalizeImages(req, noticia) {
   }));
 }
 
-function removeMissingImages(previousImages, nextImages) {
+async function removeMissingImages(previousImages, nextImages) {
   const nextUrls = new Set((nextImages || []).map((image) => image && image.url).filter(Boolean));
-  (previousImages || []).forEach((image) => {
-    if (image && image.url && !nextUrls.has(image.url)) removeImageByUrl(image.url);
-  });
+  for (const image of previousImages || []) {
+    if (image && image.url && !nextUrls.has(image.url)) await removeImageByUrl(image.url);
+  }
 }
 
-function payloadFromRequest(req) {
+async function payloadFromRequest(req) {
   const titulo = String(req.body.titulo || "").trim();
+  const tipo = String(req.body.tipo || "publica").trim() === "privada" ? "privada" : "publica";
+  const visibleParaRoles = tipo === "privada" ? parseVisibleRoles(req.body.visibleParaRoles) : [];
   return {
     titulo,
     categoria: String(req.body.categoria || "Institucional").trim() || "Institucional",
@@ -84,13 +123,31 @@ function payloadFromRequest(req) {
     contenido: String(req.body.contenido || "").trim(),
     fecha: req.body.fecha ? new Date(req.body.fecha) : new Date(),
     destacada: toBoolean(req.body.destacada),
-    imagenes: normalizeImages(req, { titulo })
+    imagenes: await normalizeImages(req, { titulo }),
+    tipo,
+    visibleParaRoles
   };
 }
 
 exports.list = async (req, res, next) => {
   try {
-    const noticias = await Noticia.find().sort({ fecha: -1, createdAt: -1 });
+    const user = req.user || parseOptionalUser(req);
+    let query;
+
+    if (!user || !Array.isArray(user.roles) || !user.roles.length) {
+      query = { tipo: "publica" };
+    } else if (user.roles.indexOf("superadmin") !== -1 || user.roles.indexOf("directivo") !== -1) {
+      query = {};
+    } else {
+      query = {
+        $or: [
+          { tipo: "publica" },
+          { tipo: "privada", visibleParaRoles: { $in: user.roles } }
+        ]
+      };
+    }
+
+    const noticias = await Noticia.find(query).sort({ fecha: -1, createdAt: -1 });
     res.json(noticias);
   } catch (err) {
     next(err);
@@ -99,10 +156,16 @@ exports.list = async (req, res, next) => {
 
 exports.create = async (req, res, next) => {
   try {
-    const noticia = await Noticia.create(payloadFromRequest(req));
+    const payload = await payloadFromRequest(req);
+    if (payload.tipo === "privada" && !payload.visibleParaRoles.length) {
+      await removeTrackedUploads(req);
+      return res.status(400).json({ message: "Debes seleccionar al menos un rol para una noticia privada." });
+    }
+    const noticia = await Noticia.create(payload);
+    req._storedUploadUrls = [];
     res.status(201).json(noticia);
   } catch (err) {
-    removeUploadedFiles(req.files);
+    await removeTrackedUploads(req);
     next(err);
   }
 };
@@ -111,12 +174,15 @@ exports.update = async (req, res, next) => {
   try {
     const noticia = await Noticia.findById(req.params.id);
     if (!noticia) {
-      removeUploadedFiles(req.files);
-      return res.status(404).json({ message: "Noticia not found" });
-    }
+        return res.status(404).json({ message: "Noticia not found" });
+      }
 
-    const previousImages = Array.isArray(noticia.imagenes) ? noticia.imagenes.slice() : [];
-    const payload = payloadFromRequest(req);
+      const previousImages = Array.isArray(noticia.imagenes) ? noticia.imagenes.slice() : [];
+      const payload = await payloadFromRequest(req);
+      if (payload.tipo === "privada" && !payload.visibleParaRoles.length) {
+        await removeTrackedUploads(req);
+        return res.status(400).json({ message: "Debes seleccionar al menos un rol para una noticia privada." });
+      }
     noticia.titulo = payload.titulo;
     noticia.categoria = payload.categoria;
     noticia.resumen = payload.resumen;
@@ -124,12 +190,15 @@ exports.update = async (req, res, next) => {
     noticia.fecha = payload.fecha;
     noticia.destacada = payload.destacada;
     noticia.imagenes = payload.imagenes;
+    noticia.tipo = payload.tipo;
+    noticia.visibleParaRoles = payload.visibleParaRoles;
 
-    await noticia.save();
-    removeMissingImages(previousImages, noticia.imagenes);
-    res.json(noticia);
+      await noticia.save();
+      req._storedUploadUrls = [];
+      await removeMissingImages(previousImages, noticia.imagenes);
+      res.json(noticia);
   } catch (err) {
-    removeUploadedFiles(req.files);
+    await removeTrackedUploads(req);
     next(err);
   }
 };
@@ -139,7 +208,9 @@ exports.remove = async (req, res, next) => {
     const noticia = await Noticia.findById(req.params.id);
     if (!noticia) return res.status(404).json({ message: "Noticia not found" });
 
-    (noticia.imagenes || []).forEach((image) => removeImageByUrl(image.url));
+    for (const image of noticia.imagenes || []) {
+      await removeImageByUrl(image.url);
+    }
     await Noticia.deleteOne({ _id: req.params.id });
     res.json({ message: "Noticia deleted" });
   } catch (err) {

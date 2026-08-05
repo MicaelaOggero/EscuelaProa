@@ -34,7 +34,7 @@
             <span class="ico" aria-hidden="true">{home}</span>
             Inicio
           </a>
-          <a class="side-link" href="#publicaciones" data-view="publicaciones">
+          <a id="publicacionesLink" class="side-link" href="#publicaciones" data-view="publicaciones">
             <span class="ico" aria-hidden="true">{posts}</span>
             Novedades públicas
           </a>
@@ -46,12 +46,12 @@
             <span class="ico" aria-hidden="true">{tasks}</span>
             Actividades
           </a>
-          <a class="side-link" href="#calendario" data-view="calendario">
+          <a id="calendarioLink" class="side-link" href="#calendario" data-view="calendario">
             <span class="ico" aria-hidden="true">{calendar}</span>
             Eventos públicos
           </a>
           <a class="side-link" href="estudiantes.html">
-            <span class="ico" aria-hidden="true">{user}</span>
+            <span class="ico" aria-hidden="true">{users}</span>
             Estudiantes
           </a>
           <a class="side-link" href="#perfil" data-view="perfil">
@@ -91,24 +91,25 @@
           <section id="inicio" class="view is-visible" data-view="inicio" aria-label="Inicio">
             <div class="view-head">
               <div>
-                <h1 class="view-title">Resumen</h1>
-                <p class="view-sub">Accesos rapidos y ultimos movimientos.</p>
+                <h1 class="view-title">Tu espacio docente</h1>
+                <p class="view-sub">Resumen de tus cursos, materiales de trabajo y agenda institucional visible en el sitio publico.</p>
               </div>
-              <div class="view-cta">
-                <button id="openCrearPub" class="btn btn-primary" type="button">Publicar novedad</button>
-                <button id="openCrearEvento" class="btn btn-secondary" type="button">Crear evento publico</button>
+              <div class="view-cta view-cta--primary-actions">
                 <button id="openSubirMat" class="btn btn-secondary" type="button">Subir material</button>
+                <button id="openCrearAct" class="btn btn-primary" type="button">Crear actividad</button>
+                <button id="openCrearAcad" class="btn btn-ghost" type="button">Crear publicación</button>
+                <button class="btn btn-secondary" type="button" data-open="evento-academico">Crear evento</button>
               </div>
             </div>
 
             <div class="cards">
               <div class="kpi">
                 <div class="kpi-top">
-                  <div class="kpi-label">Novedades publicas</div>
-                  <div class="kpi-ico" aria-hidden="true">{posts}</div>
+                  <div class="kpi-label">Cursos asignados</div>
+                  <div class="kpi-ico" aria-hidden="true">{files}</div>
                 </div>
-                <div id="kpiPosts" class="kpi-value">-</div>
-                <div class="kpi-foot">Publicadas desde este panel</div>
+                <div id="kpiCursos" class="kpi-value">-</div>
+                <div class="kpi-foot">Materias y comisiones a cargo</div>
               </div>
               <div class="kpi">
                 <div class="kpi-top">
@@ -117,6 +118,14 @@
                 </div>
                 <div id="kpiActs" class="kpi-value">-</div>
                 <div class="kpi-foot">Borradores de trabajo interno</div>
+              </div>
+              <div class="kpi">
+                <div class="kpi-top">
+                  <div class="kpi-label">Proximos eventos</div>
+                  <div class="kpi-ico" aria-hidden="true">{calendar}</div>
+                </div>
+                <div id="kpiEventos" class="kpi-value">-</div>
+                <div class="kpi-foot">Fechas institucionales cercanas</div>
               </div>
               <div class="kpi">
                 <div class="kpi-top">
@@ -129,43 +138,74 @@
             </div>
 
             <div class="grid-2">
-              <section class="panel" aria-label="Novedades publicas recientes">
+              <section class="panel" aria-label="Agenda institucional destacada">
                 <div class="panel-head">
                   <div>
-                    <div class="panel-title">Novedades publicas recientes</div>
-                    <div class="panel-sub">Registro local + noticias visibles en el sitio publico</div>
+                    <div class="panel-title">Agenda institucional</div>
+                    <div class="panel-sub">Eventos publicos y privados visibles para tu rol, organizados en un almanaque mensual.</div>
                   </div>
-                  <a class="link-pill" href="#publicaciones" data-viewlink="publicaciones">Ver todas</a>
+                  <div class="view-cta">
+                    <button id="prevDocenteMes" class="btn btn-secondary" type="button">Mes anterior</button>
+                    <div id="docenteMesLabel" class="calendar-month-label">-</div>
+                    <button id="nextDocenteMes" class="btn btn-secondary" type="button">Mes siguiente</button>
+                  </div>
                 </div>
-                <div class="table-wrap">
-                  <table class="table" aria-label="Tabla publicaciones">
-                    <thead>
-                      <tr>
-                        <th>Titulo</th>
-                        <th>Categoria</th>
-                        <th>Fecha</th>
-                      </tr>
-                    </thead>
-                    <tbody id="recentTbody">
-                      <tr><td colspan="3" class="table-empty">Sin publicaciones aun</td></tr>
-                    </tbody>
-                  </table>
+                <div class="calendar-legend" aria-label="Referencias de eventos">
+                  <span class="legend-chip legend-chip--publico">Publico</span>
+                  <span class="legend-chip legend-chip--privado">Privado</span>
                 </div>
+                <div id="docenteCalendar" class="calendar-grid" aria-label="Calendario docente"></div>
               </section>
 
-              <section class="panel" aria-label="Proximos eventos publicos">
+              <section class="panel" aria-label="Panorama docente">
                 <div class="panel-head">
                   <div>
-                    <div class="panel-title">Eventos publicos</div>
-                    <div class="panel-sub">Fechas visibles para toda la comunidad</div>
+                    <div class="panel-title">Panorama docente</div>
+                    <div class="panel-sub">Tus materias asignadas y el trabajo mas reciente</div>
                   </div>
-                  <a class="link-pill" href="#calendario" data-viewlink="calendario">Abrir</a>
+                  <a class="link-pill" href="#perfil" data-viewlink="perfil">Ver perfil</a>
                 </div>
-                <div id="upcoming" class="upcoming" aria-label="Lista de actividades">
-                  <div class="empty">Crea eventos publicos desde esta misma pantalla.</div>
+                <div class="cols-2 overview-grid">
+                  <div>
+                    <div class="micro-title">Materias asignadas</div>
+                    <div id="assignedSubjects" class="list compact-list" aria-label="Lista de materias asignadas">
+                      <div class="empty">Todavia no tienes materias asignadas.</div>
+                    </div>
+                  </div>
+                  <div>
+                    <div class="micro-title">Ultimos movimientos</div>
+                    <div id="recentWork" class="list compact-list" aria-label="Actividad reciente docente">
+                      <div class="empty">Todavia no hay materiales ni actividades cargadas.</div>
+                    </div>
+                  </div>
                 </div>
               </section>
             </div>
+
+            <section class="panel" aria-label="Comunicados para tu rol">
+              <div class="panel-head">
+                  <div>
+                    <div class="panel-title">Comunicados para ti</div>
+                    <div class="panel-sub">Noticias publicas y privadas visibles para tu rol docente.</div>
+                  </div>
+              </div>
+              <div id="docenteNewsList" class="list compact-list" aria-label="Listado de noticias para docente">
+                <div class="empty">Todavia no hay comunicados disponibles.</div>
+              </div>
+            </section>
+
+            <section class="panel" aria-label="Publicaciones para estudiantes">
+              <div class="panel-head">
+                <div>
+                  <div class="panel-title">Publicaciones y eventos para estudiantes</div>
+                  <div class="panel-sub">Mensajes, evaluaciones y recordatorios visibles solo para la materia y curso seleccionados.</div>
+                </div>
+              </div>
+              <div id="academicPostsList" class="list" aria-label="Lista de publicaciones académicas">
+                <div class="empty">Aun no hay publicaciones ni eventos para estudiantes.</div>
+              </div>
+              <div id="academicMsg" class="msg" role="status" aria-live="polite"></div>
+            </section>
           </section>
 
           <section id="publicaciones" class="view" data-view="publicaciones" aria-label="Novedades publicas">
@@ -175,7 +215,7 @@
                 <p class="view-sub">Publicaciones institucionales que se muestran en el sitio publico.</p>
               </div>
               <div class="view-cta">
-                <button class="btn btn-primary" type="button" data-open="crear">Publicar novedad</button>
+                <button id="publicarNovedadBtn" class="btn btn-primary" type="button" data-open="crear">Publicar novedad</button>
               </div>
             </div>
 
@@ -220,8 +260,8 @@
             <div class="panel">
               <div class="panel-head">
                 <div>
-                  <div class="panel-title">Borradores</div>
-                  <div class="panel-sub">Contenido academico para estudiantes. Guardado local por ahora.</div>
+                  <div class="panel-title">Material publicado</div>
+                  <div class="panel-sub">Contenido academico visible solo para estudiantes de la materia y curso seleccionados.</div>
                 </div>
               </div>
               <div id="materialsList" class="list" aria-label="Lista de materiales">
@@ -245,7 +285,7 @@
               <div class="panel-head">
                 <div>
                   <div class="panel-title">Proximas</div>
-                  <div class="panel-sub">Se ven tambien en el inicio.</div>
+                  <div class="panel-sub">Consignas y actividades visibles solo para estudiantes de esa materia.</div>
                 </div>
               </div>
               <div id="activitiesList" class="list" aria-label="Lista de actividades">
@@ -261,7 +301,7 @@
                 <p class="view-sub">Agenda institucional visible para cualquier persona en el sitio publico.</p>
               </div>
               <div class="view-cta">
-                <button class="btn btn-primary" type="button" data-open="evento-publico">Crear evento publico</button>
+                <button id="crearEventoBtn" class="btn btn-primary" type="button" data-open="evento-publico">Crear evento publico</button>
                 <button id="refreshPublicEvents" class="btn btn-secondary" type="button">Actualizar</button>
               </div>
             </div>
@@ -406,6 +446,130 @@
       </div>
     </div>
 
+    <div id="docenteEventoDetalleModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="docenteEventoTitle">
+      <div class="modal-backdrop" data-close="true"></div>
+      <div class="modal-panel" role="document">
+        <div class="modal-head">
+          <div>
+            <div id="docenteEventoTitle" class="modal-title">Detalle del evento</div>
+            <div id="docenteEventoMeta" class="modal-sub">-</div>
+          </div>
+          <button class="btn btn-ghost btn-sm" type="button" data-close="true">Cerrar</button>
+        </div>
+        <div class="modal-body">
+          <div class="profile" role="list">
+            <div class="kv" role="listitem"><div class="kv-k">Visibilidad</div><div id="docenteEventoVisibilidad" class="kv-v">-</div></div>
+            <div class="kv" role="listitem"><div class="kv-k">Ubicacion</div><div id="docenteEventoUbicacion" class="kv-v">-</div></div>
+            <div class="kv" role="listitem"><div class="kv-k">Roles</div><div id="docenteEventoRoles" class="kv-v">-</div></div>
+          </div>
+          <div id="docenteEventoDescripcion" class="panel-note">-</div>
+          <div class="modal-actions">
+            <button class="btn btn-secondary" type="button" data-close="true">Cerrar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="modalPublicacionAcademica" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="acadTitle">
+      <div class="modal-backdrop" data-close="true"></div>
+      <div class="modal-panel" role="document">
+        <div class="modal-head">
+          <div>
+            <div id="acadTitle" class="modal-title">Crear publicación para estudiantes</div>
+            <div class="modal-sub">POST <span class="mono">/contenidos</span></div>
+          </div>
+          <button class="btn btn-ghost btn-sm" type="button" data-close="true">Cerrar</button>
+        </div>
+        <form id="acadForm" class="modal-body" aria-label="Formulario crear publicación académica">
+          <div class="field">
+            <label for="acadMateriaCurso">Materia / curso</label>
+            <select id="acadMateriaCurso" required>
+              <option value="" selected disabled>Seleccionar materia</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="acadTitulo">Título</label>
+            <input id="acadTitulo" type="text" required />
+          </div>
+          <div class="field">
+            <label for="acadResumen">Resumen</label>
+            <input id="acadResumen" type="text" placeholder="Breve aviso o anticipo" />
+          </div>
+          <div class="field">
+            <label for="acadContenido">Contenido</label>
+            <textarea id="acadContenido" rows="5" placeholder="Escribe el mensaje para tus estudiantes"></textarea>
+          </div>
+          <div class="field">
+            <label for="acadAdjunto">Adjunto (opcional)</label>
+            <input id="acadAdjunto" type="file" />
+          </div>
+          <div class="modal-actions">
+            <button class="btn btn-primary" type="submit">Publicar</button>
+            <button class="btn btn-secondary" type="button" data-close="true">Cancelar</button>
+          </div>
+          <div id="acadFormMsg" class="msg" role="status" aria-live="polite"></div>
+          <div class="panel-note">Se mostrará dentro del aula solo a estudiantes de la materia y curso seleccionados.</div>
+        </form>
+      </div>
+    </div>
+
+    <div id="modalEventoAcademico" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="acadEventTitle">
+      <div class="modal-backdrop" data-close="true"></div>
+      <div class="modal-panel" role="document">
+        <div class="modal-head">
+          <div>
+            <div id="acadEventTitle" class="modal-title">Crear evento para estudiantes</div>
+            <div class="modal-sub">POST <span class="mono">/calendario</span></div>
+          </div>
+          <button class="btn btn-ghost btn-sm" type="button" data-close="true">Cerrar</button>
+        </div>
+        <form id="acadEventForm" class="modal-body" aria-label="Formulario crear evento académico">
+          <input id="acadEventId" type="hidden" />
+          <div class="field">
+            <label for="acadEventMateriaCurso">Materia / curso</label>
+            <select id="acadEventMateriaCurso" required>
+              <option value="" selected disabled>Seleccionar materia</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="acadEventTitulo">Título</label>
+            <input id="acadEventTitulo" type="text" required />
+          </div>
+          <div class="cols-2">
+            <div class="field">
+              <label for="acadEventInicio">Inicio</label>
+              <input id="acadEventInicio" type="datetime-local" required />
+            </div>
+            <div class="field">
+              <label for="acadEventFin">Fin (opcional)</label>
+              <input id="acadEventFin" type="datetime-local" />
+            </div>
+          </div>
+          <div class="cols-2">
+            <div class="field">
+              <label for="acadEventTipo">Tipo</label>
+              <input id="acadEventTipo" type="text" placeholder="Evaluacion, entrega, recuperatorio..." />
+            </div>
+            <div class="field">
+              <label for="acadEventUbicacion">Ubicación</label>
+              <input id="acadEventUbicacion" type="text" placeholder="Aula 3, Zoom, plataforma..." />
+            </div>
+          </div>
+          <div class="field">
+            <label for="acadEventDesc">Descripción</label>
+            <textarea id="acadEventDesc" rows="4" placeholder="Detalles para tus estudiantes"></textarea>
+          </div>
+          <div class="modal-actions">
+            <button id="acadEventSubmit" class="btn btn-primary" type="submit">Publicar evento</button>
+            <button id="acadEventCancel" class="btn btn-secondary" type="button" hidden>Cancelar edición</button>
+            <button class="btn btn-secondary" type="button" data-close="true">Cancelar</button>
+          </div>
+          <div id="acadEventMsg" class="msg" role="status" aria-live="polite"></div>
+          <div class="panel-note">Se mostrará en el calendario de tus estudiantes y también en tu propio calendario docente.</div>
+        </form>
+      </div>
+    </div>
+
     <!-- Modal: Subir material -->
     <div id="modalMaterial" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="matTitle">
       <div class="modal-backdrop" data-close="true"></div>
@@ -413,11 +577,17 @@
         <div class="modal-head">
           <div>
             <div id="matTitle" class="modal-title">Subir material</div>
-            <div class="modal-sub">(Borrador local)</div>
+            <div class="modal-sub">POST <span class="mono">/contenidos</span></div>
           </div>
           <button class="btn btn-ghost btn-sm" type="button" data-close="true">Cerrar</button>
         </div>
         <form id="matForm" class="modal-body" aria-label="Formulario subir material">
+          <div class="field">
+            <label for="matMateriaCurso">Materia / curso</label>
+            <select id="matMateriaCurso" required>
+              <option value="" selected disabled>Seleccionar materia</option>
+            </select>
+          </div>
           <div class="field">
             <label for="matTitulo">Titulo</label>
             <input id="matTitulo" type="text" required />
@@ -427,14 +597,15 @@
             <textarea id="matDesc" rows="4" placeholder="Tema, curso, observaciones"></textarea>
           </div>
           <div class="field">
-            <label for="matFile">Archivo</label>
-            <input id="matFile" type="file" required />
+            <label for="matFile">Archivo (opcional)</label>
+            <input id="matFile" type="file" />
           </div>
           <div class="modal-actions">
-            <button class="btn btn-primary" type="submit">Guardar</button>
+            <button class="btn btn-primary" type="submit">Publicar</button>
             <button class="btn btn-secondary" type="button" data-close="true">Cancelar</button>
           </div>
           <div id="matMsg" class="msg" role="status" aria-live="polite"></div>
+          <div class="panel-note">Se mostrará únicamente a estudiantes del curso asociado a esa materia.</div>
         </form>
       </div>
     </div>
@@ -446,11 +617,17 @@
         <div class="modal-head">
           <div>
             <div id="actTitle" class="modal-title">Crear actividad</div>
-            <div class="modal-sub">(Borrador local)</div>
+            <div class="modal-sub">POST <span class="mono">/contenidos</span></div>
           </div>
           <button class="btn btn-ghost btn-sm" type="button" data-close="true">Cerrar</button>
         </div>
         <form id="actForm" class="modal-body" aria-label="Formulario crear actividad">
+          <div class="field">
+            <label for="actMateriaCurso">Materia / curso</label>
+            <select id="actMateriaCurso" required>
+              <option value="" selected disabled>Seleccionar materia</option>
+            </select>
+          </div>
           <div class="field">
             <label for="actTitulo">Titulo</label>
             <input id="actTitulo" type="text" required />
@@ -468,10 +645,11 @@
             <input id="actAdjunto" type="file" />
           </div>
           <div class="modal-actions">
-            <button class="btn btn-primary" type="submit">Guardar</button>
+            <button class="btn btn-primary" type="submit">Publicar</button>
             <button class="btn btn-secondary" type="button" data-close="true">Cancelar</button>
           </div>
           <div id="actMsg" class="msg" role="status" aria-live="polite"></div>
+          <div class="panel-note">Se mostrará únicamente a estudiantes del curso asociado a esa materia.</div>
         </form>
       </div>
     </div>

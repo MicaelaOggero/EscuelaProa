@@ -212,6 +212,13 @@
   flex-wrap: wrap;
 }
 
+.role-check-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.65rem;
+  margin-top: 0.15rem;
+}
+
 .news-images-manager {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -257,6 +264,210 @@
   font-size: 0.9rem;
   font-weight: 800;
   color: rgba(23, 19, 32, 0.82);
+}
+
+.cols-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+}
+
+.list {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.item {
+  border-radius: 18px;
+  border: 1px solid rgba(23, 19, 32, 0.10);
+  background: rgba(231, 224, 255, 0.18);
+  padding: 0.8rem;
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.item-title {
+  font-weight: 950;
+  letter-spacing: -0.02em;
+}
+
+.item-sub {
+  margin-top: 0.15rem;
+  color: var(--muted);
+  font-weight: 650;
+}
+
+.item-meta {
+  color: var(--muted-2);
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.panel-head--compact {
+  margin-top: 1rem;
+}
+
+.calendar-month-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 180px;
+  padding: 0.7rem 0.9rem;
+  border-radius: 16px;
+  border: 1px solid rgba(23, 19, 32, 0.1);
+  background: rgba(255, 255, 255, 0.72);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+.calendar-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 0.8rem;
+  width: min(100%, 520px);
+}
+
+.legend-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 900;
+  border: 1px solid rgba(23, 19, 32, 0.1);
+}
+
+.legend-chip--publico {
+  background: rgba(214, 240, 234, 0.9);
+  color: rgba(15, 71, 67, 0.96);
+}
+
+.legend-chip--privado {
+  background: rgba(255, 235, 205, 0.92);
+  color: rgba(131, 67, 0, 0.96);
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.28rem;
+  width: min(100%, 520px);
+}
+
+.eventos-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 520px) minmax(280px, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.evento-detail-panel {
+  min-height: 100%;
+  border-radius: 18px;
+  border: 1px solid rgba(23, 19, 32, 0.10);
+  background: rgba(255, 255, 255, 0.72);
+  padding: 0.9rem;
+}
+
+.calendar-weekday,
+.calendar-day {
+  border-radius: 18px;
+  border: 1px solid rgba(23, 19, 32, 0.1);
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.calendar-weekday {
+  padding: 0.32rem;
+  text-align: center;
+  font-weight: 900;
+  color: rgba(23, 19, 32, 0.74);
+  background: rgba(231, 224, 255, 0.22);
+  font-size: 0.68rem;
+}
+
+.calendar-day {
+  min-height: 62px;
+  padding: 0.26rem;
+  display: grid;
+  align-content: start;
+  gap: 0.16rem;
+  border-radius: 12px;
+}
+
+.calendar-day.is-other-month {
+  opacity: 0.5;
+}
+
+.calendar-day.is-today {
+  border-color: rgba(109, 44, 207, 0.3);
+  box-shadow: 0 12px 28px rgba(109, 44, 207, 0.08);
+}
+
+.calendar-day-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+}
+
+.calendar-day-number {
+  font-family: "Space Grotesk", "Plus Jakarta Sans", sans-serif;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  font-size: 0.74rem;
+}
+
+.calendar-day-count {
+  font-size: 0.56rem;
+  font-weight: 800;
+  color: var(--muted-2);
+}
+
+.calendar-events {
+  display: grid;
+  gap: 0.14rem;
+}
+
+.calendar-event-pill {
+  display: block;
+  width: 100%;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 0.16rem 0.22rem;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  background: rgba(231, 224, 255, 0.34);
+}
+
+.calendar-event-pill--publico {
+  background: rgba(214, 240, 234, 0.92);
+  border-color: rgba(15, 118, 110, 0.14);
+}
+
+.calendar-event-pill--privado {
+  background: rgba(255, 235, 205, 0.96);
+  border-color: rgba(180, 83, 9, 0.18);
+}
+
+.calendar-event-time {
+  display: block;
+  font-size: 0.52rem;
+  font-weight: 900;
+  color: rgba(23, 19, 32, 0.68);
+  line-height: 1.05;
+}
+
+.calendar-event-title {
+  display: block;
+  margin-top: 0.02rem;
+  font-size: 0.6rem;
+  font-weight: 850;
+  line-height: 1.05;
 }
 
 .mono {
@@ -664,6 +875,98 @@ select {
   line-height: 1.45;
 }
 
+.consultas-grid {
+  align-items: start;
+}
+
+.consultas-status-card {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.consultas-status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.consultas-status-label {
+  font-weight: 900;
+}
+
+.consultas-toolbar {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 0.8rem;
+}
+
+.consultas-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.8rem;
+  margin-top: 1rem;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.34rem 0.72rem;
+  border-radius: 999px;
+  border: 1px solid rgba(23, 19, 32, 0.1);
+  font-size: 0.78rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.status-badge--nueva,
+.status-badge--enabled {
+  background: rgba(214, 240, 234, 0.92);
+  color: rgba(15, 71, 67, 0.96);
+}
+
+.status-badge--en_proceso,
+.status-badge--pending {
+  background: rgba(255, 235, 205, 0.96);
+  color: rgba(131, 67, 0, 0.96);
+}
+
+.status-badge--cerrada,
+.status-badge--disabled {
+  background: rgba(231, 224, 255, 0.42);
+  color: rgba(66, 43, 107, 0.96);
+}
+
+.consulta-contact {
+  display: grid;
+  gap: 0.12rem;
+}
+
+.consulta-contact strong {
+  font-weight: 900;
+}
+
+.consulta-contact span,
+.consulta-mail-state {
+  color: var(--muted-2);
+  font-size: 0.9rem;
+}
+
+.consulta-message-preview {
+  max-width: 36ch;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.consulta-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
 .import-details {
   border-radius: 14px;
   border: 1px solid rgba(23, 19, 32, 0.10);
@@ -682,6 +985,21 @@ select {
 }
 
 @media (max-width: 980px) {
+  .eventos-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .calendar-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .calendar-weekday {
+    display: none;
+  }
+
+  .cols-2 {
+    grid-template-columns: 1fr;
+  }
   .docentes-grid {
     grid-template-columns: 1fr;
   }
@@ -692,6 +1010,16 @@ select {
     grid-template-columns: 1fr;
   }
   .public-cols {
+    grid-template-columns: 1fr;
+  }
+  .consultas-toolbar,
+  .consultas-kpis {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .calendar-grid {
     grid-template-columns: 1fr;
   }
 }

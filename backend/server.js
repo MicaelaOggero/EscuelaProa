@@ -56,8 +56,12 @@ app.use((err, req, res, next) => {
     res.status(400).json({ message: err.message });
     return;
   }
+  if (err && err.message === "Solo se permiten archivos PDF, Office, imagenes o ZIP.") {
+    res.status(400).json({ message: err.message });
+    return;
+  }
   if (err && err.code === "LIMIT_FILE_SIZE") {
-    res.status(400).json({ message: "Cada imagen debe pesar menos de 5 MB." });
+    res.status(400).json({ message: "Cada archivo debe pesar menos de 10 MB." });
     return;
   }
   if (err && err.code === "LIMIT_FILE_COUNT") {

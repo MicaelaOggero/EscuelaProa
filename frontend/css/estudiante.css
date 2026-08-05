@@ -1,8 +1,195 @@
+.student-overview {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 0.95fr) minmax(0, 1.1fr);
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
 .student-shell {
   display: grid;
   grid-template-columns: minmax(240px, 290px) minmax(0, 1fr);
   gap: 1.1rem;
   align-items: start;
+}
+
+.student-news-panel {
+  margin-bottom: 1rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(23, 19, 32, 0.12);
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.student-news-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.95rem;
+  padding: 0 1rem 1rem;
+}
+
+.student-calendar-nav {
+  display: flex;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.student-calendar-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 150px;
+  padding: 0.5rem 0.7rem;
+  border-radius: 16px;
+  border: 1px solid rgba(23, 19, 32, 0.1);
+  background: rgba(255, 255, 255, 0.72);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+.student-calendar-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin: 0 1rem 0.5rem;
+}
+
+.student-legend-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.58rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 900;
+  border: 1px solid rgba(23, 19, 32, 0.1);
+}
+
+.student-legend-chip--publico {
+  background: rgba(214, 240, 234, 0.9);
+  color: rgba(15, 71, 67, 0.96);
+}
+
+.student-legend-chip--privado {
+  background: rgba(255, 235, 205, 0.92);
+  color: rgba(131, 67, 0, 0.96);
+}
+
+.student-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.28rem;
+  padding: 0 1rem 1rem;
+}
+
+.student-calendar-weekday,
+.student-calendar-day {
+  border-radius: 18px;
+  border: 1px solid rgba(23, 19, 32, 0.1);
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.student-calendar-weekday {
+  padding: 0.32rem;
+  text-align: center;
+  font-weight: 900;
+  color: rgba(23, 19, 32, 0.74);
+  background: rgba(231, 224, 255, 0.22);
+  font-size: 0.68rem;
+}
+
+.student-calendar-day {
+  min-height: 62px;
+  padding: 0.26rem;
+  display: grid;
+  align-content: start;
+  gap: 0.16rem;
+  border-radius: 12px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.student-calendar-day.is-other-month {
+  opacity: 0.5;
+}
+
+.student-calendar-day.is-today {
+  border-color: rgba(109, 44, 207, 0.3);
+  box-shadow: 0 12px 28px rgba(109, 44, 207, 0.08);
+}
+
+.student-calendar-day-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+}
+
+.student-calendar-day-number {
+  font-family: "Space Grotesk", "Plus Jakarta Sans", sans-serif;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  font-size: 0.74rem;
+}
+
+.student-calendar-day-count {
+  font-size: 0.56rem;
+  font-weight: 800;
+  color: var(--muted-2);
+}
+
+.student-calendar-events {
+  display: grid;
+  gap: 0.14rem;
+  min-width: 0;
+}
+
+.student-calendar-event-pill {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 0.16rem 0.22rem;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  background: rgba(231, 224, 255, 0.34);
+  overflow: hidden;
+}
+
+.student-calendar-event-pill--publico {
+  background: rgba(214, 240, 234, 0.92);
+  border-color: rgba(15, 118, 110, 0.14);
+}
+
+.student-calendar-event-pill--privado {
+  background: rgba(255, 235, 205, 0.96);
+  border-color: rgba(180, 83, 9, 0.18);
+}
+
+.student-calendar-event-time {
+  display: block;
+  font-size: 0.52rem;
+  font-weight: 900;
+  color: rgba(23, 19, 32, 0.68);
+  line-height: 1.05;
+}
+
+.student-calendar-event-title {
+  display: block;
+  margin-top: 0.02rem;
+  font-size: 0.6rem;
+  font-weight: 850;
+  line-height: 1.05;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.student-news-card-private::before {
+  background: linear-gradient(90deg, #b45309, #0f766e, rgba(122, 86, 255, 0.28));
 }
 
 .student-sidebar,
@@ -164,6 +351,29 @@
   font-weight: 650;
 }
 
+.files {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.7rem;
+}
+
+.file-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.28rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(15, 118, 110, 0.14);
+  color: rgba(15, 71, 67, 0.96);
+  font-weight: 800;
+  font-size: 0.82rem;
+}
+
+.file-link:hover {
+  text-decoration: underline;
+}
+
 .byline {
   margin-top: 0.72rem;
   color: var(--muted-2);
@@ -186,7 +396,108 @@
   color: rgba(46, 21, 80, 0.92);
 }
 
+.profile {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.kv {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 0.6rem;
+  padding: 0.55rem 0.2rem;
+  border-bottom: 1px solid rgba(23, 19, 32, 0.08);
+}
+
+.kv:last-child {
+  border-bottom: none;
+}
+
+.kv-k {
+  color: var(--muted-2);
+  font-weight: 900;
+}
+
+.kv-v {
+  font-weight: 750;
+  overflow-wrap: anywhere;
+}
+
+.panel-note {
+  margin-top: 0.75rem;
+  color: var(--muted-2);
+  font-weight: 650;
+  font-size: 0.92rem;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  z-index: 120;
+}
+
+.modal.is-open {
+  display: block;
+}
+
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(23, 19, 32, 0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.modal-panel {
+  position: relative;
+  width: min(640px, calc(100% - 2rem));
+  margin: 7vh auto 0;
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(23, 19, 32, 0.16);
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 30px 90px rgba(23, 19, 32, 0.22);
+  overflow: hidden;
+}
+
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.95rem 1rem;
+  border-bottom: 1px solid rgba(23, 19, 32, 0.10);
+  background: radial-gradient(520px 220px at 14% 18%, rgba(201, 183, 255, 0.55), transparent 62%), linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.86));
+}
+
+.modal-title {
+  font-weight: 950;
+  letter-spacing: -0.02em;
+}
+
+.modal-sub {
+  margin-top: 0.2rem;
+  color: var(--muted-2);
+  font-weight: 750;
+  font-size: 0.92rem;
+}
+
+.modal-body {
+  padding: 1rem;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+  margin-top: 0.2rem;
+}
+
 @media (max-width: 980px) {
+  .student-overview {
+    grid-template-columns: 1fr;
+  }
+
   .student-shell {
     grid-template-columns: 1fr;
   }
@@ -202,9 +513,74 @@
   .cards {
     grid-template-columns: 1fr;
   }
+
+  .student-news-list {
+    grid-template-columns: 1fr;
+  }
+
+  .student-calendar-grid {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 0.2rem;
+  }
+
+  .student-calendar-weekday {
+    padding: 0.24rem;
+    font-size: 0.58rem;
+  }
+
+  .student-calendar-day {
+    min-height: 54px;
+    padding: 0.2rem;
+    gap: 0.12rem;
+    border-radius: 10px;
+  }
+
+  .student-calendar-day-number {
+    font-size: 0.68rem;
+  }
+
+  .student-calendar-day-count {
+    display: none;
+  }
+
+  .student-calendar-event-pill {
+    min-height: 4px;
+    padding: 0;
+    border-radius: 999px;
+  }
+
+  .student-calendar-event-time,
+  .student-calendar-event-title {
+    display: none;
+  }
 }
 
 @media (max-width: 640px) {
+  .student-calendar-grid {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 0.14rem;
+  }
+
+  .student-calendar-weekday {
+    padding: 0.18rem 0.08rem;
+    font-size: 0.52rem;
+    border-radius: 10px;
+  }
+
+  .student-calendar-day {
+    min-height: 44px;
+    padding: 0.16rem;
+    border-radius: 8px;
+  }
+
+  .student-calendar-day-head {
+    justify-content: center;
+  }
+
+  .student-calendar-day-number {
+    font-size: 0.62rem;
+  }
+
   .student-toolbar {
     grid-template-columns: 1fr;
   }

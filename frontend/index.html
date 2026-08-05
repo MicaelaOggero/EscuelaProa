@@ -6,7 +6,7 @@
     <title>Escuela Experimental Porteña</title>
     <meta
       name="description"
-      content="Sitio institucional de la Escuela Experimental Porteña: novedades, propuesta educativa y accesos rápidos."
+      content="Sitio institucional de la Escuela Experimental Porteña: novedades, propuesta educativa y contacto."
     />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -23,10 +23,10 @@
 
     <header class="site-header" role="banner">
       <div class="container header-inner">
-        <a class="brand" href="#" aria-label="Inicio">
+        <a id="homeBrandLink" class="brand" href="#" aria-label="Inicio">
           <img
             class="brand-logo"
-            src="assets/logo.svg"
+            src="assets/logo_porteña.png"
             alt="Logo Escuela Experimental Porteña"
             width="44"
             height="44"
@@ -51,7 +51,6 @@
 
           <ul id="nav-menu" class="nav-menu">
             <li><a class="nav-link" href="#novedades">Novedades</a></li>
-            <li><a class="nav-link" href="#accesos">Accesos</a></li>
             <li><a class="nav-link" href="#escuela">Nuestra escuela</a></li>
             <li><a class="nav-link" href="#contacto">Contacto</a></li>
           </ul>
@@ -89,7 +88,7 @@
               colaborativo.
             </p>
             <div class="hero-cta">
-              <a class="btn btn-primary" href="#escuela">Conocé la propuesta</a>
+              <button id="openPropuesta" class="btn btn-primary" type="button">Conocé la propuesta</button>
               <a class="btn btn-secondary" href="#novedades">Ver novedades</a>
             </div>
 
@@ -127,27 +126,61 @@
         </div>
       </section>
 
-      <section id="novedades" class="section section-news" data-home-view aria-label="Novedades">
+      <section id="novedades" class="section section-news" data-home-view aria-label="Novedades y agenda institucional">
         <div class="container">
-          <div class="section-head reveal">
-            <div>
-              <h2 class="section-title">Novedades y noticias</h2>
-              <p class="section-subtitle">
-                Información institucional, actividades y anuncios importantes.
-              </p>
-            </div>
-            <button id="openAllNews" class="link-pill link-pill--button" type="button">Ver todas</button>
-          </div>
-
-          <div id="newsGrid" class="cards-grid" aria-live="polite">
-            <article class="card reveal">
-              <div class="card-top">
-                <div class="chip">Cargando</div>
-                <time class="card-date">...</time>
+          <div class="home-highlights">
+            <div class="home-news-block">
+              <div class="section-head reveal">
+                <div>
+                  <h2 class="section-title">Novedades y noticias</h2>
+                  <p class="section-subtitle">
+                    Información institucional, actividades y anuncios importantes.
+                  </p>
+                </div>
+                <button id="openAllNews" class="link-pill link-pill--button" type="button">Ver todas</button>
               </div>
-              <h3 class="card-title">Estamos buscando las ultimas novedades</h3>
-              <p class="card-text">En unos segundos vas a ver las noticias publicadas desde el panel institucional.</p>
-            </article>
+
+              <div id="newsGrid" class="cards-grid home-news-grid" aria-live="polite">
+                <article class="card reveal">
+                  <div class="card-top">
+                    <div class="chip">Cargando</div>
+                    <time class="card-date">...</time>
+                  </div>
+                  <h3 class="card-title">Estamos buscando las ultimas novedades</h3>
+                  <p class="card-text">En unos segundos vas a ver las noticias publicadas desde el panel institucional.</p>
+                </article>
+              </div>
+            </div>
+
+            <aside id="agenda" class="home-agenda-block reveal" style="--reveal-delay: 60ms" aria-label="Próximos eventos">
+              <div class="home-agenda-head">
+                <div>
+                  <h2 class="section-title section-title--sm">Próximos eventos</h2>
+                  <p class="section-subtitle section-subtitle--sm">
+                    Calendario mensual con eventos públicos.
+                  </p>
+                </div>
+              </div>
+
+              <div class="home-calendar home-calendar--compact">
+                <div class="home-calendar-head">
+                  <div class="calendar-legend" aria-label="Referencias de eventos">
+                    <span class="legend-chip legend-chip--publico">Publicos</span>
+                  </div>
+                  <div class="home-calendar-nav">
+                    <button id="prevEventsMonth" class="btn btn-secondary" type="button">‹</button>
+                    <div id="eventsMonthLabel" class="calendar-month-label">-</div>
+                    <button id="nextEventsMonth" class="btn btn-secondary" type="button">›</button>
+                  </div>
+                </div>
+
+                <p id="eventsStatus" class="form-status" aria-live="polite">Cargando agenda...</p>
+
+                <div class="home-calendar-shell">
+                  <div id="eventsGrid" class="calendar-grid" aria-label="Calendario institucional publico"></div>
+                </div>
+              </div>
+            </aside>
           </div>
         </div>
       </section>
@@ -179,102 +212,68 @@
         </div>
       </section>
 
-      <section id="agenda" class="section section-agenda" data-home-view aria-label="Próximos eventos">
-        <div class="container">
-          <div class="section-head reveal">
+      <div id="eventModal" class="news-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="eventModalTitle">
+        <div class="news-modal-backdrop" data-event-close="true"></div>
+        <div class="news-modal-panel" role="document">
+          <div class="news-modal-head">
             <div>
-              <h2 class="section-title">Próximos eventos</h2>
-              <p class="section-subtitle">
-                Actividades institucionales, reuniones y fechas importantes para la comunidad.
-              </p>
+              <div id="eventModalKicker" class="news-modal-kicker">Evento publico</div>
+              <h3 id="eventModalTitle" class="news-modal-title">Detalle del evento</h3>
             </div>
+            <button class="btn btn-ghost btn-sm" type="button" data-event-close="true">Cerrar</button>
           </div>
-
-          <div id="eventsGrid" class="agenda-grid" aria-live="polite">
-            <article class="agenda-card reveal">
-              <div class="agenda-date">Cargando agenda...</div>
-              <h3 class="agenda-title">Consultando calendario institucional</h3>
-              <p class="agenda-text">Cuando el backend responda, esta sección mostrará los próximos eventos.</p>
-            </article>
-          </div>
+          <div id="eventModalBody" class="news-modal-body"></div>
         </div>
-      </section>
+      </div>
 
-      <section id="accesos" class="section section-access" data-home-view aria-label="Accesos rápidos">
-        <div class="container">
-          <div class="section-head reveal">
-            <div>
-              <h2 class="section-title">Accesos rápidos</h2>
-              <p class="section-subtitle">
-                Entradas directas a recursos y servicios para estudiantes, familias y docentes.
+      <section id="propuesta" class="section section-propuesta" hidden aria-label="Propuesta académica por año">
+        <div class="container propuesta-grid">
+          <div class="propuesta-copy reveal">
+            <div class="section-head section-head--stacked">
+              <div>
+                <h2 class="section-title">Propuesta académica</h2>
+                <p class="section-subtitle">
+                  Un recorrido por las materias de cada año para entender cómo se articula la trayectoria escolar.
+                </p>
+              </div>
+              <button id="closePropuesta" class="btn btn-secondary" type="button">Volver al inicio</button>
+            </div>
+
+            <div class="propuesta-intro-card">
+              <div class="info-kicker">Recorrido formativo</div>
+              <div class="info-title">Materias organizadas por año</div>
+              <p class="info-text">
+                Consultá la estructura académica completa con una vista clara de los espacios curriculares que hoy están cargados en la institución.
               </p>
+            </div>
+
+            <div class="propuesta-stats" role="list">
+              <div class="assignment-stat" role="listitem">
+                <strong id="propuestaYearsCount">0</strong>
+                <span>Años visibles</span>
+              </div>
+              <div class="assignment-stat" role="listitem">
+                <strong id="propuestaSubjectsCount">0</strong>
+                <span>Materias activas</span>
+              </div>
             </div>
           </div>
 
-          <div class="access-grid">
-            <a class="access" href="#" aria-label="Acceso: Aula virtual">
-              <div class="access-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M4 7.5C4 6.12 5.12 5 6.5 5h11C19.88 5 21 6.12 21 7.5v9c0 1.38-1.12 2.5-2.5 2.5h-11C5.12 19 4 17.88 4 16.5v-9Z" stroke="currentColor" stroke-width="1.7" />
-                  <path d="M8 15.5h8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
-                  <path d="M8 12h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
-                </svg>
-              </div>
-              <div class="access-body">
-                <div class="access-title">Aula virtual</div>
-                <div class="access-sub">Materiales, tareas y comunicaciones</div>
-              </div>
-              <span class="access-arrow" aria-hidden="true">→</span>
-            </a>
-
-            <a class="access" href="#" aria-label="Acceso: Calendario">
-              <div class="access-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M7 3.5v3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
-                  <path d="M17 3.5v3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
-                  <path d="M4.5 8.5h15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
-                  <path d="M6.5 6.5h11c1.1 0 2 .9 2 2v10c0 1.1-.9 2-2 2h-11c-1.1 0-2-.9-2-2v-10c0-1.1.9-2 2-2Z" stroke="currentColor" stroke-width="1.7" />
-                  <path d="M8 12h3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
-                  <path d="M8 15.5h6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
-                </svg>
-              </div>
-              <div class="access-body">
-                <div class="access-title">Calendario</div>
-                <div class="access-sub">Actos, evaluaciones y eventos</div>
-              </div>
-              <span class="access-arrow" aria-hidden="true">→</span>
-            </a>
-
-            <a class="access" href="#" aria-label="Acceso: Biblioteca">
-              <div class="access-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M7 4.5h10a2 2 0 0 1 2 2V19.5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2V6.5a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.7" />
-                  <path d="M7.5 8h7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
-                  <path d="M7.5 11.5h7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
-                </svg>
-              </div>
-              <div class="access-body">
-                <div class="access-title">Biblioteca</div>
-                <div class="access-sub">Catálogo y recursos digitales</div>
-              </div>
-              <span class="access-arrow" aria-hidden="true">→</span>
-            </a>
-
-            <a class="access" href="#" aria-label="Acceso: Trámites">
-              <div class="access-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M7 3.8h7l3 3V20.2c0 .99-.81 1.8-1.8 1.8H7.8c-.99 0-1.8-.81-1.8-1.8V5.6c0-.99.81-1.8 1.8-1.8Z" stroke="currentColor" stroke-width="1.7" />
-                  <path d="M14 3.8v3.4h3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
-                  <path d="M8.5 12h6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
-                  <path d="M8.5 15.5h4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
-                </svg>
-              </div>
-              <div class="access-body">
-                <div class="access-title">Trámites</div>
-                <div class="access-sub">Certificados y solicitudes</div>
-              </div>
-              <span class="access-arrow" aria-hidden="true">→</span>
-            </a>
+          <div class="panel reveal" style="--reveal-delay: 100ms" aria-label="Materias por año">
+            <div class="panel-head">
+              <div class="panel-title">Mapa curricular</div>
+              <div class="panel-sub">Se actualiza automáticamente según la base de datos institucional.</div>
+            </div>
+            <div id="propuestaStatus" class="form-status propuesta-status" aria-live="polite">Cargando materias...</div>
+            <div id="propuestaGrid" class="propuesta-cards">
+              <article class="propuesta-card propuesta-card--placeholder">
+                <div class="propuesta-card-head">
+                  <span class="propuesta-badge">Cargando</span>
+                  <strong>Trayecto académico</strong>
+                </div>
+                <p class="propuesta-empty">Estamos preparando la propuesta académica institucional.</p>
+              </article>
+            </div>
           </div>
         </div>
       </section>
@@ -368,28 +367,33 @@
 
       <section id="contacto" class="section section-contact" data-home-view aria-label="Contacto">
         <div class="container contact">
-          <div class="contact-card reveal">
-            <div class="contact-copy">
+          <div class="section-head reveal">
+            <div>
               <h2 class="section-title">Contacto institucional</h2>
               <p class="section-subtitle">
                 Para consultas, visitas, inscripciones y certificaciones. Respondemos por canales oficiales.
               </p>
+            </div>
+          </div>
+
+          <div class="contact-card reveal">
+            <div class="contact-copy">
               <div class="contact-items" role="list">
                 <div class="contact-item" role="listitem">
                   <div class="contact-key">Dirección</div>
-                  <div class="contact-val">Av. Ejemplo 1234, CABA</div>
+                  <div class="contact-val">Av. Córdoba 110 esq. San Luis</div>
                 </div>
                 <div class="contact-item" role="listitem">
                   <div class="contact-key">Horarios</div>
-                  <div class="contact-val">Lun a Vie · 8:00 a 16:00</div>
+                  <div class="contact-val">Lun a Vie · 8:00 a 17:00</div>
                 </div>
                 <div class="contact-item" role="listitem">
                   <div class="contact-key">Correo</div>
-                  <div class="contact-val"><a href="mailto:secretaria@eexp-por.edu.ar">secretaria@eexp-por.edu.ar</a></div>
+                  <div class="contact-val"><a href="mailto:portena.ds@escuelasproa.edu.a">portena.ds@escuelasproa.edu.ar</a></div>
                 </div>
                 <div class="contact-item" role="listitem">
                   <div class="contact-key">Teléfono</div>
-                  <div class="contact-val"><a href="tel:+541100000000">+54 11 0000-0000</a></div>
+                  <div class="contact-val"><a href="">3564 - 450656</a></div>
                 </div>
               </div>
             </div>
@@ -419,7 +423,7 @@
               </div>
               <button class="btn btn-primary" type="submit">Enviar consulta</button>
               <p id="contactMsg" class="form-status" aria-live="polite"></p>
-              <p class="form-note">Tu consulta se envía al backend institucional y queda registrada para seguimiento.</p>
+              <p class="form-note">Tu consulta se envía al correo institucional y queda registrada para seguimiento.</p>
             </form>
           </div>
         </div>
@@ -430,7 +434,7 @@
       <div class="container footer-grid">
         <div class="footer-brand">
           <img
-            src="assets/logo.svg"
+            src="assets/logo_porteña.png"
             class="footer-logo"
             alt="Logo Escuela Experimental Porteña"
             width="42"
@@ -438,7 +442,7 @@
             loading="lazy"
           />
           <div>
-            <div class="footer-name">Escuela Experimental Porteña</div>
+            <div class="footer-name">Escuela Experimental ProA Porteña</div>
             <div class="footer-sub">Educación · Innovación · Ciudadanía digital</div>
           </div>
         </div>
@@ -450,33 +454,22 @@
             <a href="#novedades">Novedades</a>
             <a href="#contacto">Contacto</a>
           </div>
-          <div class="footer-col">
-            <div class="footer-col-title">Accesos</div>
-            <a href="#accesos">Campus</a>
-            <a href="#accesos">Calendario</a>
-            <a href="#accesos">Trámites</a>
-          </div>
         </div>
 
         <div class="footer-social" aria-label="Redes sociales">
-          <div class="footer-col-title">Redes</div>
           <div class="social-row">
-            <a class="social" href="#" aria-label="Instagram">
+            <a
+              class="social social--labelled"
+              href="https://www.instagram.com/portenaproa?igsh=MWZpNmhjYzFqMDljYQ=="
+              aria-label="Instagram"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <span>Instagram</span>
               <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M7.5 3.8h9A3.7 3.7 0 0 1 20.2 7.5v9a3.7 3.7 0 0 1-3.7 3.7h-9A3.7 3.7 0 0 1 3.8 16.5v-9A3.7 3.7 0 0 1 7.5 3.8Z" stroke="currentColor" stroke-width="1.7" />
                 <path d="M12 16.2a4.2 4.2 0 1 0 0-8.4 4.2 4.2 0 0 0 0 8.4Z" stroke="currentColor" stroke-width="1.7" />
                 <path d="M17.2 6.8h.01" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
-              </svg>
-            </a>
-            <a class="social" href="#" aria-label="YouTube">
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M20.3 8.3a2.6 2.6 0 0 0-1.8-1.9C16.8 6 12 6 12 6s-4.8 0-6.5.4A2.6 2.6 0 0 0 3.7 8.3 27 27 0 0 0 3.4 12c0 1.2.1 2.5.3 3.7a2.6 2.6 0 0 0 1.8 1.9C7.2 18 12 18 12 18s4.8 0 6.5-.4a2.6 2.6 0 0 0 1.8-1.9c.2-1.2.3-2.5.3-3.7 0-1.2-.1-2.5-.3-3.7Z" stroke="currentColor" stroke-width="1.7" />
-                <path d="M10.5 9.8 15 12l-4.5 2.2V9.8Z" fill="currentColor" />
-              </svg>
-            </a>
-            <a class="social" href="#" aria-label="Facebook">
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M14 9h2.2V6.6c0-1-.4-1.8-1.8-1.8H12c-2.1 0-3.2 1.3-3.2 3.4V9H7v3h1.8v7H12v-7h2.6l.4-3H12V8.5c0-.7.2-1.2 1.1-1.2H14Z" fill="currentColor" />
               </svg>
             </a>
           </div>
@@ -487,7 +480,7 @@
       </div>
 
       <div class="container footer-bottom">
-        <div>© <span id="year"></span> Escuela Experimental Porteña. Todos los derechos reservados.</div>
+        <div>© <span id="year"></span> Escuela Experimental ProA Porteña. Todos los derechos reservados.</div>
         <div class="footer-bottom-links">
           <a href="#">Privacidad</a>
           <a href="#">Términos</a>

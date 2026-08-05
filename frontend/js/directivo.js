@@ -12,6 +12,58 @@
     existingImages: []
   };
 
+  var eventoCalendarState = {
+    rows: [],
+    monthCursor: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+    selectedId: ""
+  };
+
+  var consultasState = {
+    rows: [],
+    selectedId: ""
+  };
+
+  function selectedEventoRoles() {
+    return Array.prototype.slice.call(document.querySelectorAll("input[name='eventoVisibleRol']:checked")).map(function (el) {
+      return el.value;
+    });
+  }
+
+  function setSelectedEventoRoles(roles) {
+    var active = Array.isArray(roles) ? roles : [];
+    Array.prototype.slice.call(document.querySelectorAll("input[name='eventoVisibleRol']")).forEach(function (el) {
+      el.checked = active.indexOf(el.value) !== -1;
+    });
+  }
+
+  function syncEventoVisibility() {
+    var tipo = $("#eventoVisibilidad");
+    var rolesField = $("#eventoRolesField");
+    if (!tipo || !rolesField) return;
+    rolesField.hidden = tipo.value !== "privado";
+  }
+
+  function selectedNoticiaRoles() {
+    return Array.prototype.slice.call(document.querySelectorAll("input[name='noticiaVisibleRol']:checked")).map(function (el) {
+      return el.value;
+    });
+  }
+
+  function setSelectedNoticiaRoles(roles) {
+    var active = Array.isArray(roles) ? roles : [];
+    Array.prototype.slice.call(document.querySelectorAll("input[name='noticiaVisibleRol']")).forEach(function (el) {
+      el.checked = active.indexOf(el.value) !== -1;
+    });
+  }
+
+  function syncNoticiaVisibility() {
+    var tipo = $("#noticiaTipo");
+    var rolesField = $("#noticiaRolesField");
+    if (!tipo || !rolesField) return;
+    var isPrivate = tipo.value === "privada";
+    rolesField.hidden = !isPrivate;
+  }
+
   function setMsg(el, text, kind) {
     if (!el) return;
     el.textContent = text || "";
@@ -32,7 +84,7 @@
   function getApiBase() {
     if (window.EEPAuth) return window.EEPAuth.getApiBase();
     var saved = localStorage.getItem(STORAGE_API_BASE);
-    return saved || "http://localhost:4000/api";
+    return saved || "http://localhost:4001/api";
   }
 
   function getToken() {
@@ -59,8 +111,12 @@
     var icons = {
       book:
         '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6.5 5.2h9.8a2.2 2.2 0 0 1 2.2 2.2v11.4a.8.8 0 0 1-1.2.7 4.3 4.3 0 0 0-2.1-.5H7.8A2.3 2.3 0 0 0 6 19.8V6.7c0-.83.67-1.5 1.5-1.5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M6 7.2a2 2 0 0 1 1.8-1h7.4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>',
+      subjects:
+        '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 5 4.5 8.7 12 12.4l7.5-3.7L12 5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M7.2 10.7v3.5c0 .7.5 1.3 1.1 1.6.9.5 2.2 1 3.7 1s2.8-.5 3.7-1c.6-.3 1.1-.9 1.1-1.6v-3.5" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M19.5 8.8v4.7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>',
       news:
         '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 6.2A2.2 2.2 0 0 1 7.2 4h9.6A2.2 2.2 0 0 1 19 6.2v11.6A2.2 2.2 0 0 1 16.8 20H7.2A2.2 2.2 0 0 1 5 17.8V6.2Z" stroke="currentColor" stroke-width="1.7"/><path d="M8.3 8.2h7.4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M8.3 11.8h7.4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M8.3 15.4h4.2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>',
+      calendar:
+        '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 3.5v3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M17 3.5v3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M4.5 8.5h15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M6.5 6.5h11c1.1 0 2 .9 2 2v10c0 1.1-.9 2-2 2h-11c-1.1 0-2-.9-2-2v-10c0-1.1.9-2 2-2Z" stroke="currentColor" stroke-width="1.7"/></svg>',
       users:
         '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8.2 11.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z" stroke="currentColor" stroke-width="1.7"/><path d="M15.8 10.2a2.6 2.6 0 1 0 0-5.2 2.6 2.6 0 0 0 0 5.2Z" stroke="currentColor" stroke-width="1.7"/><path d="M3.8 19.2c1.2-2.8 3.4-4.2 5.5-4.2 2 0 4.2 1.4 5.4 4.2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M14.2 18.2c.8-1.8 2.2-2.8 3.8-2.8 1.1 0 2.2.5 3.2 1.7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>',
       logout:
@@ -116,7 +172,7 @@
     Array.prototype.slice.call(document.querySelectorAll(".side-link[data-view]")).forEach(function (el) {
       el.addEventListener("click", function (e) {
         e.preventDefault();
-        var view = el.getAttribute("data-view") || "gestion";
+        var view = el.getAttribute("data-view") || "docentes";
         show(view);
         window.location.hash = view;
         closeMobileSidebar();
@@ -124,7 +180,7 @@
     });
 
     var hash = (window.location.hash || "").replace("#", "");
-    show(hash || "gestion");
+    show(hash || "docentes");
   }
 
   function openModal(selector) {
@@ -146,9 +202,12 @@
     form.reset();
     noticiaDraft.existingImages = [];
     $("#noticiaId").value = "";
+    $("#noticiaTipo").value = "publica";
+    setSelectedNoticiaRoles([]);
     $("#noticiaSubmit").textContent = "Publicar";
     $("#noticiaTitle").textContent = "Publicar noticia";
     $("#noticiaCancelEdit").hidden = true;
+    syncNoticiaVisibility();
     renderNoticiaExistingImages();
     renderNoticiaSelectedImages();
   }
@@ -168,10 +227,13 @@
     $("#noticiaCategoria").value = row.categoria || "Institucional";
     $("#noticiaResumen").value = row.resumen || "";
     $("#noticiaContenido").value = row.contenido || "";
+    $("#noticiaTipo").value = row.tipo || "publica";
+    setSelectedNoticiaRoles(row.visibleParaRoles || []);
     $("#noticiaDestacada").checked = !!row.destacada;
     $("#noticiaSubmit").textContent = "Guardar cambios";
     $("#noticiaTitle").textContent = "Editar noticia";
     $("#noticiaCancelEdit").hidden = false;
+    syncNoticiaVisibility();
     renderNoticiaExistingImages();
     renderNoticiaSelectedImages();
     setMsg($("#noticiaFormMsg"), "Editando noticia...", "");
@@ -274,6 +336,75 @@
     return dd + "/" + mm + "/" + yyyy;
   }
 
+  function formatFechaHora(value) {
+    if (!value) return "-";
+    var d = value instanceof Date ? value : new Date(value);
+    if (isNaN(d.getTime())) return "-";
+    var dd = String(d.getDate()).padStart(2, "0");
+    var mm = String(d.getMonth() + 1).padStart(2, "0");
+    var yyyy = String(d.getFullYear());
+    var hh = String(d.getHours()).padStart(2, "0");
+    var mi = String(d.getMinutes()).padStart(2, "0");
+    return dd + "/" + mm + "/" + yyyy + " " + hh + ":" + mi;
+  }
+
+  function toDatetimeLocalValue(value) {
+    if (!value) return "";
+    var d = value instanceof Date ? value : new Date(value);
+    if (isNaN(d.getTime())) return "";
+    var yyyy = d.getFullYear();
+    var mm = String(d.getMonth() + 1).padStart(2, "0");
+    var dd = String(d.getDate()).padStart(2, "0");
+    var hh = String(d.getHours()).padStart(2, "0");
+    var mi = String(d.getMinutes()).padStart(2, "0");
+    return yyyy + "-" + mm + "-" + dd + "T" + hh + ":" + mi;
+  }
+
+  function monthLabel(value) {
+    var d = value instanceof Date ? value : new Date(value);
+    if (isNaN(d.getTime())) return "";
+    return new Intl.DateTimeFormat("es-AR", { month: "long", year: "numeric" }).format(d);
+  }
+
+  function dayKey(value) {
+    var d = value instanceof Date ? value : new Date(value);
+    if (isNaN(d.getTime())) return "";
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  }
+
+  function timeLabel(value) {
+    var d = value instanceof Date ? value : new Date(value);
+    if (isNaN(d.getTime())) return "";
+    return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+  }
+
+  function consultaEstadoLabel(value) {
+    if (value === "en_proceso") return "En proceso";
+    if (value === "cerrada") return "Cerrada";
+    return "Nueva";
+  }
+
+  function previewText(value, max) {
+    var text = String(value || "").trim().replace(/\s+/g, " ");
+    if (!text) return "Sin mensaje";
+    return text.length > max ? text.slice(0, max - 1) + "…" : text;
+  }
+
+  function consultaMailLabel(row) {
+    if (!row) return "Sin datos";
+    if (row.notificadoPorEmail) {
+      return row.notificadoA && row.notificadoA.length
+        ? "Enviado a " + row.notificadoA.join(", ")
+        : "Correo enviado";
+    }
+    if (row.notificacionError) return row.notificacionError;
+    return "Pendiente o sin configurar";
+  }
+
+  function renderStatusBadge(value, label) {
+    return '<span class="status-badge status-badge--' + escapeHtml(value) + '">' + escapeHtml(label) + "</span>";
+  }
+
   function renderNoticias(rows) {
     var tbody = $("#noticiasTbody");
     if (!tbody) return;
@@ -282,7 +413,7 @@
     if (!rows.length) {
       var emptyTr = document.createElement("tr");
       var emptyTd = document.createElement("td");
-      emptyTd.colSpan = 4;
+      emptyTd.colSpan = 5;
       emptyTd.className = "table-empty";
       emptyTd.textContent = "Sin noticias publicadas";
       emptyTr.appendChild(emptyTd);
@@ -296,6 +427,8 @@
       tdTitulo.textContent = row.titulo || "-";
       var tdCategoria = document.createElement("td");
       tdCategoria.textContent = row.categoria || "Institucional";
+      var tdTipo = document.createElement("td");
+      tdTipo.textContent = row.tipo === "privada" ? "Privada" : "Publica";
       var tdFecha = document.createElement("td");
       tdFecha.textContent = formatFecha(row.fecha);
       var tdAcciones = document.createElement("td");
@@ -324,9 +457,47 @@
       tdAcciones.appendChild(btnDelete);
       tr.appendChild(tdTitulo);
       tr.appendChild(tdCategoria);
+      tr.appendChild(tdTipo);
       tr.appendChild(tdFecha);
       tr.appendChild(tdAcciones);
       tbody.appendChild(tr);
+    });
+  }
+
+  function renderNoticiasDirectivo(rows) {
+    var list = $("#noticiasDirectivoList");
+    if (!list) return;
+    list.innerHTML = "";
+
+    if (!rows.length) {
+      var empty = document.createElement("div");
+      empty.className = "empty";
+      empty.textContent = "No hay noticias privadas asignadas a directivos.";
+      list.appendChild(empty);
+      return;
+    }
+
+    rows.forEach(function (row) {
+      var item = document.createElement("div");
+      item.className = "item";
+
+      var left = document.createElement("div");
+      var title = document.createElement("div");
+      title.className = "item-title";
+      title.textContent = row.titulo || "Noticia privada";
+      var sub = document.createElement("div");
+      sub.className = "item-sub";
+      sub.textContent = [row.categoria || "Institucional", "Privada para directivos"].join(" · ");
+      left.appendChild(title);
+      left.appendChild(sub);
+
+      var meta = document.createElement("div");
+      meta.className = "item-meta";
+      meta.textContent = formatFecha(row.fecha);
+
+      item.appendChild(left);
+      item.appendChild(meta);
+      list.appendChild(item);
     });
   }
 
@@ -337,9 +508,13 @@
       var rows = await api("/noticias", { method: "GET" });
       rows = Array.isArray(rows) ? rows : [];
       renderNoticias(rows);
+      renderNoticiasDirectivo(rows.filter(function (row) {
+        return row && row.tipo === "privada" && Array.isArray(row.visibleParaRoles) && row.visibleParaRoles.indexOf("directivo") !== -1;
+      }));
       setMsg(msg, "OK", "ok");
     } catch (e) {
       renderNoticias([]);
+      renderNoticiasDirectivo([]);
       setMsg(msg, e.message || "Error", "error");
     }
   }
@@ -367,6 +542,7 @@
     var refresh = $("#refreshNoticias");
     var cancel = $("#noticiaCancelEdit");
     var imageInput = $("#noticiaImagenes");
+    var tipoInput = $("#noticiaTipo");
 
     Array.prototype.slice.call(document.querySelectorAll("[data-open='crear-noticia']")).forEach(function (btn) {
       btn.addEventListener("click", function () {
@@ -387,6 +563,10 @@
       imageInput.addEventListener("change", function () {
         renderNoticiaSelectedImages();
       });
+    }
+
+    if (tipoInput) {
+      tipoInput.addEventListener("change", syncNoticiaVisibility);
     }
 
     if (refresh) refresh.addEventListener("click", loadNoticias);
@@ -412,6 +592,11 @@
       setMsg(msg, "Guardando...", "");
       try {
         var id = $("#noticiaId").value;
+        var selectedRoles = selectedNoticiaRoles();
+        if (($("#noticiaTipo").value || "publica") === "privada" && !selectedRoles.length) {
+          setMsg(msg, "Selecciona al menos un rol para una noticia privada.", "error");
+          return;
+        }
         var payload = new FormData();
         payload.append("titulo", $("#noticiaTitulo").value);
         payload.append("categoria", $("#noticiaCategoria").value);
@@ -419,6 +604,8 @@
         payload.append("contenido", $("#noticiaContenido").value);
         payload.append("fecha", new Date().toISOString());
         payload.append("destacada", $("#noticiaDestacada") && $("#noticiaDestacada").checked ? "true" : "false");
+        payload.append("tipo", $("#noticiaTipo").value || "publica");
+        payload.append("visibleParaRoles", JSON.stringify(selectedRoles));
         payload.append("imagenesExistentes", JSON.stringify(noticiaDraft.existingImages));
 
         var files = imageInput && imageInput.files ? Array.prototype.slice.call(imageInput.files) : [];
@@ -435,6 +622,559 @@
         resetNoticiaForm();
         closeModal($("#noticiaModal"));
         loadNoticias();
+      } catch (err) {
+        setMsg(msg, err.message || "Error", "error");
+      }
+    });
+  }
+
+  function resetEventoForm() {
+    var form = $("#eventoForm");
+    if (!form) return;
+    form.reset();
+    $("#eventoId").value = "";
+    $("#eventoVisibilidad").value = "publico";
+    setSelectedEventoRoles([]);
+    $("#eventoSubmit").textContent = "Crear evento";
+    $("#eventoTitle").textContent = "Crear evento";
+    $("#eventoCancelEdit").hidden = true;
+    syncEventoVisibility();
+  }
+
+  function openEventoEdit(row) {
+    $("#eventoId").value = row._id || row.id || "";
+    $("#eventoTitulo").value = row.titulo || "";
+    $("#eventoTipo").value = row.tipo || "Evento";
+    $("#eventoInicio").value = toDatetimeLocalValue(row.inicio);
+    $("#eventoFin").value = toDatetimeLocalValue(row.fin);
+    $("#eventoUbicacion").value = row.ubicacion || "";
+    $("#eventoDescripcion").value = row.descripcion || "";
+    $("#eventoVisibilidad").value = row.visibilidad || "publico";
+    setSelectedEventoRoles(row.visibleParaRoles || []);
+    $("#eventoSubmit").textContent = "Guardar cambios";
+    $("#eventoTitle").textContent = "Editar evento";
+    $("#eventoCancelEdit").hidden = false;
+    syncEventoVisibility();
+    setMsg($("#eventoFormMsg"), "Editando evento...", "");
+    openModal("#eventoModal");
+  }
+
+  function currentMonthRows() {
+    var y = eventoCalendarState.monthCursor.getFullYear();
+    var m = eventoCalendarState.monthCursor.getMonth();
+    return eventoCalendarState.rows.filter(function (row) {
+      var d = new Date(row.inicio);
+      return !isNaN(d.getTime()) && d.getFullYear() === y && d.getMonth() === m;
+    }).sort(function (a, b) {
+      return new Date(a.inicio).getTime() - new Date(b.inicio).getTime();
+    });
+  }
+
+  function openEventoDetalle(row) {
+    var editBtn = $("#eventoDetalleEditar");
+    var deleteBtn = $("#eventoDetalleEliminar");
+    if (!row) {
+      eventoCalendarState.selectedId = "";
+      $("#eventoDetalleTitle").textContent = "Selecciona un evento";
+      $("#eventoDetalleMeta").textContent = "Haz clic en un evento del calendario para ver el detalle.";
+      $("#eventoDetalleVisibilidad").textContent = "-";
+      $("#eventoDetalleUbicacion").textContent = "-";
+      $("#eventoDetalleRoles").textContent = "-";
+      $("#eventoDetalleDescripcion").textContent = "Selecciona un evento para ver su descripcion.";
+      if (editBtn) editBtn.disabled = true;
+      if (deleteBtn) deleteBtn.disabled = true;
+      return;
+    }
+    eventoCalendarState.selectedId = String(row._id || row.id || "");
+    $("#eventoDetalleTitle").textContent = row.titulo || "Detalle del evento";
+    $("#eventoDetalleMeta").textContent = [row.tipo || "Evento", formatFechaHora(row.inicio)].filter(Boolean).join(" · ");
+    $("#eventoDetalleVisibilidad").textContent = row.visibilidad === "privado" ? "Privado" : "Publico";
+    $("#eventoDetalleUbicacion").textContent = row.ubicacion || "Sin ubicacion definida";
+    $("#eventoDetalleRoles").textContent = row.visibilidad === "privado"
+      ? ((row.visibleParaRoles || []).length ? row.visibleParaRoles.join(", ") : "Sin roles asignados")
+      : "Toda la comunidad";
+    $("#eventoDetalleDescripcion").textContent = row.descripcion || "Sin descripcion adicional.";
+    if (editBtn) editBtn.disabled = false;
+    if (deleteBtn) deleteBtn.disabled = false;
+  }
+
+  function renderEventosCalendar(rows) {
+    var root = $("#eventosCalendar");
+    var label = $("#eventosMesLabel");
+    if (!root) return;
+    root.innerHTML = "";
+    if (label) label.textContent = monthLabel(eventoCalendarState.monthCursor);
+
+    ["Lun", "Mar", "Mie", "Jue", "Vie", "Sab", "Dom"].forEach(function (day) {
+      var head = document.createElement("div");
+      head.className = "calendar-weekday";
+      head.textContent = day;
+      root.appendChild(head);
+    });
+
+    var monthStart = new Date(eventoCalendarState.monthCursor.getFullYear(), eventoCalendarState.monthCursor.getMonth(), 1);
+    var monthEnd = new Date(eventoCalendarState.monthCursor.getFullYear(), eventoCalendarState.monthCursor.getMonth() + 1, 0);
+    var startOffset = (monthStart.getDay() + 6) % 7;
+    var gridStart = new Date(monthStart);
+    gridStart.setDate(monthStart.getDate() - startOffset);
+
+    var todayKey = dayKey(new Date());
+    for (var i = 0; i < 42; i += 1) {
+      var cellDate = new Date(gridStart);
+      cellDate.setDate(gridStart.getDate() + i);
+      var key = dayKey(cellDate);
+      var dayRows = rows.filter(function (row) {
+        return dayKey(row.inicio) === key;
+      });
+
+      var cell = document.createElement("div");
+      cell.className = "calendar-day";
+      if (cellDate.getMonth() !== eventoCalendarState.monthCursor.getMonth()) cell.classList.add("is-other-month");
+      if (key === todayKey) cell.classList.add("is-today");
+
+      var headRow = document.createElement("div");
+      headRow.className = "calendar-day-head";
+      var num = document.createElement("div");
+      num.className = "calendar-day-number";
+      num.textContent = String(cellDate.getDate());
+      var count = document.createElement("div");
+      count.className = "calendar-day-count";
+      count.textContent = dayRows.length ? String(dayRows.length) + " evento" + (dayRows.length > 1 ? "s" : "") : "";
+      headRow.appendChild(num);
+      headRow.appendChild(count);
+
+      var eventsWrap = document.createElement("div");
+      eventsWrap.className = "calendar-events";
+      dayRows.slice(0, 3).forEach(function (row) {
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "calendar-event-pill calendar-event-pill--" + (row.visibilidad === "privado" ? "privado" : "publico");
+        btn.innerHTML = '<span class="calendar-event-time">' + escapeHtml(timeLabel(row.inicio) || "Todo el dia") + '</span><span class="calendar-event-title">' + escapeHtml(row.titulo || "Evento") + '</span>';
+        btn.addEventListener("click", function () {
+          openEventoDetalle(row);
+        });
+        eventsWrap.appendChild(btn);
+      });
+      if (dayRows.length > 3) {
+        var more = document.createElement("div");
+        more.className = "calendar-day-count";
+        more.textContent = "+" + String(dayRows.length - 3) + " mas";
+        eventsWrap.appendChild(more);
+      }
+
+      cell.appendChild(headRow);
+      cell.appendChild(eventsWrap);
+      root.appendChild(cell);
+    }
+  }
+
+  function renderEventosMonthList(rows) {
+    var list = $("#eventosMonthList");
+    if (!list) return;
+    list.innerHTML = "";
+
+    if (!rows.length) {
+      var empty = document.createElement("div");
+      empty.className = "empty";
+      empty.textContent = "Sin eventos en este mes.";
+      list.appendChild(empty);
+      return;
+    }
+
+    rows.forEach(function (row) {
+      var item = document.createElement("button");
+      item.type = "button";
+      item.className = "item";
+      item.style.textAlign = "left";
+      item.style.font = "inherit";
+      item.style.cursor = "pointer";
+      var left = document.createElement("div");
+      var title = document.createElement("div");
+      title.className = "item-title";
+      title.textContent = row.titulo || "Evento";
+      var sub = document.createElement("div");
+      sub.className = "item-sub";
+      sub.textContent = [row.tipo || "Evento", row.visibilidad === "privado" ? "Privado" : "Publico", row.ubicacion || "Sin ubicacion"].join(" · ");
+      var meta = document.createElement("div");
+      meta.className = "item-meta";
+      meta.textContent = formatFechaHora(row.inicio);
+      left.appendChild(title);
+      left.appendChild(sub);
+      item.appendChild(left);
+      item.appendChild(meta);
+      item.addEventListener("click", function () {
+        openEventoDetalle(row);
+      });
+      list.appendChild(item);
+    });
+  }
+
+  function renderEventos(rows) {
+    renderEventosCalendar(rows);
+    renderEventosMonthList(currentMonthRows());
+  }
+
+  function renderEventosDirectivo(rows) {
+    var list = $("#eventosDirectivoList");
+    if (!list) return;
+    list.innerHTML = "";
+
+    if (!rows.length) {
+      var empty = document.createElement("div");
+      empty.className = "empty";
+      empty.textContent = "No hay eventos privados asignados a directivos.";
+      list.appendChild(empty);
+      return;
+    }
+
+    rows.forEach(function (row) {
+      var item = document.createElement("button");
+      item.type = "button";
+      item.className = "item";
+      item.style.textAlign = "left";
+      item.style.font = "inherit";
+      item.style.cursor = "pointer";
+      var left = document.createElement("div");
+      var title = document.createElement("div");
+      title.className = "item-title";
+      title.textContent = row.titulo || "Evento privado";
+      var sub = document.createElement("div");
+      sub.className = "item-sub";
+      sub.textContent = [row.tipo || "Evento", row.ubicacion || "Sin ubicacion", "Privado para directivos"].join(" · ");
+      var meta = document.createElement("div");
+      meta.className = "item-meta";
+      meta.textContent = formatFechaHora(row.inicio);
+      left.appendChild(title);
+      left.appendChild(sub);
+      item.appendChild(left);
+      item.appendChild(meta);
+      item.addEventListener("click", function () {
+        openEventoDetalle(row);
+      });
+      list.appendChild(item);
+    });
+  }
+
+  async function loadEventos() {
+    var msg = $("#eventosMsg");
+    setMsg(msg, "Cargando eventos...", "");
+    try {
+      var rows = await api("/calendario", { method: "GET" });
+      rows = Array.isArray(rows) ? rows : [];
+      eventoCalendarState.rows = rows;
+      renderEventos(rows);
+      if (eventoCalendarState.selectedId) {
+        var selected = rows.find(function (row) {
+          return String(row._id || row.id) === String(eventoCalendarState.selectedId);
+        });
+        openEventoDetalle(selected || null);
+      } else {
+        openEventoDetalle(currentMonthRows()[0] || rows[0] || null);
+      }
+      renderEventosDirectivo(rows.filter(function (row) {
+        return row && row.visibilidad === "privado" && Array.isArray(row.visibleParaRoles) && row.visibleParaRoles.indexOf("directivo") !== -1;
+      }));
+      setMsg(msg, "OK", "ok");
+    } catch (e) {
+      eventoCalendarState.rows = [];
+      renderEventos([]);
+      openEventoDetalle(null);
+      renderEventosDirectivo([]);
+      setMsg(msg, e.message || "Error", "error");
+    }
+  }
+
+  async function deleteEvento(row) {
+    if (!confirm("Eliminar evento '" + (row.titulo || "") + "'?")) return;
+    var msg = $("#eventosMsg");
+    setMsg(msg, "Eliminando...", "");
+    try {
+      await api("/calendario/" + encodeURIComponent(row._id || row.id), { method: "DELETE" });
+      if ($("#eventoId").value === String(row._id || row.id)) {
+        resetEventoForm();
+        setMsg($("#eventoFormMsg"), "", "");
+      }
+      if (eventoCalendarState.selectedId === String(row._id || row.id)) {
+        openEventoDetalle(null);
+      }
+      setMsg(msg, "Evento eliminado", "ok");
+      loadEventos();
+    } catch (e) {
+      setMsg(msg, e.message || "Error", "error");
+    }
+  }
+
+  function initEventos() {
+    var form = $("#eventoForm");
+    var msg = $("#eventoFormMsg");
+    var refresh = $("#refreshEventos");
+    var cancel = $("#eventoCancelEdit");
+    var visibilidad = $("#eventoVisibilidad");
+    var prevMes = $("#prevEventosMes");
+    var nextMes = $("#nextEventosMes");
+    var detalleEdit = $("#eventoDetalleEditar");
+    var detalleDelete = $("#eventoDetalleEliminar");
+
+    Array.prototype.slice.call(document.querySelectorAll("[data-open='crear-evento']")).forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        resetEventoForm();
+        setMsg(msg, "", "");
+        openModal("#eventoModal");
+      });
+    });
+
+    if (cancel) {
+      cancel.addEventListener("click", function () {
+        resetEventoForm();
+        setMsg(msg, "", "");
+      });
+    }
+
+    if (refresh) refresh.addEventListener("click", loadEventos);
+    if (visibilidad) visibilidad.addEventListener("change", syncEventoVisibility);
+    if (prevMes) {
+      prevMes.addEventListener("click", function () {
+        eventoCalendarState.monthCursor = new Date(eventoCalendarState.monthCursor.getFullYear(), eventoCalendarState.monthCursor.getMonth() - 1, 1);
+        renderEventos(eventoCalendarState.rows);
+      });
+    }
+    if (nextMes) {
+      nextMes.addEventListener("click", function () {
+        eventoCalendarState.monthCursor = new Date(eventoCalendarState.monthCursor.getFullYear(), eventoCalendarState.monthCursor.getMonth() + 1, 1);
+        renderEventos(eventoCalendarState.rows);
+      });
+    }
+    if (detalleEdit) {
+      detalleEdit.addEventListener("click", function () {
+        var row = eventoCalendarState.rows.find(function (item) {
+          return String(item._id || item.id) === String(eventoCalendarState.selectedId || "");
+        });
+        if (row) openEventoEdit(row);
+      });
+    }
+    if (detalleDelete) {
+      detalleDelete.addEventListener("click", function () {
+        var row = eventoCalendarState.rows.find(function (item) {
+          return String(item._id || item.id) === String(eventoCalendarState.selectedId || "");
+        });
+        if (row) deleteEvento(row);
+      });
+    }
+
+    if (!form) return;
+    form.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      setMsg(msg, "Guardando...", "");
+      try {
+        var id = $("#eventoId").value;
+        var selectedRoles = selectedEventoRoles();
+        var currentVisibility = $("#eventoVisibilidad").value || "publico";
+        if (currentVisibility === "privado" && !selectedRoles.length) {
+          setMsg(msg, "Selecciona al menos un rol para un evento privado.", "error");
+          return;
+        }
+
+        await api(id ? "/calendario/" + encodeURIComponent(id) : "/calendario", {
+          method: id ? "PUT" : "POST",
+          body: JSON.stringify({
+            titulo: $("#eventoTitulo").value,
+            tipo: $("#eventoTipo").value || "Evento",
+            inicio: new Date($("#eventoInicio").value).toISOString(),
+            fin: $("#eventoFin").value ? new Date($("#eventoFin").value).toISOString() : "",
+            ubicacion: $("#eventoUbicacion").value,
+            descripcion: $("#eventoDescripcion").value,
+            visibilidad: currentVisibility,
+            visibleParaRoles: selectedRoles
+          })
+        });
+
+        setMsg(msg, id ? "Evento actualizado" : "Evento creado", "ok");
+        resetEventoForm();
+        closeModal($("#eventoModal"));
+        loadEventos();
+      } catch (err) {
+        setMsg(msg, err.message || "Error", "error");
+      }
+    });
+  }
+
+  function updateConsultasCounters(rows) {
+    var list = Array.isArray(rows) ? rows : [];
+    var total = list.length;
+    var nuevas = list.filter(function (row) { return row.estado === "nueva"; }).length;
+    var proceso = list.filter(function (row) { return row.estado === "en_proceso"; }).length;
+    var cerradas = list.filter(function (row) { return row.estado === "cerrada"; }).length;
+
+    if ($("#consultasTotalCount")) $("#consultasTotalCount").textContent = String(total);
+    if ($("#consultasNuevasCount")) $("#consultasNuevasCount").textContent = String(nuevas);
+    if ($("#consultasProcesoCount")) $("#consultasProcesoCount").textContent = String(proceso);
+    if ($("#consultasCerradasCount")) $("#consultasCerradasCount").textContent = String(cerradas);
+  }
+
+  function renderConsultas(rows) {
+    var tbody = $("#consultasTbody");
+    if (!tbody) return;
+    tbody.innerHTML = "";
+    updateConsultasCounters(rows);
+
+    if (!rows.length) {
+      var emptyTr = document.createElement("tr");
+      var emptyTd = document.createElement("td");
+      emptyTd.colSpan = 6;
+      emptyTd.className = "table-empty";
+      emptyTd.textContent = "Sin consultas registradas";
+      emptyTr.appendChild(emptyTd);
+      tbody.appendChild(emptyTr);
+      return;
+    }
+
+    rows.forEach(function (row) {
+      var tr = document.createElement("tr");
+
+      var tdContacto = document.createElement("td");
+      tdContacto.innerHTML =
+        '<div class="consulta-contact"><strong>' + escapeHtml(row.nombre || "Sin nombre") + '</strong><span>' + escapeHtml(row.email || "-") + '</span></div>';
+
+      var tdMotivo = document.createElement("td");
+      tdMotivo.innerHTML =
+        '<div><strong>' + escapeHtml(row.motivo || "Sin motivo") + '</strong><div class="consulta-message-preview">' + escapeHtml(previewText(row.mensaje, 90)) + "</div></div>";
+
+      var tdFecha = document.createElement("td");
+      tdFecha.textContent = formatFechaHora(row.createdAt);
+
+      var tdEstado = document.createElement("td");
+      tdEstado.innerHTML = renderStatusBadge(row.estado || "nueva", consultaEstadoLabel(row.estado));
+
+      var tdCorreo = document.createElement("td");
+      tdCorreo.innerHTML = '<span class="consulta-mail-state">' + escapeHtml(consultaMailLabel(row)) + "</span>";
+
+      var tdAcciones = document.createElement("td");
+      var actions = document.createElement("div");
+      actions.className = "consulta-actions";
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "btn btn-secondary btn-sm";
+      btn.textContent = "Ver detalle";
+      btn.addEventListener("click", function () {
+        openConsultaModal(row);
+      });
+      actions.appendChild(btn);
+      tdAcciones.appendChild(actions);
+
+      tr.appendChild(tdContacto);
+      tr.appendChild(tdMotivo);
+      tr.appendChild(tdFecha);
+      tr.appendChild(tdEstado);
+      tr.appendChild(tdCorreo);
+      tr.appendChild(tdAcciones);
+      tbody.appendChild(tr);
+    });
+  }
+
+  function openConsultaModal(row) {
+    if (!row) return;
+    consultasState.selectedId = String(row._id || row.id || "");
+    $("#consultaId").value = consultasState.selectedId;
+    $("#consultaNombre").value = row.nombre || "";
+    $("#consultaEmail").value = row.email || "";
+    $("#consultaMotivo").value = row.motivo || "";
+    $("#consultaMensaje").value = row.mensaje || "";
+    $("#consultaEstado").value = row.estado || "nueva";
+    $("#consultaNotas").value = row.notasInternas || "";
+    $("#consultaNotificacion").value = consultaMailLabel(row);
+    $("#consultaMeta").textContent = "Recibida el " + formatFechaHora(row.createdAt);
+    setMsg($("#consultaFormMsg"), "", "");
+    openModal("#consultaModal");
+  }
+
+  function closeConsultaModal() {
+    closeModal($("#consultaModal"));
+  }
+
+  async function loadMailConfig() {
+    var badge = $("#consultasMailBadge");
+    var summary = $("#consultasMailSummary");
+    var meta = $("#consultasMailMeta");
+    if (!badge || !summary || !meta) return;
+
+    try {
+      var data = await api("/contacto/mail-config", { method: "GET" });
+      badge.className = "status-badge " + (data.enabled ? "status-badge--enabled" : "status-badge--disabled");
+      badge.textContent = data.enabled ? "Configurado" : "Incompleto";
+      summary.textContent = data.enabled
+        ? "Las nuevas consultas enviarán notificaciones al correo institucional configurado."
+        : "Faltan variables SMTP o destinatarios para enviar avisos automáticos.";
+      meta.textContent = data.enabled
+        ? "Desde: " + (data.from || "-") + " · Para: " + ((data.to || []).join(", ") || "-")
+        : "Configura SMTP_HOST, SMTP_PORT, SMTP_SECURE, SMTP_USER, SMTP_PASS, SMTP_FROM y CONTACTO_NOTIF_TO en el backend.";
+    } catch (err) {
+      badge.className = "status-badge status-badge--pending";
+      badge.textContent = "Error";
+      summary.textContent = err.message || "No se pudo verificar la configuración de correo.";
+      meta.textContent = "";
+    }
+  }
+
+  async function loadConsultas() {
+    var msg = $("#consultasMsg");
+    var estado = $("#consultaEstadoFiltro");
+    var search = $("#consultaSearch");
+    setMsg(msg, "Cargando consultas...", "");
+    try {
+      var params = new URLSearchParams();
+      if (estado && estado.value) params.set("estado", estado.value);
+      if (search && search.value.trim()) params.set("q", search.value.trim());
+      var query = params.toString() ? "?" + params.toString() : "";
+      var rows = await api("/contacto" + query, { method: "GET" });
+      consultasState.rows = Array.isArray(rows) ? rows : [];
+      renderConsultas(consultasState.rows);
+      setMsg(msg, "OK", "ok");
+      if (consultasState.selectedId) {
+        var selected = consultasState.rows.find(function (row) {
+          return String(row._id || row.id) === String(consultasState.selectedId);
+        });
+        if (selected) openConsultaModal(selected);
+      }
+    } catch (err) {
+      consultasState.rows = [];
+      renderConsultas([]);
+      setMsg(msg, err.message || "Error", "error");
+    }
+  }
+
+  function initConsultas() {
+    var refresh = $("#refreshConsultas");
+    var estado = $("#consultaEstadoFiltro");
+    var search = $("#consultaSearch");
+    var form = $("#consultaForm");
+    var msg = $("#consultaFormMsg");
+    var searchTimer = null;
+
+    if (refresh) refresh.addEventListener("click", loadConsultas);
+    if (estado) estado.addEventListener("change", loadConsultas);
+    if (search) {
+      search.addEventListener("input", function () {
+        window.clearTimeout(searchTimer);
+        searchTimer = window.setTimeout(loadConsultas, 220);
+      });
+    }
+
+    if (!form) return;
+    form.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      setMsg(msg, "Guardando seguimiento...", "");
+      try {
+        var id = $("#consultaId").value;
+        var res = await api("/contacto/" + encodeURIComponent(id), {
+          method: "PATCH",
+          body: JSON.stringify({
+            estado: $("#consultaEstado").value,
+            notasInternas: $("#consultaNotas").value
+          })
+        });
+        setMsg(msg, "Consulta actualizada", "ok");
+        if (res && res.consulta) openConsultaModal(res.consulta);
+        loadConsultas();
       } catch (err) {
         setMsg(msg, err.message || "Error", "error");
       }
@@ -1297,6 +2037,8 @@
   initSidebarViews();
   syncHeaderUser();
   initNoticias();
+  initEventos();
+  initConsultas();
   initLogout();
   initCreateAnio();
   initCreateMateriaCurso();
@@ -1311,4 +2053,7 @@
   loadAll();
   loadDocentes();
   loadNoticias();
+  loadEventos();
+  loadMailConfig();
+  loadConsultas();
 })();

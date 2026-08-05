@@ -19,39 +19,102 @@
   <body>
     <a class="skip-link" href="#contenido">Saltar al contenido</a>
 
-    <header class="site-header" role="banner">
-      <div class="container header-inner">
-        <a class="brand" href="../index.html" aria-label="Volver al inicio">
-          <img class="brand-logo" src="../assets/logo.svg" alt="Logo" width="44" height="44" />
-          <div class="brand-text">
-            <span class="brand-name">Escuela Experimental Porteña</span>
-            <span class="brand-tag">Gestión de estudiantes</span>
+    <div class="app">
+      <aside id="studentsSidebar" class="sidebar" aria-label="Sidebar de estudiantes">
+        <a class="side-brand" href="../index.html" aria-label="Inicio">
+          <img src="../assets/logo.svg" alt="Logo" width="40" height="40" />
+          <div>
+            <div id="studentsSideTitle" class="side-title">Panel Docente</div>
+            <div id="studentsSideSub" class="side-sub">Escuela Experimental Porteña</div>
           </div>
         </a>
-        <div class="header-actions">
-          <a class="btn btn-ghost" href="../index.html">Sitio público</a>
-          <a id="staffLink" class="btn btn-secondary" href="admin.html" hidden>Directivos/Docentes</a>
-          <a id="docenteLink" class="btn btn-secondary" href="docente.html" hidden>Panel docente</a>
-          <a id="academicLink" class="btn btn-secondary" href="directivo.html" hidden>Años y materias</a>
-          <a class="btn btn-secondary" href="estudiantes.html">Estudiantes</a>
-          <button id="logout" class="btn btn-primary" type="button">Cerrar sesión</button>
+
+        <nav id="studentsSideNav" class="side-nav" aria-label="Navegacion de estudiantes">
+          <a id="studentsNavInicio" class="side-link" href="docente.html#inicio">
+            <span class="ico" aria-hidden="true">{home}</span>
+            Inicio
+          </a>
+          <a id="studentsNavDocentes" class="side-link" href="directivo.html#docentes" hidden>
+            <span class="ico" aria-hidden="true">{users}</span>
+            Docentes
+          </a>
+          <a id="studentsNavMaterias" class="side-link" href="directivo.html#materias" hidden>
+            <span class="ico" aria-hidden="true">{book}</span>
+            Materias
+          </a>
+          <a id="studentsNavNoticias" class="side-link" href="directivo.html#noticias" hidden>
+            <span class="ico" aria-hidden="true">{news}</span>
+            Noticias
+          </a>
+          <a id="studentsNavEventos" class="side-link" href="directivo.html#eventos" hidden>
+            <span class="ico" aria-hidden="true">{calendar}</span>
+            Eventos
+          </a>
+          <a id="studentsNavConsultas" class="side-link" href="directivo.html#consultas" hidden>
+            <span class="ico" aria-hidden="true">{news}</span>
+            Consultas
+          </a>
+          <a id="studentsNavMateriales" class="side-link" href="docente.html#materiales">
+            <span class="ico" aria-hidden="true">{files}</span>
+            Materiales
+          </a>
+          <a id="studentsNavActividades" class="side-link" href="docente.html#actividades">
+            <span class="ico" aria-hidden="true">{tasks}</span>
+            Actividades
+          </a>
+          <a id="studentsNavAcademicas" class="side-link" href="docente.html#academicas">
+            <span class="ico" aria-hidden="true">{posts}</span>
+            Publicaciones estudiantes
+          </a>
+          <a class="side-link is-active" href="estudiantes.html" aria-current="page">
+            <span class="ico" aria-hidden="true">{users}</span>
+            Estudiantes
+          </a>
+          <a id="studentsNavPerfil" class="side-link" href="docente.html#perfil">
+            <span class="ico" aria-hidden="true">{user}</span>
+            Perfil
+          </a>
+          <button id="logout" class="side-link side-link--danger" type="button">
+            <span class="ico" aria-hidden="true">{logout}</span>
+            Cerrar sesion
+          </button>
+        </nav>
+
+        <div class="side-footer">
+          <div class="pill">Academico</div>
+          <div class="pill">Organizacion</div>
+          <div class="pill">Comunidad</div>
         </div>
-      </div>
-    </header>
+      </aside>
 
-    <main id="contenido" class="main" role="main">
-        <section class="section" aria-label="Gestión de estudiantes">
-        <div class="container">
-          <div class="section-head reveal">
-            <div>
-              <h1 class="section-title">Estudiantes</h1>
-              <p id="roleIntro" class="section-subtitle">
-                Gestión individual o por CSV para estudiantes según tus permisos.
-              </p>
-            </div>
+      <div class="main">
+        <header class="topbar" role="banner">
+          <button id="sideToggle" class="icon-btn" type="button" aria-label="Abrir menu">
+            <span class="hamb" aria-hidden="true"></span>
+          </button>
+          <div class="topbar-title">
+            <div id="studentsTopbarKicker" class="topbar-kicker">Docente</div>
+            <div id="directivoNombre" class="topbar-name">Gestion de estudiantes</div>
           </div>
+          <div class="topbar-actions">
+            <a class="btn btn-ghost" href="../index.html">Sitio publico</a>
+            <a id="staffLink" class="btn btn-secondary" href="admin.html" hidden>Panel superadmin</a>
+            <a id="docenteLink" class="btn btn-secondary" href="docente.html" hidden>Panel docente</a>
+          </div>
+        </header>
 
-          <div class="grid">
+        <main id="contenido" class="content" role="main">
+          <section class="view is-visible" aria-label="Gestion de estudiantes">
+            <div class="view-head">
+              <div>
+                <h1 class="view-title">Estudiantes</h1>
+                <p id="roleIntro" class="view-sub">
+                  Gestión individual o por CSV para estudiantes según tus permisos.
+                </p>
+              </div>
+            </div>
+
+            <div class="grid">
             <form id="studentForm" class="panel reveal" aria-label="Crear estudiante">
               <div class="panel-head">
                 <div>
@@ -240,16 +303,10 @@
               </form>
             </div>
           </div>
-        </div>
-      </section>
-    </main>
-
-    <footer class="site-footer" role="contentinfo">
-      <div class="container footer-bottom">
-        <div>© <span id="year"></span> Escuela Experimental Porteña</div>
-        <div class="footer-bottom-links"><a href="../index.html">Inicio</a></div>
+          </section>
+        </main>
       </div>
-    </footer>
+    </div>
 
     <script src="../js/auth-session.js" defer></script>
     <script src="../js/script.js" defer></script>
