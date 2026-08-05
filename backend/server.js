@@ -27,6 +27,8 @@ const defaultAllowedOrigins = [
   "http://127.0.0.1:4001"
 ];
 
+const allowedOriginPatterns = [/^https:\/\/[a-z0-9-]+\.vercel\.app$/i];
+
 const allowedOrigins = Array.from(
   new Set(
     defaultAllowedOrigins.concat(
@@ -42,6 +44,7 @@ const corsOptions = {
   origin(origin, callback) {
     if (!origin) return callback(null, true);
     if (allowedOrigins.includes(origin)) return callback(null, true);
+    if (allowedOriginPatterns.some((pattern) => pattern.test(origin))) return callback(null, true);
     return callback(new Error("Not allowed by CORS"));
   },
   credentials: true
@@ -103,5 +106,6 @@ const PORT = process.env.PORT || 4000;
   app.listen(PORT, () => {
     console.log(`Backend listening on port ${PORT}`);
     console.log(`Allowed CORS origins: ${allowedOrigins.join(", ")}`);
+    console.log("Allowed dynamic CORS origins: https://*.vercel.app");
   });
 })();
