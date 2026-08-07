@@ -7,8 +7,14 @@
     publicNews: [],
     publicEvents: [],
     canManagePublicContent: false,
+    canAccessDirectivoPanel: false,
+    canAccessSuperadminPanel: false,
     mySubjects: [],
-    myContents: []
+    myContents: [],
+    filters: {
+      materials: { materia: "", curso: "", ciclo: "" },
+      activities: { materia: "", curso: "", ciclo: "" }
+    }
   };
 
   var eventCalendarState = {
@@ -93,10 +99,12 @@
       return false;
     }
     var roles = user.roles && user.roles.length ? user.roles : user.role ? [user.role] : [];
-    state.canManagePublicContent = roles.indexOf("superadmin") !== -1 || roles.indexOf("directivo") !== -1;
+    state.canManagePublicContent = false;
+    state.canAccessDirectivoPanel = roles.indexOf("directivo") !== -1 || roles.indexOf("superadmin") !== -1;
+    state.canAccessSuperadminPanel = roles.indexOf("superadmin") !== -1;
     if (roles.indexOf("docente") === -1) {
       // Redirect to the right panel
-      if (roles.indexOf("superadmin") !== -1) window.location.href = "admin.html";
+      if (roles.indexOf("superadmin") !== -1) window.location.href = "directivo.html#staff";
       else if (roles.indexOf("directivo") !== -1) window.location.href = "directivo.html";
       else window.location.href = "../index.html";
       return false;
@@ -287,6 +295,95 @@
     return [row.materia || "Materia", anioLabel(row.cursoId), row.cicloLectivo ? String(row.cicloLectivo) : ""]
       .filter(Boolean)
       .join(" · ");
+  }
+
+  function materiaCursoIdOf(row) {
+    if (!row) return "";
+    return String(row._id || row.id || "");
+  }
+
+  function cursoIdOf(row) {
+    if (!row || !row.cursoId) return "";
+    return String(row.cursoId._id || row.cursoId.id || row.cursoId || "");
+  }
+
+  function materiaNombreOf(row) {
+    return row && row.materia ? String(row.materia) : "";
+  }
+
+  function cicloOf(row) {
+    return row && row.cicloLectivo ? String(row.cicloLectivo) : "";
+  }
+
+  function fillFilterSelect(select, rows, getValue, getLabel, emptyLabel) {
+    if (!select) return;
+    var current = select.value;
+    select.innerHTML = '<option value="">' + emptyLabel + '</option>';
+    rows.forEach(function (row) {
+      var option = document.createElement("option");
+      option.value = getValue(row);
+      option.textContent = getLabel(row);
+      select.appendChild(option);
+    });
+    select.value = rows.some(function (row) { return getValue(row) === current; }) ? current : "";
+  }
+
+  function uniqueStrings(values) {
+    var seen = {};
+    return values.filter(function (value) {
+      var key = String(value || "");
+      if (!key || seen[key]) return false;
+      seen[key] = true;
+      return true;
+    });
+  }
+
+  function syncContentFilters() {
+    var materias = state.mySubjects.slice().sort(function (a, b) {
+      return materiaCursoLabel(a).localeCompare(materiaCursoLabel(b), "es", { sensitivity: "base" });
+    });
+    var cursos = dedupeByKey(state.mySubjects, cursoIdOf).sort(function (a, b) {
+      return anioLabel(a.cursoId).localeCompare(anioLabel(b.cursoId), "es", { sensitivity: "base" });
+    });
+    var ciclos = uniqueStrings(state.mySubjects.map(cicloOf)).sort(function (a, b) {
+      return a.localeCompare(b, "es", { numeric: true, sensitivity: "base" });
+    });
+
+    fillFilterSelect($("#materialsMateriaFilter"), materias, materiaCursoIdOf, materiaCursoLabel, "Todas");
+    fillFilterSelect($("#materialsCursoFilter"), cursos, function (row) { return cursoIdOf(row); }, function (row) { return anioLabel(row.cursoId); }, "Todos");
+    fillFilterSelect($("#materialsCicloFilter"), ciclos, function (value) { return value; }, function (value) { return value; }, "Todos");
+
+    fillFilterSelect($("#activitiesMateriaFilter"), materias, materiaCursoIdOf, materiaCursoLabel, "Todas");
+    fillFilterSelect($("#activitiesCursoFilter"), cursos, function (row) { return cursoIdOf(row); }, function (row) { return anioLabel(row.cursoId); }, "Todos");
+    fillFilterSelect($("#activitiesCicloFilter"), ciclos, function (value) { return value; }, function (value) { return value; }, "Todos");
+  }
+
+  function applyContentFilters(items, filterKey) {
+    var filters = state.filters[filterKey] || { materia: "", curso: "", ciclo: "" };
+    return (items || []).filter(function (row) {
+      var subject = row && row.materiaCursoId;
+      if (!subject) return false;
+      if (filters.materia && materiaCursoIdOf(subject) !== filters.materia) return false;
+      if (filters.curso && cursoIdOf(subject) !== filters.curso) return false;
+      if (filters.ciclo && cicloOf(subject) !== filters.ciclo) return false;
+      return true;
+    });
+  }
+
+  function renderFilteredContent() {
+    var mats = state.myContents.filter(function (row) {
+      return row.tipo === "material";
+    }).sort(function (a, b) {
+      return new Date(b.fecha || b.createdAt || 0).getTime() - new Date(a.fecha || a.createdAt || 0).getTime();
+    });
+    var acts = state.myContents.filter(function (row) {
+      return row.tipo === "actividad";
+    }).sort(function (a, b) {
+      return new Date(a.fecha || a.createdAt || 0).getTime() - new Date(b.fecha || b.createdAt || 0).getTime();
+    });
+
+    renderMaterials(applyContentFilters(mats, "materials"));
+    renderStudentActivities(applyContentFilters(acts, "activities"));
   }
 
   function contentFileUrl(file) {
@@ -579,6 +676,24 @@
         localStorage.removeItem(STORAGE_USER);
       }
       window.location.href = "../index.html";
+    });
+  }
+
+  function initContentFilters() {
+    [
+      ["#materialsMateriaFilter", "materials", "materia"],
+      ["#materialsCursoFilter", "materials", "curso"],
+      ["#materialsCicloFilter", "materials", "ciclo"],
+      ["#activitiesMateriaFilter", "activities", "materia"],
+      ["#activitiesCursoFilter", "activities", "curso"],
+      ["#activitiesCicloFilter", "activities", "ciclo"]
+    ].forEach(function (entry) {
+      var el = $(entry[0]);
+      if (!el) return;
+      el.addEventListener("change", function () {
+        state.filters[entry[1]][entry[2]] = el.value || "";
+        renderFilteredContent();
+      });
     });
   }
 
@@ -1047,6 +1162,7 @@
     await refreshMyContents();
     await refreshPublicNews();
     await refreshPublicEvents();
+    syncContentFilters();
     var pubs = state.myContents.filter(function (row) {
       return row.tipo === "publicacion";
     }).sort(function (a, b) {
@@ -1077,8 +1193,7 @@
     if (kpiActs) kpiActs.textContent = String(acts.length);
     if (kpiEventos) kpiEventos.textContent = String(state.publicEvents.slice(0, 7).length);
 
-    renderMaterials(mats);
-    renderStudentActivities(acts);
+    renderFilteredContent();
     renderAcademicPosts(pubs, academicEvents);
     renderAssignedSubjects(state.mySubjects);
     renderRecentWork(mats.concat(pubs), acts.concat(academicEvents.map(function (row) {
@@ -1404,10 +1519,10 @@
     if (p4) p4.textContent = roles.length ? roles.join(", ") : "-";
 
     var superLink = $("#superLink");
-    if (superLink) superLink.hidden = roles.indexOf("superadmin") === -1;
+    if (superLink) superLink.hidden = !state.canAccessSuperadminPanel;
 
     var dirLink = $("#dirLink");
-    if (dirLink) dirLink.hidden = roles.indexOf("directivo") === -1 && roles.indexOf("superadmin") === -1;
+    if (dirLink) dirLink.hidden = !state.canAccessDirectivoPanel;
 
     var publicacionesLink = $("#publicacionesLink");
     if (publicacionesLink) publicacionesLink.hidden = !state.canManagePublicContent;
@@ -1441,6 +1556,7 @@
   initSidebarNav();
   initSideToggle();
   initLogout();
+  initContentFilters();
   initModals();
   initCreatePost();
   initMaterial();

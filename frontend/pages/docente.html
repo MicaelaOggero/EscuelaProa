@@ -22,7 +22,7 @@
     <div class="app">
       <aside class="sidebar" aria-label="Sidebar">
         <a class="side-brand" href="index.html" aria-label="Inicio">
-          <img src="../assets/logo.svg" alt="Logo" width="40" height="40" />
+          <img src="../assets/logo_porteña.png" alt="Logo" width="40" height="40" />
           <div>
             <div class="side-title">Panel Docente</div>
             <div class="side-sub">Escuela Experimental Porteña</div>
@@ -83,7 +83,7 @@
             <div class="topbar-actions">
           <a class="btn btn-ghost" href="../index.html">Sitio público</a>
         <a class="btn btn-secondary" href="directivo.html" id="dirLink" hidden>Panel directivo</a>
-        <a class="btn btn-secondary" href="admin.html" id="superLink" hidden>Panel superadmin</a>
+        <a class="btn btn-secondary" href="directivo.html#staff" id="superLink" hidden>Panel superadmin</a>
             </div>
           </header>
 
@@ -264,6 +264,26 @@
                   <div class="panel-sub">Contenido academico visible solo para estudiantes de la materia y curso seleccionados.</div>
                 </div>
               </div>
+              <div class="content-filters" aria-label="Filtros de materiales">
+                <div class="field">
+                  <label for="materialsMateriaFilter">Materia</label>
+                  <select id="materialsMateriaFilter">
+                    <option value="">Todas</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="materialsCursoFilter">Curso</label>
+                  <select id="materialsCursoFilter">
+                    <option value="">Todos</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="materialsCicloFilter">Ciclo lectivo</label>
+                  <select id="materialsCicloFilter">
+                    <option value="">Todos</option>
+                  </select>
+                </div>
+              </div>
               <div id="materialsList" class="list" aria-label="Lista de materiales">
                 <div class="empty">Aun no hay materiales.</div>
               </div>
@@ -286,6 +306,26 @@
                 <div>
                   <div class="panel-title">Proximas</div>
                   <div class="panel-sub">Consignas y actividades visibles solo para estudiantes de esa materia.</div>
+                </div>
+              </div>
+              <div class="content-filters" aria-label="Filtros de actividades">
+                <div class="field">
+                  <label for="activitiesMateriaFilter">Materia</label>
+                  <select id="activitiesMateriaFilter">
+                    <option value="">Todas</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="activitiesCursoFilter">Curso</label>
+                  <select id="activitiesCursoFilter">
+                    <option value="">Todos</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="activitiesCicloFilter">Ciclo lectivo</label>
+                  <select id="activitiesCicloFilter">
+                    <option value="">Todos</option>
+                  </select>
                 </div>
               </div>
               <div id="activitiesList" class="list" aria-label="Lista de actividades">

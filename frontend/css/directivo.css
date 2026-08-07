@@ -219,6 +219,71 @@
   margin-top: 0.15rem;
 }
 
+.staff-grid {
+  margin-bottom: 1rem;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  padding: 0.2rem 0 0.8rem;
+}
+
+.toolbar-left,
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.toolbar-label {
+  color: var(--muted-2);
+  font-weight: 900;
+  letter-spacing: -0.01em;
+}
+
+.toolbar-select {
+  border-radius: 16px;
+}
+
+.row-actions {
+  display: flex;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.btn-sm {
+  padding: 0.5rem 0.7rem;
+  font-size: 0.9rem;
+}
+
+.checks {
+  display: flex;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+  padding: 0.35rem 0;
+}
+
+.check {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid rgba(23, 19, 32, 0.12);
+  background: rgba(255, 255, 255, 0.72);
+  font-weight: 850;
+  color: rgba(23, 19, 32, 0.82);
+}
+
+.check input {
+  width: 16px;
+  height: 16px;
+}
+
 .news-images-manager {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -1015,6 +1080,11 @@ select {
   .consultas-toolbar,
   .consultas-kpis {
     grid-template-columns: 1fr;
+  }
+
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
   }
 }
 

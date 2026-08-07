@@ -311,6 +311,17 @@
   font-size: 0.92rem;
 }
 
+.content-filters {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.8rem;
+  margin-bottom: 0.9rem;
+}
+
+.content-filters .field {
+  margin: 0;
+}
+
 .table-wrap {
   overflow: auto;
   border-radius: 18px;
@@ -696,6 +707,9 @@
     grid-template-columns: 1fr;
   }
   .cols-2 {
+    grid-template-columns: 1fr;
+  }
+  .content-filters {
     grid-template-columns: 1fr;
   }
   .calendar-grid {

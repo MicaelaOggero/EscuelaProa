@@ -22,15 +22,19 @@
     <div class="app">
       <aside class="sidebar" aria-label="Sidebar directivo">
         <a class="side-brand" href="../index.html" aria-label="Inicio">
-          <img src="../assets/logo.svg" alt="Logo" width="40" height="40" />
+          <img src="../assets/logo_porteña.png" alt="Logo" width="40" height="40" />
           <div>
-            <div class="side-title">Panel Directivo</div>
-            <div class="side-sub">Escuela Experimental Porteña</div>
+            <div id="panelSideTitle" class="side-title">Panel Directivo</div>
+            <div id="panelSideSub" class="side-sub">Escuela Experimental Porteña</div>
           </div>
         </a>
 
         <nav class="side-nav" aria-label="Navegacion directiva">
-          <a class="side-link is-active" href="#docentes" data-view="docentes" aria-current="page">
+          <a id="staffSideLink" class="side-link" href="#staff" data-view="staff" hidden>
+            <span class="ico" aria-hidden="true">{users}</span>
+            Staff
+          </a>
+          <a id="docentesSideLink" class="side-link is-active" href="#docentes" data-view="docentes" aria-current="page">
             <span class="ico" aria-hidden="true">{book}</span>
             Docentes
           </a>
@@ -73,22 +77,157 @@
             <span class="hamb" aria-hidden="true"></span>
           </button>
           <div class="topbar-title">
-            <div class="topbar-kicker">Directivo</div>
+            <div id="panelTopbarKicker" class="topbar-kicker">Directivo</div>
             <div id="directivoNombre" class="topbar-name">Gestion academica</div>
           </div>
           <div class="topbar-actions">
             <a class="btn btn-ghost" href="../index.html">Sitio publico</a>
-            <a id="staffLink" class="btn btn-secondary" href="admin.html" hidden>Panel superadmin</a>
             <a id="docenteLink" class="btn btn-secondary" href="docente.html" hidden>Panel docente</a>
           </div>
         </header>
 
         <main id="contenido" class="content" role="main">
+          <section class="view" data-view="staff" aria-label="Gestion de staff" hidden>
+            <div class="view-head">
+              <div>
+                <h1 class="view-title">Staff institucional</h1>
+                <p class="view-sub">Como superadmin puedes crear y administrar usuarios con rol directivo y docente desde el mismo panel lateral.</p>
+              </div>
+            </div>
+
+            <div class="grid staff-grid">
+              <form id="createStaffForm" class="panel" aria-label="Crear usuario staff">
+                <div class="panel-head">
+                  <div>
+                    <div class="panel-title">Crear usuario</div>
+                    <div class="panel-sub">Alta manual de directivos y docentes.</div>
+                  </div>
+                </div>
+
+                <div class="cols-2">
+                  <div class="field">
+                    <label for="staffNombre">Nombre</label>
+                    <input id="staffNombre" name="nombre" type="text" autocomplete="name" required />
+                  </div>
+                  <div class="field">
+                    <label for="staffApellido">Apellido</label>
+                    <input id="staffApellido" name="apellido" type="text" autocomplete="family-name" />
+                  </div>
+                </div>
+                <div class="cols-2">
+                  <div class="field">
+                    <label for="staffFechaNac">Fecha de nacimiento</label>
+                    <input id="staffFechaNac" name="fechaNacimiento" type="date" />
+                  </div>
+                  <div class="field">
+                    <label for="staffEmail">Email</label>
+                    <input id="staffEmail" name="email" type="email" autocomplete="email" required />
+                  </div>
+                </div>
+                <div class="cols-2">
+                  <div class="field">
+                    <label for="staffPassword">Password</label>
+                    <input id="staffPassword" name="password" type="password" autocomplete="new-password" required />
+                  </div>
+                  <div class="field">
+                    <label for="staffRoleDirectivo">Roles</label>
+                    <div class="checks" role="group" aria-label="Roles de staff">
+                      <label class="check">
+                        <input id="staffRoleDirectivo" type="checkbox" />
+                        <span>Directivo</span>
+                      </label>
+                      <label class="check">
+                        <input id="staffRoleDocente" type="checkbox" checked />
+                        <span>Docente</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <button class="btn btn-primary" type="submit">Crear</button>
+                <div id="createMsg" class="msg" role="status" aria-live="polite"></div>
+              </form>
+
+              <div class="panel" aria-label="Importar staff por CSV">
+                <div class="panel-head">
+                  <div>
+                    <div class="panel-title">Importar staff</div>
+                    <div class="panel-sub">Carga masiva de directivos y docentes.</div>
+                  </div>
+                </div>
+
+                <div class="cols-2">
+                  <div class="field">
+                    <label for="staffCsvFile">Archivo CSV</label>
+                    <input id="staffCsvFile" type="file" accept=".csv,text/csv" />
+                  </div>
+                  <div class="field">
+                    <label for="staffImportRole">Rol por defecto</label>
+                    <select id="staffImportRole">
+                      <option value="docente" selected>Docente</option>
+                      <option value="directivo">Directivo</option>
+                      <option value="directivo,docente">Directivo y docente</option>
+                    </select>
+                  </div>
+                </div>
+                <button id="staffImportBtn" class="btn btn-secondary" type="button">Importar usuarios</button>
+                <div class="panel-note">
+                  Columnas: <span class="mono">nombre</span>, <span class="mono">apellido</span>, <span class="mono">fecha de nacimiento</span>, <span class="mono">email</span>, <span class="mono">dni</span>, <span class="mono">password</span>, <span class="mono">rol</span>.
+                </div>
+                <div id="staffImportMsg" class="msg" role="status" aria-live="polite"></div>
+                <div id="staffImportDetails" class="import-details" hidden></div>
+              </div>
+            </div>
+
+            <div class="panel" aria-label="Listado staff">
+              <div class="panel-head">
+                <div>
+                  <div class="panel-title">Listado completo</div>
+                  <div class="panel-sub">Filtra por rol y edita usuarios de staff existentes.</div>
+                </div>
+              </div>
+
+              <div class="toolbar" aria-label="Filtros y acciones de staff">
+                <div class="toolbar-left">
+                  <label class="toolbar-label" for="filterRole">Filtrar</label>
+                  <select id="filterRole" class="toolbar-select">
+                    <option value="">Todos</option>
+                    <option value="directivo">Directivos</option>
+                    <option value="docente">Docentes</option>
+                  </select>
+                </div>
+                <div class="toolbar-right">
+                  <button id="refreshStaff" class="btn btn-secondary" type="button">Actualizar</button>
+                </div>
+              </div>
+
+              <div class="table-wrap">
+                <table class="table" aria-label="Tabla de staff">
+                  <thead>
+                    <tr>
+                      <th>Nombre</th>
+                      <th>Apellido</th>
+                      <th>Fecha nac.</th>
+                      <th>Email</th>
+                      <th>Rol</th>
+                      <th>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody id="staffTbody">
+                    <tr><td colspan="6" class="table-empty">Sin datos</td></tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div id="staffListMsg" class="msg" role="status" aria-live="polite"></div>
+            </div>
+          </section>
+
           <section class="view is-visible" data-view="docentes" aria-label="Gestion de docentes">
             <div class="view-head">
               <div>
                 <h1 class="view-title">Docentes</h1>
-                <p class="view-sub">Administra el equipo docente, crea nuevos perfiles y actualiza la informacion del plantel.</p>
+                <p class="view-sub">Administra el equipo docente. Los directivos crean solo docentes; el superadmin ademas dispone de la seccion Staff para gestionar directivos y docentes.</p>
               </div>
             </div>
 
@@ -880,6 +1019,67 @@
             <button class="btn btn-secondary" type="button" data-close="true">Cerrar</button>
           </div>
           <div id="consultaFormMsg" class="msg" role="status" aria-live="polite"></div>
+        </form>
+      </div>
+    </div>
+
+    <div id="staffEditModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="staffEditTitle">
+      <div class="modal-backdrop" data-close="true"></div>
+      <div class="modal-panel" role="document">
+        <div class="modal-head">
+          <div>
+            <div id="staffEditTitle" class="modal-title">Editar usuario</div>
+            <div class="modal-sub">Actualiza datos y roles del staff.</div>
+          </div>
+          <button id="staffCloseEdit" class="btn btn-ghost btn-sm" type="button">Cerrar</button>
+        </div>
+
+        <form id="staffEditForm" class="modal-body" aria-label="Editar usuario de staff">
+          <input id="staffEditId" type="hidden" />
+
+          <div class="field">
+            <label for="staffEditEmail">Email (solo lectura)</label>
+            <input id="staffEditEmail" type="email" readonly />
+          </div>
+
+          <div class="cols-2">
+            <div class="field">
+              <label for="staffEditNombre">Nombre</label>
+              <input id="staffEditNombre" type="text" required />
+            </div>
+
+            <div class="field">
+              <label for="staffEditApellido">Apellido</label>
+              <input id="staffEditApellido" type="text" />
+            </div>
+          </div>
+
+          <div class="cols-2">
+            <div class="field">
+              <label for="staffEditFechaNac">Fecha de nacimiento</label>
+              <input id="staffEditFechaNac" type="date" />
+            </div>
+
+            <div class="field">
+              <label for="staffEditRoleDirectivo">Roles</label>
+              <div class="checks" role="group" aria-label="Roles del staff editado">
+                <label class="check">
+                  <input id="staffEditRoleDirectivo" type="checkbox" />
+                  <span>Directivo</span>
+                </label>
+                <label class="check">
+                  <input id="staffEditRoleDocente" type="checkbox" />
+                  <span>Docente</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-actions">
+            <button class="btn btn-primary" type="submit">Guardar cambios</button>
+            <button id="staffCancelEdit" class="btn btn-secondary" type="button">Cancelar</button>
+          </div>
+          <div id="staffEditMsg" class="msg" role="status" aria-live="polite"></div>
         </form>
       </div>
     </div>

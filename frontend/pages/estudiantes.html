@@ -22,7 +22,7 @@
     <div class="app">
       <aside id="studentsSidebar" class="sidebar" aria-label="Sidebar de estudiantes">
         <a class="side-brand" href="../index.html" aria-label="Inicio">
-          <img src="../assets/logo.svg" alt="Logo" width="40" height="40" />
+          <img src="../assets/logo_porteña.png" alt="Logo" width="40" height="40" />
           <div>
             <div id="studentsSideTitle" class="side-title">Panel Docente</div>
             <div id="studentsSideSub" class="side-sub">Escuela Experimental Porteña</div>
@@ -33,6 +33,10 @@
           <a id="studentsNavInicio" class="side-link" href="docente.html#inicio">
             <span class="ico" aria-hidden="true">{home}</span>
             Inicio
+          </a>
+          <a id="studentsNavStaff" class="side-link" href="directivo.html#staff" hidden>
+            <span class="ico" aria-hidden="true">{users}</span>
+            Staff
           </a>
           <a id="studentsNavDocentes" class="side-link" href="directivo.html#docentes" hidden>
             <span class="ico" aria-hidden="true">{users}</span>
@@ -98,7 +102,7 @@
           </div>
           <div class="topbar-actions">
             <a class="btn btn-ghost" href="../index.html">Sitio publico</a>
-            <a id="staffLink" class="btn btn-secondary" href="admin.html" hidden>Panel superadmin</a>
+            <a id="staffLink" class="btn btn-secondary" href="directivo.html#staff" hidden>Panel superadmin</a>
             <a id="docenteLink" class="btn btn-secondary" href="docente.html" hidden>Panel docente</a>
           </div>
         </header>

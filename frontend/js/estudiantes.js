@@ -2,11 +2,13 @@
   var STORAGE_API_BASE = "eep_api_base";
   var STORAGE_TOKEN = "eep_token";
   var STORAGE_USER = "eep_user";
+  var STORAGE_LAST_PANEL = "eep_last_panel_path";
 
   var state = {
     user: null,
     roles: [],
     directivoLike: false,
+    docenteContext: false,
     docentes: [],
     anios: [],
     materias: []
@@ -62,6 +64,23 @@
 
   function hasRole(role) {
     return state.roles.indexOf(role) !== -1;
+  }
+
+  function inferDocenteContext() {
+    var lastPanel = sessionStorage.getItem(STORAGE_LAST_PANEL) || "";
+    if (/pages\/docente\.html/i.test(lastPanel)) return true;
+    if (/pages\/directivo\.html/i.test(lastPanel)) return false;
+    return !state.directivoLike && hasRole("docente");
+  }
+
+  function rememberPanelPath() {
+    if (state.docenteContext && hasRole("docente")) {
+      sessionStorage.setItem(STORAGE_LAST_PANEL, "pages/docente.html");
+      return;
+    }
+    if (hasRole("superadmin")) sessionStorage.setItem(STORAGE_LAST_PANEL, "pages/directivo.html#staff");
+    else if (state.directivoLike) sessionStorage.setItem(STORAGE_LAST_PANEL, "pages/directivo.html");
+    else if (hasRole("docente")) sessionStorage.setItem(STORAGE_LAST_PANEL, "pages/docente.html");
   }
 
   function injectIcons() {
@@ -124,6 +143,7 @@
     }
     state.roles = rolesOf(state.user);
     state.directivoLike = hasRole("directivo") || hasRole("superadmin");
+    state.docenteContext = inferDocenteContext();
     if (!state.directivoLike && !hasRole("docente")) {
       window.location.href = "../index.html";
       return false;
@@ -184,6 +204,7 @@
     var navActividades = $("#studentsNavActividades");
     var navAcademicas = $("#studentsNavAcademicas");
     var navPerfil = $("#studentsNavPerfil");
+    var navStaff = $("#studentsNavStaff");
     var navDocentes = $("#studentsNavDocentes");
     var navMaterias = $("#studentsNavMaterias");
     var navNoticias = $("#studentsNavNoticias");
@@ -192,15 +213,16 @@
     var navDocentePanel = $("#studentsNavDocentePanel");
     var roleIntro = $("#roleIntro");
 
-    if (!state.directivoLike && hasRole("docente")) {
+    if (state.docenteContext && hasRole("docente")) {
       if (sideTitle) sideTitle.textContent = "Panel Docente";
       if (sideSub) sideSub.textContent = "Escuela Experimental Porteña";
       if (topbarKicker) topbarKicker.textContent = "Docente";
       if (navInicio) navInicio.hidden = false;
       if (navMateriales) navMateriales.hidden = false;
       if (navActividades) navActividades.hidden = false;
-      if (navAcademicas) navAcademicas.hidden = false;
+      if (navAcademicas) navAcademicas.hidden = true;
       if (navPerfil) navPerfil.hidden = false;
+      if (navStaff) navStaff.hidden = true;
       if (navDocentes) navDocentes.hidden = true;
       if (navMaterias) navMaterias.hidden = true;
       if (navNoticias) navNoticias.hidden = true;
@@ -208,15 +230,16 @@
       if (navConsultas) navConsultas.hidden = true;
       if (navDocentePanel) navDocentePanel.hidden = true;
     } else {
-      if (sideTitle) sideTitle.textContent = "Panel Directivo";
-      if (sideSub) sideSub.textContent = "Escuela Experimental Porteña";
-      if (topbarKicker) topbarKicker.textContent = "Directivo";
+      if (sideTitle) sideTitle.textContent = hasRole("superadmin") ? "Panel Superadmin" : "Panel Directivo";
+      if (sideSub) sideSub.textContent = hasRole("superadmin") ? "Acceso completo institucional" : "Escuela Experimental Porteña";
+      if (topbarKicker) topbarKicker.textContent = hasRole("superadmin") ? "Superadmin" : "Directivo";
       if (navInicio) navInicio.hidden = true;
       if (navMateriales) navMateriales.hidden = true;
       if (navActividades) navActividades.hidden = true;
       if (navAcademicas) navAcademicas.hidden = true;
       if (navPerfil) navPerfil.hidden = true;
-      if (navDocentes) navDocentes.hidden = false;
+      if (navStaff) navStaff.hidden = !hasRole("superadmin");
+      if (navDocentes) navDocentes.hidden = hasRole("superadmin");
       if (navMaterias) navMaterias.hidden = false;
       if (navNoticias) navNoticias.hidden = false;
       if (navEventos) navEventos.hidden = false;
@@ -225,7 +248,7 @@
     }
 
     if (roleIntro) {
-      roleIntro.textContent = state.directivoLike
+      roleIntro.textContent = !state.docenteContext && state.directivoLike
         ? "Puedes crear, editar, importar y filtrar todos los estudiantes por curso."
         : "Puedes consultar estudiantes de los cursos donde dictas materias.";
     }
@@ -242,8 +265,8 @@
 
     var studentForm = $("#studentForm");
     var importPanel = $("#studentsImportPanel");
-    if (studentForm) studentForm.hidden = !state.directivoLike;
-    if (importPanel) importPanel.hidden = !state.directivoLike;
+    if (studentForm) studentForm.hidden = state.docenteContext || !state.directivoLike;
+    if (importPanel) importPanel.hidden = state.docenteContext || !state.directivoLike;
 
   }
 
@@ -328,7 +351,7 @@
   }
 
   async function loadContext() {
-    if (state.directivoLike) {
+    if (!state.docenteContext && state.directivoLike) {
       var anios = await api("/cursos", { method: "GET" });
       state.anios = sortByLabel(uniqueById(anios || []), anioLabel);
     } else {
@@ -378,7 +401,7 @@
       });
 
       var tdActions = document.createElement("td");
-      if (state.directivoLike) {
+      if (!state.docenteContext && state.directivoLike) {
         var btnEdit = document.createElement("button");
         btnEdit.type = "button";
         btnEdit.className = "btn btn-ghost";
@@ -594,6 +617,7 @@
 
   if (!guard()) return;
   injectIcons();
+  rememberPanelPath();
   initSidebarToggle();
   initHeader();
   initLogout();

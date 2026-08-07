@@ -24,7 +24,8 @@ const defaultAllowedOrigins = [
   "http://localhost:4001",
   "http://127.0.0.1:3000",
   "http://127.0.0.1:4000",
-  "http://127.0.0.1:4001"
+  "http://127.0.0.1:4001",
+  "http://127.0.0.1:5501"
 ];
 
 const allowedOriginPatterns = [/^https:\/\/[a-z0-9-]+\.vercel\.app$/i];

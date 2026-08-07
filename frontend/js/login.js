@@ -81,7 +81,7 @@
     if (window.EEPAuth && window.EEPAuth.isAuthenticated()) {
       var currentUser = window.EEPAuth.getUser();
       var currentRoles = window.EEPAuth.rolesOf(currentUser);
-      if (currentRoles.indexOf("superadmin") !== -1) window.location.href = "admin.html";
+      if (currentRoles.indexOf("superadmin") !== -1) window.location.href = "directivo.html#staff";
       else if (currentRoles.indexOf("directivo") !== -1) window.location.href = "directivo.html";
       else if (currentRoles.indexOf("docente") !== -1) window.location.href = "docente.html";
       else if (currentRoles.indexOf("estudiante") !== -1) window.location.href = "estudiante.html";
@@ -111,7 +111,7 @@
         if (!Array.isArray(roles)) roles = [];
 
         if (roles.indexOf("superadmin") !== -1) {
-          window.location.href = "admin.html";
+          window.location.href = "directivo.html#staff";
         } else if (roles.indexOf("directivo") !== -1) {
           window.location.href = "directivo.html";
         } else if (roles.indexOf("docente") !== -1) {

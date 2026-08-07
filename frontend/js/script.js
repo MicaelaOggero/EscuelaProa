@@ -802,9 +802,9 @@ function initAuthHeader() {
 
   function defaultPanelPath() {
     if (roles.indexOf("docente") !== -1) return "pages/docente.html";
-    if (roles.indexOf("superadmin") !== -1) return "pages/admin.html";
+    if (roles.indexOf("superadmin") !== -1) return "pages/directivo.html#staff";
     if (roles.indexOf("directivo") !== -1) return "pages/directivo.html";
-    return "pages/admin.html";
+    return "pages/directivo.html";
   }
 
   if (loginLink) loginLink.hidden = isLoggedIn;

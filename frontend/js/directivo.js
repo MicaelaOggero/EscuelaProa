@@ -157,13 +157,23 @@
   }
 
   function initSidebarViews() {
+    function fallbackView() {
+      var superLink = $("#staffSideLink");
+      if (superLink && !superLink.hidden) return "staff";
+      return "docentes";
+    }
+
     function show(view) {
+      var requestedView = view || fallbackView();
+      var requestedLink = document.querySelector('.side-link[data-view="' + requestedView + '"]');
+      if (requestedLink && requestedLink.hidden) requestedView = fallbackView();
+
       Array.prototype.slice.call(document.querySelectorAll(".view")).forEach(function (el) {
-        el.classList.toggle("is-visible", el.getAttribute("data-view") === view);
+        el.classList.toggle("is-visible", el.getAttribute("data-view") === requestedView);
       });
 
       Array.prototype.slice.call(document.querySelectorAll(".side-link[data-view]")).forEach(function (el) {
-        var active = el.getAttribute("data-view") === view;
+        var active = el.getAttribute("data-view") === requestedView;
         el.classList.toggle("is-active", active);
         if (active) el.setAttribute("aria-current", "page");
         else el.removeAttribute("aria-current");
@@ -181,7 +191,7 @@
     });
 
     var hash = (window.location.hash || "").replace("#", "");
-    show(hash || "docentes");
+    show(hash || fallbackView());
   }
 
   function openModal(selector) {
@@ -1184,16 +1194,28 @@
 
   function syncHeaderUser() {
     var nameEl = $("#directivoNombre");
+    var kickerEl = $("#panelTopbarKicker");
+    var sideTitleEl = $("#panelSideTitle");
+    var sideSubEl = $("#panelSideSub");
     if (!nameEl) return;
     var user = getUser();
     if (!user) return;
+    var roles = rolesOf(user);
+    var isSuperadmin = roles.indexOf("superadmin") !== -1;
     var label = [user.nombre, user.apellido].filter(Boolean).join(" ");
     nameEl.textContent = label || user.email || "Gestion academica";
+    if (kickerEl) kickerEl.textContent = isSuperadmin ? "Superadmin" : "Directivo";
+    if (sideTitleEl) sideTitleEl.textContent = isSuperadmin ? "Panel Superadmin" : "Panel Directivo";
+    if (sideSubEl) sideSubEl.textContent = isSuperadmin ? "Acceso completo institucional" : "Escuela Experimental Porteña";
   }
 
   function rolesOf(u) {
     var roles = (u && (u.roles || (u.role ? [u.role] : []))) || [];
     return Array.isArray(roles) ? roles : [];
+  }
+
+  function hasCurrentRole(role) {
+    return rolesOf(getUser()).indexOf(role) !== -1;
   }
 
   function guard() {
@@ -1205,13 +1227,22 @@
     }
     var roles = rolesOf(u);
     var isDirectivoLike = roles.indexOf("directivo") !== -1 || roles.indexOf("superadmin") !== -1;
+    var isSuperadmin = roles.indexOf("superadmin") !== -1;
     if (!isDirectivoLike) {
       if (roles.indexOf("docente") !== -1) window.location.href = "docente.html";
       else window.location.href = "../index.html";
       return false;
     }
-    var staffLink = $("#staffLink");
-    if (staffLink) staffLink.hidden = roles.indexOf("superadmin") === -1;
+
+    var staffSideLink = $("#staffSideLink");
+    if (staffSideLink) staffSideLink.hidden = !isSuperadmin;
+
+    var docentesSideLink = $("#docentesSideLink");
+    if (docentesSideLink) docentesSideLink.hidden = isSuperadmin;
+
+    Array.prototype.slice.call(document.querySelectorAll('.view[data-view="staff"]')).forEach(function (el) {
+      el.hidden = !isSuperadmin;
+    });
 
     var docenteLink = $("#docenteLink");
     if (docenteLink) docenteLink.hidden = roles.indexOf("docente") === -1;
@@ -1395,6 +1426,268 @@
 
     el.innerHTML = blocks.join("");
     el.hidden = !blocks.length;
+  }
+
+  function renderStaffRows(users) {
+    var tbody = $("#staffTbody");
+    if (!tbody) return;
+    tbody.innerHTML = "";
+
+    if (!users || !users.length) {
+      var trEmpty = document.createElement("tr");
+      var tdEmpty = document.createElement("td");
+      tdEmpty.colSpan = 6;
+      tdEmpty.className = "table-empty";
+      tdEmpty.textContent = "Sin resultados";
+      trEmpty.appendChild(tdEmpty);
+      tbody.appendChild(trEmpty);
+      return;
+    }
+
+    users.forEach(function (u) {
+      var tr = document.createElement("tr");
+
+      var tdNombre = document.createElement("td");
+      tdNombre.textContent = u.nombre || "-";
+      tr.appendChild(tdNombre);
+
+      var tdApellido = document.createElement("td");
+      tdApellido.textContent = u.apellido || "-";
+      tr.appendChild(tdApellido);
+
+      var tdNac = document.createElement("td");
+      tdNac.textContent = formatFecha(u.fechaNacimiento);
+      tr.appendChild(tdNac);
+
+      var tdEmail = document.createElement("td");
+      tdEmail.textContent = u.email || "-";
+      tr.appendChild(tdEmail);
+
+      var tdRole = document.createElement("td");
+      tdRole.textContent = (u.roles && u.roles.length ? u.roles.join(", ") : u.role) || "-";
+      tr.appendChild(tdRole);
+
+      var tdActions = document.createElement("td");
+      var actions = document.createElement("div");
+      actions.className = "row-actions";
+
+      var btnEdit = document.createElement("button");
+      btnEdit.type = "button";
+      btnEdit.className = "btn btn-ghost btn-sm";
+      btnEdit.textContent = "Editar";
+      btnEdit.addEventListener("click", function () {
+        openStaffEditModal(u);
+      });
+
+      var btnDel = document.createElement("button");
+      btnDel.type = "button";
+      btnDel.className = "btn btn-secondary btn-sm";
+      btnDel.textContent = "Eliminar";
+      btnDel.addEventListener("click", function () {
+        deleteStaff(u);
+      });
+
+      actions.appendChild(btnEdit);
+      actions.appendChild(btnDel);
+      tdActions.appendChild(actions);
+      tr.appendChild(tdActions);
+      tbody.appendChild(tr);
+    });
+  }
+
+  async function loadStaff() {
+    var msgEl = $("#staffListMsg");
+    if (!msgEl) return;
+    setMsg(msgEl, "Cargando staff...", "");
+    try {
+      var filter = $("#filterRole");
+      var q = filter && filter.value ? "?role=" + encodeURIComponent(filter.value) : "";
+      var data = await api("/users/staff" + q, { method: "GET" });
+      renderStaffRows(data);
+      setMsg(msgEl, "OK", "ok");
+    } catch (err) {
+      renderStaffRows([]);
+      setMsg(msgEl, err.message || "Error", "error");
+    }
+  }
+
+  async function deleteStaff(user) {
+    var msgEl = $("#staffListMsg");
+    if (!user || !user._id) {
+      setMsg(msgEl, "ID invalido", "error");
+      return;
+    }
+    if (!confirm("Eliminar a " + (user.email || user.nombre || "este usuario") + "?")) return;
+    setMsg(msgEl, "Eliminando...", "");
+    try {
+      await api("/users/staff/" + encodeURIComponent(user._id), { method: "DELETE" });
+      await Promise.all([loadStaff(), loadDocentes(), loadAll()]);
+      setMsg(msgEl, "Eliminado", "ok");
+    } catch (err) {
+      setMsg(msgEl, err.message || "Error", "error");
+    }
+  }
+
+  function openStaffEditModal(user) {
+    var modal = $("#staffEditModal");
+    if (!modal || !user || !user._id) return;
+
+    $("#staffEditId").value = user._id;
+    $("#staffEditEmail").value = user.email || "";
+    $("#staffEditNombre").value = user.nombre || "";
+    $("#staffEditApellido").value = user.apellido || "";
+    $("#staffEditFechaNac").value = toDateInputValue(user.fechaNacimiento);
+    var roles = user.roles && user.roles.length ? user.roles : user.role ? [user.role] : [];
+    $("#staffEditRoleDirectivo").checked = roles.indexOf("directivo") !== -1;
+    $("#staffEditRoleDocente").checked = roles.indexOf("docente") !== -1;
+    setMsg($("#staffEditMsg"), "", "");
+
+    modal.classList.add("is-open");
+    modal.setAttribute("aria-hidden", "false");
+    setTimeout(function () {
+      var el = $("#staffEditNombre");
+      if (el) el.focus();
+    }, 0);
+  }
+
+  function closeStaffEditModal() {
+    var modal = $("#staffEditModal");
+    if (!modal) return;
+    modal.classList.remove("is-open");
+    modal.setAttribute("aria-hidden", "true");
+  }
+
+  function initStaffEditModal() {
+    var modal = $("#staffEditModal");
+    var closeBtn = $("#staffCloseEdit");
+    var cancelBtn = $("#staffCancelEdit");
+    var form = $("#staffEditForm");
+    var msgEl = $("#staffEditMsg");
+    if (!modal || !form) return;
+
+    if (closeBtn) closeBtn.addEventListener("click", closeStaffEditModal);
+    if (cancelBtn) cancelBtn.addEventListener("click", closeStaffEditModal);
+
+    modal.addEventListener("click", function (e) {
+      var t = e.target;
+      if (!(t instanceof Element)) return;
+      if (t.getAttribute("data-close") === "true") closeStaffEditModal();
+    });
+
+    form.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      setMsg(msgEl, "Guardando...", "");
+      try {
+        var id = $("#staffEditId").value;
+        var nombre = String($("#staffEditNombre").value || "").trim();
+        var apellido = String($("#staffEditApellido").value || "").trim();
+        var fechaNacimiento = String($("#staffEditFechaNac").value || "").trim();
+        var roles = [];
+        if ($("#staffEditRoleDirectivo").checked) roles.push("directivo");
+        if ($("#staffEditRoleDocente").checked) roles.push("docente");
+
+        if (!nombre) return setMsg(msgEl, "Nombre requerido", "error");
+        if (!roles.length) return setMsg(msgEl, "Selecciona al menos un rol", "error");
+
+        var payload = { nombre: nombre, roles: roles };
+        if (apellido) payload.apellido = apellido;
+        if (fechaNacimiento) payload.fechaNacimiento = fechaNacimiento;
+
+        await api("/users/staff/" + encodeURIComponent(id), {
+          method: "PUT",
+          body: JSON.stringify(payload)
+        });
+        await Promise.all([loadStaff(), loadDocentes(), loadAll()]);
+        setMsg(msgEl, "Actualizado", "ok");
+        closeStaffEditModal();
+      } catch (err) {
+        setMsg(msgEl, err.message || "Error", "error");
+      }
+    });
+  }
+
+  function initCreateStaff() {
+    var form = $("#createStaffForm");
+    var msgEl = $("#createMsg");
+    if (!form) return;
+
+    form.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      setMsg(msgEl, "Creando...", "");
+      try {
+        var roles = [];
+        if ($("#staffRoleDirectivo").checked) roles.push("directivo");
+        if ($("#staffRoleDocente").checked) roles.push("docente");
+        if (!roles.length) {
+          setMsg(msgEl, "Selecciona al menos un rol", "error");
+          return;
+        }
+        var payload = {
+          nombre: $("#staffNombre").value,
+          apellido: $("#staffApellido").value,
+          fechaNacimiento: $("#staffFechaNac").value,
+          email: $("#staffEmail").value,
+          password: $("#staffPassword").value,
+          roles: roles
+        };
+        if (!payload.apellido) delete payload.apellido;
+        if (!payload.fechaNacimiento) delete payload.fechaNacimiento;
+        await api("/users/staff", { method: "POST", body: JSON.stringify(payload) });
+        form.reset();
+        $("#staffRoleDocente").checked = true;
+        setMsg(msgEl, "Creado", "ok");
+        await Promise.all([loadStaff(), loadDocentes(), loadAll()]);
+      } catch (err) {
+        setMsg(msgEl, err.message || "Error", "error");
+      }
+    });
+  }
+
+  function initImportStaff() {
+    var btn = $("#staffImportBtn");
+    var fileInput = $("#staffCsvFile");
+    var msgEl = $("#staffImportMsg");
+    var detailsEl = $("#staffImportDetails");
+    if (!btn || !fileInput) return;
+
+    btn.addEventListener("click", async function () {
+      if (!fileInput.files || !fileInput.files[0]) {
+        setMsg(msgEl, "Selecciona un archivo CSV", "error");
+        return;
+      }
+
+      if (detailsEl) {
+        detailsEl.hidden = true;
+        detailsEl.innerHTML = "";
+      }
+      setMsg(msgEl, "Importando...", "");
+
+      try {
+        var text = await readCsvFile(fileInput.files[0]);
+        var res = await api("/users/staff/import-csv", {
+          method: "POST",
+          body: JSON.stringify({
+            csv: text,
+            defaultRole: $("#staffImportRole") ? $("#staffImportRole").value : "docente"
+          })
+        });
+
+        setMsg(msgEl, "Importacion completada", "ok");
+        renderImportDetails(detailsEl, res.credentials, res.errors);
+        fileInput.value = "";
+        await Promise.all([loadStaff(), loadDocentes(), loadAll()]);
+      } catch (err) {
+        renderImportDetails(detailsEl, [], []);
+        setMsg(msgEl, err.message || "Error", "error");
+      }
+    });
+  }
+
+  function initStaffListControls() {
+    var refresh = $("#refreshStaff");
+    var filter = $("#filterRole");
+    if (refresh) refresh.addEventListener("click", loadStaff);
+    if (filter) filter.addEventListener("change", loadStaff);
   }
 
   async function loadAll() {
@@ -2040,6 +2333,12 @@
   initNoticias();
   initEventos();
   initConsultas();
+  if (hasCurrentRole("superadmin")) {
+    initCreateStaff();
+    initImportStaff();
+    initStaffListControls();
+    initStaffEditModal();
+  }
   initLogout();
   initCreateAnio();
   initCreateMateriaCurso();
@@ -2053,6 +2352,7 @@
   if (refreshDoc) refreshDoc.addEventListener("click", loadDocentes);
   loadAll();
   loadDocentes();
+  if (hasCurrentRole("superadmin")) loadStaff();
   loadNoticias();
   loadEventos();
   loadMailConfig();
