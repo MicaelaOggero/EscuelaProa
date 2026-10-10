@@ -14,6 +14,7 @@ function getMailConfig() {
   const to = parseRecipients(process.env.CONTACTO_NOTIF_TO);
 
   return {
+    provider: "resend",
     enabled: Boolean(apiKey && from && to.length),
     apiKey,
     from,

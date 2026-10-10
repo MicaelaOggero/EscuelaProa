@@ -50,6 +50,13 @@ function payloadFromRequest(req) {
   };
 }
 
+function validateEventPayload(payload) {
+  if (!payload.titulo) return "El titulo es requerido";
+  if (!payload.inicio) return "La fecha de inicio es requerida";
+  if (payload.fin && payload.fin < payload.inicio) return "La fecha de fin no puede ser anterior al inicio";
+  return null;
+}
+
 function eventoPopulate(query) {
   return query
     .populate({ path: "materiaCursoId", populate: { path: "cursoId", select: "numero nombre division turno" } })
@@ -101,6 +108,8 @@ exports.list = async (req, res, next) => {
 exports.create = async (req, res, next) => {
   try {
     const payload = payloadFromRequest(req);
+    const payloadError = validateEventPayload(payload);
+    if (payloadError) return res.status(400).json({ message: payloadError });
     if (payload.inicio && isNaN(payload.inicio.getTime())) return res.status(400).json({ message: "Fecha de inicio invalida" });
     if (payload.fin && isNaN(payload.fin.getTime())) return res.status(400).json({ message: "Fecha de fin invalida" });
 
@@ -136,6 +145,8 @@ exports.update = async (req, res, next) => {
     }
 
     const payload = payloadFromRequest(req);
+    const payloadError = validateEventPayload(payload);
+    if (payloadError) return res.status(400).json({ message: payloadError });
     if (payload.inicio && isNaN(payload.inicio.getTime())) return res.status(400).json({ message: "Fecha de inicio invalida" });
     if (payload.fin && isNaN(payload.fin.getTime())) return res.status(400).json({ message: "Fecha de fin invalida" });
 

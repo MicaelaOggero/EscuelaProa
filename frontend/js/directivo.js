@@ -1113,11 +1113,11 @@
       badge.className = "status-badge " + (data.enabled ? "status-badge--enabled" : "status-badge--disabled");
       badge.textContent = data.enabled ? "Configurado" : "Incompleto";
       summary.textContent = data.enabled
-        ? "Las nuevas consultas enviarán notificaciones al correo institucional configurado."
-        : "Faltan variables SMTP o destinatarios para enviar avisos automáticos.";
+        ? "Las nuevas consultas enviarán notificaciones mediante Resend."
+        : "Faltan las variables de Resend o los destinatarios para enviar avisos automáticos.";
       meta.textContent = data.enabled
         ? "Desde: " + (data.from || "-") + " · Para: " + ((data.to || []).join(", ") || "-")
-        : "Configura SMTP_HOST, SMTP_PORT, SMTP_SECURE, SMTP_USER, SMTP_PASS, SMTP_FROM y CONTACTO_NOTIF_TO en el backend.";
+        : "Configura RESEND_API_KEY, RESEND_FROM y CONTACTO_NOTIF_TO en el backend.";
     } catch (err) {
       badge.className = "status-badge status-badge--pending";
       badge.textContent = "Error";

@@ -2,10 +2,10 @@ const mongoose = require("mongoose");
 
 const ConsultaSchema = new mongoose.Schema(
   {
-    nombre: { type: String, required: true, trim: true },
-    email: { type: String, required: true, lowercase: true, trim: true },
-    motivo: { type: String, required: true, trim: true },
-    mensaje: { type: String, required: true, trim: true },
+    nombre: { type: String, required: true, trim: true, maxlength: 120 },
+    email: { type: String, required: true, lowercase: true, trim: true, maxlength: 254, match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/ },
+    motivo: { type: String, required: true, trim: true, maxlength: 160 },
+    mensaje: { type: String, required: true, trim: true, maxlength: 5000 },
     estado: { type: String, enum: ["nueva", "en_proceso", "cerrada"], default: "nueva" },
     notasInternas: { type: String, trim: true, default: "" },
     notificadoPorEmail: { type: Boolean, default: false },

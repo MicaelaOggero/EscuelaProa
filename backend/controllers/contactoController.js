@@ -10,6 +10,10 @@ function normalizeEstado(value) {
   return allowed.includes(value) ? value : null;
 }
 
+function isValidEmail(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
 exports.create = async (req, res, next) => {
   try {
     const payload = {
@@ -19,8 +23,26 @@ exports.create = async (req, res, next) => {
       mensaje: cleanText(req.body.mensaje)
     };
 
+    if (!payload.nombre || !payload.email || !payload.motivo || !payload.mensaje) {
+      return res.status(400).json({ message: "nombre, email, motivo y mensaje son requeridos" });
+    }
+    if (!isValidEmail(payload.email)) {
+      return res.status(400).json({ message: "El email no es valido" });
+    }
+    if (payload.nombre.length > 120 || payload.email.length > 254 || payload.motivo.length > 160 || payload.mensaje.length > 5000) {
+      return res.status(400).json({ message: "La consulta supera el limite permitido" });
+    }
+
     const consulta = await Consulta.create(payload);
-    const notification = await sendConsultaNotification(consulta);
+    let notification;
+    try {
+      notification = await sendConsultaNotification(consulta);
+    } catch (mailError) {
+      notification = {
+        skipped: true,
+        reason: "No se pudo enviar la notificacion por correo"
+      };
+    }
 
     if (notification.skipped) {
       consulta.notificacionError = notification.reason;
@@ -90,10 +112,8 @@ exports.update = async (req, res, next) => {
 exports.mailConfig = async (req, res) => {
   const config = getMailConfig();
   res.json({
+    provider: config.provider || "resend",
     enabled: config.enabled,
-    host: config.host || "",
-    port: config.port || "",
-    secure: config.secure,
     from: config.from || "",
     to: config.to || []
   });
