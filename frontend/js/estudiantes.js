@@ -3,6 +3,7 @@
   var STORAGE_TOKEN = "eep_token";
   var STORAGE_USER = "eep_user";
   var STORAGE_LAST_PANEL = "eep_last_panel_path";
+  var pendingDeleteStudent = null;
 
   var state = {
     user: null,
@@ -568,17 +569,66 @@
     });
   }
 
-  async function deleteStudent(student) {
-    if (!confirm("Eliminar estudiante " + ((student.apellido || "") + ", " + (student.nombre || "")).trim() + "?")) return;
-    var msg = $("#studentsListMsg");
-    setMsg(msg, "Eliminando...", "");
-    try {
-      await api("/users/students/" + encodeURIComponent(student._id || student.id), { method: "DELETE" });
-      setMsg(msg, "Eliminado", "ok");
-      loadStudents();
-    } catch (e) {
-      setMsg(msg, e.message || "Error", "error");
-    }
+  function deleteStudent(student) {
+    pendingDeleteStudent = student;
+    openDeleteModal(student);
+  }
+
+  function openDeleteModal(student) {
+    var modal = $("#studentDeleteModal");
+    var message = $("#studentDeleteMessage");
+    if (!modal) return;
+    var name = ((student.apellido || "") + ", " + (student.nombre || "")).trim();
+    message.textContent = "Eliminar a " + name + "?";
+    setMsg($("#studentDeleteMsg"), "", "");
+    modal.classList.add("is-open");
+    modal.setAttribute("aria-hidden", "false");
+  }
+
+  function closeDeleteModal() {
+    var modal = $("#studentDeleteModal");
+    if (!modal) return;
+    modal.classList.remove("is-open");
+    modal.setAttribute("aria-hidden", "true");
+    pendingDeleteStudent = null;
+  }
+
+  function initDeleteModal() {
+    var modal = $("#studentDeleteModal");
+    var confirmBtn = $("#studentDeleteConfirm");
+    if (!modal || !confirmBtn) return;
+
+    modal.addEventListener("click", function (e) {
+      var target = e.target;
+      if (target instanceof Element && target.getAttribute("data-delete-close") === "true") {
+        closeDeleteModal();
+      }
+    });
+
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") closeDeleteModal();
+    });
+
+    confirmBtn.addEventListener("click", async function () {
+      var student = pendingDeleteStudent;
+      if (!student) return;
+      var msg = $("#studentsListMsg");
+      var modalMsg = $("#studentDeleteMsg");
+      confirmBtn.disabled = true;
+      setMsg(modalMsg, "Eliminando...", "");
+      setMsg(msg, "Eliminando...", "");
+      try {
+        await api("/users/students/" + encodeURIComponent(student._id || student.id), { method: "DELETE" });
+        closeDeleteModal();
+        setMsg(msg, "Eliminado", "ok");
+        loadStudents();
+      } catch (e) {
+        setMsg(modalMsg, e.message || "Error", "error");
+        setMsg(msg, e.message || "Error", "error");
+      } finally {
+        confirmBtn.disabled = false;
+      }
+    });
   }
 
   function initCsvImport() {
@@ -624,6 +674,7 @@
   initFilters();
   initCreateStudent();
   initEditModal();
+  initDeleteModal();
   initCsvImport();
 
   loadContext()

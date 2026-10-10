@@ -456,6 +456,8 @@
 
 .calendar-day {
   min-height: 62px;
+  min-width: 0;
+  overflow: hidden;
   padding: 0.26rem;
   display: grid;
   align-content: start;
@@ -495,11 +497,14 @@
 .calendar-events {
   display: grid;
   gap: 0.14rem;
+  min-width: 0;
 }
 
 .calendar-event-pill {
   display: block;
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
   border: 1px solid transparent;
   border-radius: 8px;
   padding: 0.16rem 0.22rem;
@@ -533,6 +538,9 @@
   font-size: 0.6rem;
   font-weight: 850;
   line-height: 1.05;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .mono {
@@ -774,6 +782,7 @@ select {
 
 .modal-body {
   padding: 1rem;
+  min-height: 0;
   overflow-y: auto;
 }
 

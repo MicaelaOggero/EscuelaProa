@@ -471,6 +471,29 @@
     setMsg($("#acadEventMsg"), "Editando evento para estudiantes...", "");
   }
 
+  function resetAcademicPostForm() {
+    var form = $("#acadForm");
+    if (!form) return;
+    form.reset();
+    $("#acadId").value = "";
+    $("#acadTitle").textContent = "Crear publicación para estudiantes";
+    $("#acadSubmit").textContent = "Publicar";
+    setMsg($("#acadFormMsg"), "", "");
+  }
+
+  function openAcademicPostEdit(row) {
+    $("#acadId").value = row._id || row.id || "";
+    $("#acadMateriaCurso").value = (row.materiaCursoId && (row.materiaCursoId._id || row.materiaCursoId.id)) || "";
+    $("#acadTitulo").value = row.titulo || "";
+    $("#acadResumen").value = row.resumen || "";
+    $("#acadContenido").value = row.contenido || "";
+    $("#acadAdjunto").value = "";
+    $("#acadTitle").textContent = "Editar publicación para estudiantes";
+    $("#acadSubmit").textContent = "Guardar cambios";
+    openModal("#modalPublicacionAcademica");
+    setMsg($("#acadFormMsg"), "Editando publicación...", "");
+  }
+
   function renderAcademicPosts(items, events) {
     var list = $("#academicPostsList");
     if (!list) return;
@@ -525,6 +548,15 @@
           openAcademicEventEdit(row);
         });
         actions.appendChild(edit);
+      } else if (entry.kind === "publicacion") {
+        var editPost = document.createElement("button");
+        editPost.type = "button";
+        editPost.className = "btn btn-ghost btn-sm";
+        editPost.textContent = "Editar";
+        editPost.addEventListener("click", function () {
+          openAcademicPostEdit(row);
+        });
+        actions.appendChild(editPost);
       }
       var del = document.createElement("button");
       del.type = "button";
@@ -565,8 +597,14 @@
           setMsg($("#crearMsg"), "", "");
           openModal("#modalCrear");
         }
-        if (t === "material") openModal("#modalMaterial");
-        if (t === "actividad") openModal("#modalActividad");
+        if (t === "material") {
+          resetMaterialForm();
+          openModal("#modalMaterial");
+        }
+        if (t === "actividad") {
+          resetActivityForm();
+          openModal("#modalActividad");
+        }
         if (t === "publicacion-academica") openModal("#modalPublicacionAcademica");
         if (t === "evento-academico") openModal("#modalEventoAcademico");
         if (t === "evento-publico") {
@@ -593,8 +631,14 @@
       setMsg($("#eventoMsg"), "", "");
       openModal("#modalEventoPublico");
     });
-    if (openSubirMat) openSubirMat.addEventListener("click", function () { openModal("#modalMaterial"); });
-    if (openCrearAct) openCrearAct.addEventListener("click", function () { openModal("#modalActividad"); });
+    if (openSubirMat) openSubirMat.addEventListener("click", function () {
+      resetMaterialForm();
+      openModal("#modalMaterial");
+    });
+    if (openCrearAct) openCrearAct.addEventListener("click", function () {
+      resetActivityForm();
+      openModal("#modalActividad");
+    });
     if (openCrearAcad) openCrearAcad.addEventListener("click", function () { openModal("#modalPublicacionAcademica"); });
     if (openCrearAcadEvent) openCrearAcadEvent.addEventListener("click", function () { openModal("#modalEventoAcademico"); });
 
@@ -1037,6 +1081,14 @@
       meta.textContent = renderArchivosMeta(m);
       var actions = document.createElement("div");
       actions.className = "item-actions";
+      var edit = document.createElement("button");
+      edit.type = "button";
+      edit.className = "btn btn-ghost btn-sm";
+      edit.textContent = "Editar";
+      edit.addEventListener("click", function () {
+        openMaterialEdit(m);
+      });
+      actions.appendChild(edit);
       var del = document.createElement("button");
       del.type = "button";
       del.className = "btn btn-secondary btn-sm";
@@ -1080,6 +1132,14 @@
       meta.textContent = formatFechaHora(a.fecha || a.createdAt);
       var actions = document.createElement("div");
       actions.className = "item-actions";
+      var edit = document.createElement("button");
+      edit.type = "button";
+      edit.className = "btn btn-ghost btn-sm";
+      edit.textContent = "Editar";
+      edit.addEventListener("click", function () {
+        openActivityEdit(a);
+      });
+      actions.appendChild(edit);
       var del = document.createElement("button");
       del.type = "button";
       del.className = "btn btn-secondary btn-sm";
@@ -1265,6 +1325,28 @@
     });
   }
 
+  function resetMaterialForm() {
+    var form = $("#matForm");
+    if (!form) return;
+    form.reset();
+    $("#matId").value = "";
+    $("#matTitle").textContent = "Subir material";
+    $("#matSubmit").textContent = "Publicar";
+    setMsg($("#matMsg"), "", "");
+  }
+
+  function openMaterialEdit(row) {
+    $("#matId").value = row._id || row.id || "";
+    $("#matMateriaCurso").value = (row.materiaCursoId && (row.materiaCursoId._id || row.materiaCursoId.id)) || "";
+    $("#matTitulo").value = row.titulo || "";
+    $("#matDesc").value = row.resumen || row.contenido || "";
+    $("#matFile").value = "";
+    $("#matTitle").textContent = "Editar material";
+    $("#matSubmit").textContent = "Guardar cambios";
+    openModal("#modalMaterial");
+    setMsg($("#matMsg"), "Editando material...", "");
+  }
+
   function initMaterial() {
     var form = $("#matForm");
     var msgEl = $("#matMsg");
@@ -1281,29 +1363,53 @@
       if (!String(desc || "").trim() && !file) return setMsg(msgEl, "Agrega una descripcion o un archivo", "error");
 
       try {
+        var id = $("#matId").value;
         var payload = new FormData();
         payload.append("materiaCursoId", materiaCursoId);
         payload.append("tipo", "material");
         payload.append("titulo", titulo);
         payload.append("resumen", desc);
         payload.append("contenido", desc);
-        payload.append("fecha", new Date().toISOString());
+        if (!id) payload.append("fecha", new Date().toISOString());
         payload.append("publicado", "true");
         if (file) payload.append("archivos", file);
 
-        await api("/contenidos", {
-          method: "POST",
+        await api(id ? "/contenidos/" + encodeURIComponent(id) : "/contenidos", {
+          method: id ? "PUT" : "POST",
           body: payload
         });
 
-        form.reset();
-        setMsg(msgEl, "Material publicado", "ok");
+        resetMaterialForm();
+        setMsg(msgEl, id ? "Material actualizado" : "Material publicado", "ok");
         await refreshAll();
         closeModal(modal);
       } catch (err) {
         setMsg(msgEl, err.message || "Error", "error");
       }
     });
+  }
+
+  function resetActivityForm() {
+    var form = $("#actForm");
+    if (!form) return;
+    form.reset();
+    $("#actId").value = "";
+    $("#actTitle").textContent = "Crear actividad";
+    $("#actSubmit").textContent = "Publicar";
+    setMsg($("#actMsg"), "", "");
+  }
+
+  function openActivityEdit(row) {
+    $("#actId").value = row._id || row.id || "";
+    $("#actMateriaCurso").value = (row.materiaCursoId && (row.materiaCursoId._id || row.materiaCursoId.id)) || "";
+    $("#actTitulo").value = row.titulo || "";
+    $("#actInicio").value = toDatetimeLocalValue(row.fecha);
+    $("#actDesc").value = row.resumen || row.contenido || "";
+    $("#actAdjunto").value = "";
+    $("#actTitle").textContent = "Editar actividad";
+    $("#actSubmit").textContent = "Guardar cambios";
+    openModal("#modalActividad");
+    setMsg($("#actMsg"), "Editando actividad...", "");
   }
 
   function initActividad() {
@@ -1323,6 +1429,7 @@
       if (!inicio) return setMsg(msgEl, "Fecha requerida", "error");
 
       try {
+        var id = $("#actId").value;
         var payload = new FormData();
         payload.append("materiaCursoId", materiaCursoId);
         payload.append("tipo", "actividad");
@@ -1333,13 +1440,13 @@
         payload.append("publicado", "true");
         if (file) payload.append("archivos", file);
 
-        await api("/contenidos", {
-          method: "POST",
+        await api(id ? "/contenidos/" + encodeURIComponent(id) : "/contenidos", {
+          method: id ? "PUT" : "POST",
           body: payload
         });
 
-        form.reset();
-        setMsg(msgEl, "Actividad publicada", "ok");
+        resetActivityForm();
+        setMsg(msgEl, id ? "Actividad actualizada" : "Actividad publicada", "ok");
         await refreshAll();
         closeModal(modal);
       } catch (err) {
@@ -1365,22 +1472,23 @@
       if (!String(resumen || contenido || "").trim() && !file) return setMsg(msgEl, "Agrega contenido o un adjunto", "error");
 
       try {
+        var id = $("#acadId").value;
         var payload = new FormData();
         payload.append("materiaCursoId", materiaCursoId);
         payload.append("tipo", "publicacion");
         payload.append("titulo", titulo);
         payload.append("resumen", resumen);
         payload.append("contenido", contenido);
-        payload.append("fecha", new Date().toISOString());
+        if (!id) payload.append("fecha", new Date().toISOString());
         payload.append("publicado", "true");
         if (file) payload.append("archivos", file);
 
-        await api("/contenidos", {
-          method: "POST",
+        await api(id ? "/contenidos/" + encodeURIComponent(id) : "/contenidos", {
+          method: id ? "PUT" : "POST",
           body: payload
         });
 
-        form.reset();
+        resetAcademicPostForm();
         setMsg(msgEl, "Publicación creada", "ok");
         await refreshAll();
         closeModal(modal);

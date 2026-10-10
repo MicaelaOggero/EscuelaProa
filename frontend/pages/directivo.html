@@ -903,6 +903,27 @@
       </div>
     </div>
 
+    <div id="noticiaDeleteModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="noticiaDeleteTitle">
+      <div class="modal-backdrop" data-close="true"></div>
+      <div class="modal-panel" role="document">
+        <div class="modal-head">
+          <div>
+            <div id="noticiaDeleteTitle" class="modal-title">Eliminar noticia</div>
+            <div class="modal-sub">Esta acción no se puede deshacer.</div>
+          </div>
+          <button class="btn btn-ghost btn-sm" type="button" data-close="true">Cerrar</button>
+        </div>
+        <div class="modal-body">
+          <p id="noticiaDeleteMessage">¿Querés eliminar esta noticia?</p>
+          <div class="modal-actions">
+            <button id="noticiaDeleteConfirm" class="btn btn-secondary" type="button">Eliminar noticia</button>
+            <button class="btn btn-primary" type="button" data-close="true">Cancelar</button>
+          </div>
+          <div id="noticiaDeleteMsg" class="msg" role="status" aria-live="polite"></div>
+        </div>
+      </div>
+    </div>
+
     <div id="eventoModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="eventoTitle">
       <div class="modal-backdrop" data-close="true"></div>
       <div class="modal-panel" role="document">
@@ -966,6 +987,27 @@
       </div>
     </div>
 
+    <div id="eventoDeleteModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="eventoDeleteTitle">
+      <div class="modal-backdrop" data-close="true"></div>
+      <div class="modal-panel" role="document">
+        <div class="modal-head">
+          <div>
+            <div id="eventoDeleteTitle" class="modal-title">Eliminar evento</div>
+            <div class="modal-sub">Esta acción no se puede deshacer.</div>
+          </div>
+          <button class="btn btn-ghost btn-sm" type="button" data-close="true">Cerrar</button>
+        </div>
+        <div class="modal-body">
+          <p id="eventoDeleteMessage">¿Querés eliminar este evento?</p>
+          <div class="modal-actions">
+            <button id="eventoDeleteConfirm" class="btn btn-secondary" type="button">Eliminar evento</button>
+            <button class="btn btn-primary" type="button" data-close="true">Cancelar</button>
+          </div>
+          <div id="eventoDeleteMsg" class="msg" role="status" aria-live="polite"></div>
+        </div>
+      </div>
+    </div>
+
     <div id="consultaModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="consultaTitle">
       <div class="modal-backdrop" data-close="true"></div>
       <div class="modal-panel" role="document">
@@ -1016,10 +1058,32 @@
           </div>
           <div class="modal-actions">
             <button class="btn btn-primary" type="submit">Guardar seguimiento</button>
+            <button id="consultaDeleteBtn" class="btn btn-secondary" type="button">Eliminar consulta</button>
             <button class="btn btn-secondary" type="button" data-close="true">Cerrar</button>
           </div>
           <div id="consultaFormMsg" class="msg" role="status" aria-live="polite"></div>
         </form>
+      </div>
+    </div>
+
+    <div id="consultaDeleteModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="consultaDeleteTitle">
+      <div class="modal-backdrop" data-close="true"></div>
+      <div class="modal-panel" role="document">
+        <div class="modal-head">
+          <div>
+            <div id="consultaDeleteTitle" class="modal-title">Eliminar consulta</div>
+            <div class="modal-sub">Esta acción no se puede deshacer.</div>
+          </div>
+          <button class="btn btn-ghost btn-sm" type="button" data-close="true">Cerrar</button>
+        </div>
+        <div class="modal-body">
+          <p id="consultaDeleteMessage">¿Querés eliminar esta consulta?</p>
+          <div class="modal-actions">
+            <button id="consultaDeleteConfirm" class="btn btn-secondary" type="button">Eliminar consulta</button>
+            <button class="btn btn-primary" type="button" data-close="true">Cancelar</button>
+          </div>
+          <div id="consultaDeleteMsg" class="msg" role="status" aria-live="polite"></div>
+        </div>
       </div>
     </div>
 
@@ -1081,6 +1145,69 @@
           </div>
           <div id="staffEditMsg" class="msg" role="status" aria-live="polite"></div>
         </form>
+      </div>
+    </div>
+
+    <div id="staffDeleteModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="staffDeleteTitle">
+      <div class="modal-backdrop" data-close="true"></div>
+      <div class="modal-panel" role="document">
+        <div class="modal-head">
+          <div>
+            <div id="staffDeleteTitle" class="modal-title">Eliminar usuario</div>
+            <div class="modal-sub">Esta acción no se puede deshacer.</div>
+          </div>
+          <button class="btn btn-ghost btn-sm" type="button" data-close="true">Cerrar</button>
+        </div>
+        <div class="modal-body">
+          <p id="staffDeleteMessage">¿Querés eliminar este docente?</p>
+          <div class="modal-actions">
+            <button id="staffDeleteConfirm" class="btn btn-secondary" type="button">Eliminar usuario</button>
+            <button class="btn btn-primary" type="button" data-close="true">Cancelar</button>
+          </div>
+          <div id="staffDeleteMsg" class="msg" role="status" aria-live="polite"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="assignmentDeleteModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="assignmentDeleteTitle">
+      <div class="modal-backdrop" data-close="true"></div>
+      <div class="modal-panel" role="document">
+        <div class="modal-head">
+          <div>
+            <div id="assignmentDeleteTitle" class="modal-title">Quitar docente asignado</div>
+            <div class="modal-sub">La materia continuará creada, pero quedará sin docente.</div>
+          </div>
+          <button class="btn btn-ghost btn-sm" type="button" data-close="true">Cerrar</button>
+        </div>
+        <div class="modal-body">
+          <p id="assignmentDeleteMessage">¿Querés quitar el docente asignado?</p>
+          <div class="modal-actions">
+            <button id="assignmentDeleteConfirm" class="btn btn-secondary" type="button">Quitar docente</button>
+            <button class="btn btn-primary" type="button" data-close="true">Cancelar</button>
+          </div>
+          <div id="assignmentDeleteMsg" class="msg" role="status" aria-live="polite"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="materiaDeleteModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="materiaDeleteTitle">
+      <div class="modal-backdrop" data-close="true"></div>
+      <div class="modal-panel" role="document">
+        <div class="modal-head">
+          <div>
+            <div id="materiaDeleteTitle" class="modal-title">Eliminar materia</div>
+            <div class="modal-sub">Esta acción eliminará la materia del curso y no se puede deshacer.</div>
+          </div>
+          <button class="btn btn-ghost btn-sm" type="button" data-close="true">Cerrar</button>
+        </div>
+        <div class="modal-body">
+          <p id="materiaDeleteMessage">¿Querés eliminar esta materia?</p>
+          <div class="modal-actions">
+            <button id="materiaDeleteConfirm" class="btn btn-secondary" type="button">Eliminar materia</button>
+            <button class="btn btn-primary" type="button" data-close="true">Cancelar</button>
+          </div>
+          <div id="materiaDeleteMsg" class="msg" role="status" aria-live="polite"></div>
+        </div>
       </div>
     </div>
 

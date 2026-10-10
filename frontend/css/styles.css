@@ -1004,6 +1004,8 @@ img {
 
 .calendar-day {
   min-height: 64px;
+  min-width: 0;
+  overflow: hidden;
   padding: 0.16rem;
   display: grid;
   align-content: start;
@@ -1043,11 +1045,14 @@ img {
 .calendar-events {
   display: grid;
   gap: 0.08rem;
+  min-width: 0;
 }
 
 .calendar-event-pill {
   display: block;
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
   border: 1px solid transparent;
   border-radius: 7px;
   padding: 0.1rem 0.14rem;
@@ -1086,6 +1091,9 @@ img {
   font-size: 0.5rem;
   font-weight: 850;
   line-height: 1.02;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .event-modal-meta {

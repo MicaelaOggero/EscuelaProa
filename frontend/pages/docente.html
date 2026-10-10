@@ -521,6 +521,7 @@
           <button class="btn btn-ghost btn-sm" type="button" data-close="true">Cerrar</button>
         </div>
         <form id="acadForm" class="modal-body" aria-label="Formulario crear publicación académica">
+          <input id="acadId" type="hidden" />
           <div class="field">
             <label for="acadMateriaCurso">Materia / curso</label>
             <select id="acadMateriaCurso" required>
@@ -544,7 +545,7 @@
             <input id="acadAdjunto" type="file" />
           </div>
           <div class="modal-actions">
-            <button class="btn btn-primary" type="submit">Publicar</button>
+            <button id="acadSubmit" class="btn btn-primary" type="submit">Publicar</button>
             <button class="btn btn-secondary" type="button" data-close="true">Cancelar</button>
           </div>
           <div id="acadFormMsg" class="msg" role="status" aria-live="polite"></div>
@@ -622,6 +623,7 @@
           <button class="btn btn-ghost btn-sm" type="button" data-close="true">Cerrar</button>
         </div>
         <form id="matForm" class="modal-body" aria-label="Formulario subir material">
+          <input id="matId" type="hidden" />
           <div class="field">
             <label for="matMateriaCurso">Materia / curso</label>
             <select id="matMateriaCurso" required>
@@ -641,7 +643,7 @@
             <input id="matFile" type="file" />
           </div>
           <div class="modal-actions">
-            <button class="btn btn-primary" type="submit">Publicar</button>
+            <button id="matSubmit" class="btn btn-primary" type="submit">Publicar</button>
             <button class="btn btn-secondary" type="button" data-close="true">Cancelar</button>
           </div>
           <div id="matMsg" class="msg" role="status" aria-live="polite"></div>
@@ -662,6 +664,7 @@
           <button class="btn btn-ghost btn-sm" type="button" data-close="true">Cerrar</button>
         </div>
         <form id="actForm" class="modal-body" aria-label="Formulario crear actividad">
+          <input id="actId" type="hidden" />
           <div class="field">
             <label for="actMateriaCurso">Materia / curso</label>
             <select id="actMateriaCurso" required>
@@ -685,7 +688,7 @@
             <input id="actAdjunto" type="file" />
           </div>
           <div class="modal-actions">
-            <button class="btn btn-primary" type="submit">Publicar</button>
+            <button id="actSubmit" class="btn btn-primary" type="submit">Publicar</button>
             <button class="btn btn-secondary" type="button" data-close="true">Cancelar</button>
           </div>
           <div id="actMsg" class="msg" role="status" aria-live="polite"></div>

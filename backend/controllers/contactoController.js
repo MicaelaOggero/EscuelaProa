@@ -109,6 +109,16 @@ exports.update = async (req, res, next) => {
   }
 };
 
+exports.remove = async (req, res, next) => {
+  try {
+    const consulta = await Consulta.findByIdAndDelete(req.params.id);
+    if (!consulta) return res.status(404).json({ message: "Consulta no encontrada" });
+    res.json({ message: "Consulta eliminada" });
+  } catch (err) {
+    next(err);
+  }
+};
+
 exports.mailConfig = async (req, res) => {
   const config = getMailConfig();
   res.json({

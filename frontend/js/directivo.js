@@ -3,6 +3,12 @@
   var STORAGE_TOKEN = "eep_token";
   var STORAGE_USER = "eep_user";
   var STORAGE_LAST_PANEL = "eep_last_panel_path";
+  var pendingDeleteStaff = null;
+  var pendingClearAssignment = null;
+  var pendingDeleteMateria = null;
+  var pendingDeleteNoticia = null;
+  var pendingDeleteEvento = null;
+  var pendingDeleteConsulta = null;
 
   function $(sel) {
     return document.querySelector(sel);
@@ -530,21 +536,45 @@
     }
   }
 
-  async function deleteNoticia(row) {
-    if (!confirm("Eliminar noticia '" + (row.titulo || "") + "'?")) return;
-    var msg = $("#noticiasMsg");
-    setMsg(msg, "Eliminando...", "");
-    try {
-      await api("/noticias/" + encodeURIComponent(row._id || row.id), { method: "DELETE" });
-      if ($("#noticiaId").value === String(row._id || row.id)) {
-        resetNoticiaForm();
-        setMsg($("#noticiaFormMsg"), "", "");
+  function deleteNoticia(row) {
+    var modal = $("#noticiaDeleteModal");
+    if (!modal || !row || !(row._id || row.id)) return;
+    pendingDeleteNoticia = row;
+    $("#noticiaDeleteMessage").textContent = "¿Querés eliminar la noticia " + (row.titulo || "seleccionada") + "?";
+    setMsg($("#noticiaDeleteMsg"), "", "");
+    openModal("#noticiaDeleteModal");
+  }
+
+  function initNoticiaDeleteModal() {
+    var modal = $("#noticiaDeleteModal");
+    var confirmBtn = $("#noticiaDeleteConfirm");
+    if (!modal || !confirmBtn) return;
+
+    confirmBtn.addEventListener("click", async function () {
+      var row = pendingDeleteNoticia;
+      if (!row) return;
+      var msg = $("#noticiasMsg");
+      var modalMsg = $("#noticiaDeleteMsg");
+      confirmBtn.disabled = true;
+      setMsg(msg, "Eliminando...", "");
+      setMsg(modalMsg, "Eliminando...", "");
+      try {
+        await api("/noticias/" + encodeURIComponent(row._id || row.id), { method: "DELETE" });
+        if ($("#noticiaId").value === String(row._id || row.id)) {
+          resetNoticiaForm();
+          setMsg($("#noticiaFormMsg"), "", "");
+        }
+        closeModal(modal);
+        pendingDeleteNoticia = null;
+        setMsg(msg, "Noticia eliminada", "ok");
+        loadNoticias();
+      } catch (e) {
+        setMsg(msg, e.message || "Error", "error");
+        setMsg(modalMsg, e.message || "Error", "error");
+      } finally {
+        confirmBtn.disabled = false;
       }
-      setMsg(msg, "Noticia eliminada", "ok");
-      loadNoticias();
-    } catch (e) {
-      setMsg(msg, e.message || "Error", "error");
-    }
+    });
   }
 
   function initNoticias() {
@@ -895,24 +925,48 @@
     }
   }
 
-  async function deleteEvento(row) {
-    if (!confirm("Eliminar evento '" + (row.titulo || "") + "'?")) return;
-    var msg = $("#eventosMsg");
-    setMsg(msg, "Eliminando...", "");
-    try {
-      await api("/calendario/" + encodeURIComponent(row._id || row.id), { method: "DELETE" });
-      if ($("#eventoId").value === String(row._id || row.id)) {
-        resetEventoForm();
-        setMsg($("#eventoFormMsg"), "", "");
+  function deleteEvento(row) {
+    var modal = $("#eventoDeleteModal");
+    if (!modal || !row || !(row._id || row.id)) return;
+    pendingDeleteEvento = row;
+    $("#eventoDeleteMessage").textContent = "¿Querés eliminar el evento " + (row.titulo || "seleccionado") + "?";
+    setMsg($("#eventoDeleteMsg"), "", "");
+    openModal("#eventoDeleteModal");
+  }
+
+  function initEventoDeleteModal() {
+    var modal = $("#eventoDeleteModal");
+    var confirmBtn = $("#eventoDeleteConfirm");
+    if (!modal || !confirmBtn) return;
+
+    confirmBtn.addEventListener("click", async function () {
+      var row = pendingDeleteEvento;
+      if (!row) return;
+      var msg = $("#eventosMsg");
+      var modalMsg = $("#eventoDeleteMsg");
+      confirmBtn.disabled = true;
+      setMsg(msg, "Eliminando...", "");
+      setMsg(modalMsg, "Eliminando...", "");
+      try {
+        await api("/calendario/" + encodeURIComponent(row._id || row.id), { method: "DELETE" });
+        if ($("#eventoId").value === String(row._id || row.id)) {
+          resetEventoForm();
+          setMsg($("#eventoFormMsg"), "", "");
+        }
+        if (eventoCalendarState.selectedId === String(row._id || row.id)) {
+          openEventoDetalle(null);
+        }
+        closeModal(modal);
+        pendingDeleteEvento = null;
+        setMsg(msg, "Evento eliminado", "ok");
+        loadEventos();
+      } catch (e) {
+        setMsg(msg, e.message || "Error", "error");
+        setMsg(modalMsg, e.message || "Error", "error");
+      } finally {
+        confirmBtn.disabled = false;
       }
-      if (eventoCalendarState.selectedId === String(row._id || row.id)) {
-        openEventoDetalle(null);
-      }
-      setMsg(msg, "Evento eliminado", "ok");
-      loadEventos();
-    } catch (e) {
-      setMsg(msg, e.message || "Error", "error");
-    }
+    });
   }
 
   function initEventos() {
@@ -1070,6 +1124,14 @@
         openConsultaModal(row);
       });
       actions.appendChild(btn);
+      var btnDelete = document.createElement("button");
+      btnDelete.type = "button";
+      btnDelete.className = "btn btn-secondary btn-sm";
+      btnDelete.textContent = "Eliminar";
+      btnDelete.addEventListener("click", function () {
+        openConsultaDeleteModal(row);
+      });
+      actions.appendChild(btnDelete);
       tdAcciones.appendChild(actions);
 
       tr.appendChild(tdContacto);
@@ -1100,6 +1162,55 @@
 
   function closeConsultaModal() {
     closeModal($("#consultaModal"));
+  }
+
+  function openConsultaDeleteModal(row) {
+    var modal = $("#consultaDeleteModal");
+    if (!modal || !row || !(row._id || row.id)) return;
+    pendingDeleteConsulta = row;
+    $("#consultaDeleteMessage").textContent = "¿Querés eliminar la consulta de " + (row.nombre || row.email || "este contacto") + "?";
+    setMsg($("#consultaDeleteMsg"), "", "");
+    openModal("#consultaDeleteModal");
+  }
+
+  function initConsultaDeleteModal() {
+    var modal = $("#consultaDeleteModal");
+    var confirmBtn = $("#consultaDeleteConfirm");
+    var detailBtn = $("#consultaDeleteBtn");
+    if (!modal || !confirmBtn) return;
+
+    if (detailBtn) {
+      detailBtn.addEventListener("click", function () {
+        var row = consultasState.rows.find(function (item) {
+          return String(item._id || item.id) === String(consultasState.selectedId || "");
+        });
+        if (row) openConsultaDeleteModal(row);
+      });
+    }
+
+    confirmBtn.addEventListener("click", async function () {
+      var row = pendingDeleteConsulta;
+      if (!row) return;
+      var msg = $("#consultasMsg");
+      var modalMsg = $("#consultaDeleteMsg");
+      confirmBtn.disabled = true;
+      setMsg(msg, "Eliminando consulta...", "");
+      setMsg(modalMsg, "Eliminando consulta...", "");
+      try {
+        await api("/contacto/" + encodeURIComponent(row._id || row.id), { method: "DELETE" });
+        closeModal(modal);
+        closeConsultaModal();
+        pendingDeleteConsulta = null;
+        consultasState.selectedId = "";
+        setMsg(msg, "Consulta eliminada", "ok");
+        loadConsultas();
+      } catch (err) {
+        setMsg(msg, err.message || "Error", "error");
+        setMsg(modalMsg, err.message || "Error", "error");
+      } finally {
+        confirmBtn.disabled = false;
+      }
+    });
   }
 
   async function loadMailConfig() {
@@ -1169,6 +1280,8 @@
         searchTimer = window.setTimeout(loadConsultas, 220);
       });
     }
+
+    initConsultaDeleteModal();
 
     if (!form) return;
     form.addEventListener("submit", async function (e) {
@@ -1517,15 +1630,49 @@
       setMsg(msgEl, "ID invalido", "error");
       return;
     }
-    if (!confirm("Eliminar a " + (user.email || user.nombre || "este usuario") + "?")) return;
-    setMsg(msgEl, "Eliminando...", "");
-    try {
-      await api("/users/staff/" + encodeURIComponent(user._id), { method: "DELETE" });
-      await Promise.all([loadStaff(), loadDocentes(), loadAll()]);
-      setMsg(msgEl, "Eliminado", "ok");
-    } catch (err) {
-      setMsg(msgEl, err.message || "Error", "error");
-    }
+    openStaffDeleteModal(user, "#staffListMsg");
+  }
+
+  function openStaffDeleteModal(user, messageSelector) {
+    var modal = $("#staffDeleteModal");
+    var message = $("#staffDeleteMessage");
+    if (!modal || !user || !user._id) return;
+    pendingDeleteStaff = { user: user, messageSelector: messageSelector || "#docMsg" };
+    var roles = user.roles && user.roles.length ? user.roles : user.role ? [user.role] : [];
+    var label = roles.indexOf("docente") !== -1 && roles.indexOf("directivo") === -1 ? "docente" : "usuario";
+    $("#staffDeleteTitle").textContent = "Eliminar " + label;
+    $("#staffDeleteConfirm").textContent = "Eliminar " + label;
+    message.textContent = "Eliminar a " + (user.email || user.nombre || "este usuario") + "?";
+    setMsg($("#staffDeleteMsg"), "", "");
+    openModal("#staffDeleteModal");
+  }
+
+  function initStaffDeleteModal() {
+    var modal = $("#staffDeleteModal");
+    var confirmBtn = $("#staffDeleteConfirm");
+    if (!modal || !confirmBtn) return;
+
+    confirmBtn.addEventListener("click", async function () {
+      if (!pendingDeleteStaff) return;
+      var current = pendingDeleteStaff;
+      var msgEl = $(current.messageSelector);
+      var modalMsg = $("#staffDeleteMsg");
+      confirmBtn.disabled = true;
+      setMsg(msgEl, "Eliminando...", "");
+      setMsg(modalMsg, "Eliminando...", "");
+      try {
+        await api("/users/staff/" + encodeURIComponent(current.user._id), { method: "DELETE" });
+        await Promise.all([loadStaff(), loadDocentes(), loadAll()]);
+        closeModal(modal);
+        pendingDeleteStaff = null;
+        setMsg(msgEl, "Eliminado", "ok");
+      } catch (err) {
+        setMsg(msgEl, err.message || "Error", "error");
+        setMsg(modalMsg, err.message || "Error", "error");
+      } finally {
+        confirmBtn.disabled = false;
+      }
+    });
   }
 
   function openStaffEditModal(user) {
@@ -1788,7 +1935,7 @@
       btnDelete.style.padding = "0.5rem 0.7rem";
       btnDelete.style.fontSize = "0.9rem";
       btnDelete.addEventListener("click", function () {
-        removeAsignacion(r._id);
+        removeAsignacion(r);
       });
 
       tdX.appendChild(btnAssign);
@@ -2124,18 +2271,8 @@
     });
   }
 
-  async function deleteDocente(u) {
-    if (!confirm("Eliminar docente " + (u.email || "") + "?")) return;
-    var msg = $("#docMsg");
-    setMsg(msg, "Eliminando...", "");
-    try {
-      await api("/users/staff/" + encodeURIComponent(u._id || u.id), { method: "DELETE" });
-      setMsg(msg, "Eliminado", "ok");
-      loadDocentes();
-      loadAll();
-    } catch (e) {
-      setMsg(msg, e.message || "Error", "error");
-    }
+  function deleteDocente(u) {
+    openStaffDeleteModal(u, "#docMsg");
   }
 
   function initCreateDocente() {
@@ -2207,30 +2344,92 @@
     });
   }
 
-  async function removeAsignacion(id) {
-    if (!confirm("¿Eliminar asignación?")) return;
-    var msg = $("#asigMsg");
-    setMsg(msg, "Eliminando...", "");
-    try {
-      await api("/materias-curso/" + encodeURIComponent(id), { method: "DELETE" });
-      await loadAll();
-      setMsg(msg, "Eliminado", "ok");
-    } catch (e) {
-      setMsg(msg, e.message || "Error", "error");
-    }
+  function removeAsignacion(row) {
+    openMateriaDeleteModal(row);
   }
 
-  async function clearDocente(row) {
-    if (!confirm("Quitar el docente asignado a esta materia?")) return;
-    var msg = $("#asigMsg");
-    setMsg(msg, "Quitando docente...", "");
-    try {
-      await api("/materias-curso/" + encodeURIComponent(row._id) + "/quitar-docente", { method: "PATCH" });
-      await loadAll();
-      setMsg(msg, "Docente quitado", "ok");
-    } catch (e) {
-      setMsg(msg, e.message || "Error", "error");
-    }
+  function openMateriaDeleteModal(row) {
+    var modal = $("#materiaDeleteModal");
+    var message = $("#materiaDeleteMessage");
+    if (!modal || !row || !row._id) return;
+    pendingDeleteMateria = row;
+    message.textContent = "¿Querés eliminar la materia " + (row.materia || "seleccionada") + "?";
+    setMsg($("#materiaDeleteMsg"), "", "");
+    openModal("#materiaDeleteModal");
+  }
+
+  function initMateriaDeleteModal() {
+    var modal = $("#materiaDeleteModal");
+    var confirmBtn = $("#materiaDeleteConfirm");
+    if (!modal || !confirmBtn) return;
+
+    confirmBtn.addEventListener("click", async function () {
+      var row = pendingDeleteMateria;
+      if (!row) return;
+      var msg = $("#asigMsg");
+      var modalMsg = $("#materiaDeleteMsg");
+      confirmBtn.disabled = true;
+      setMsg(msg, "Eliminando materia...", "");
+      setMsg(modalMsg, "Eliminando materia...", "");
+      try {
+        await api("/materias-curso/" + encodeURIComponent(row._id), { method: "DELETE" });
+        await loadAll();
+        closeModal(modal);
+        pendingDeleteMateria = null;
+        setMsg(msg, "Materia eliminada", "ok");
+      } catch (e) {
+        setMsg(msg, e.message || "Error", "error");
+        setMsg(modalMsg, e.message || "Error", "error");
+      } finally {
+        confirmBtn.disabled = false;
+      }
+    });
+  }
+
+  function clearDocente(row) {
+    openClearAssignmentModal(row);
+  }
+
+  function openClearAssignmentModal(row) {
+    var modal = $("#assignmentDeleteModal");
+    var message = $("#assignmentDeleteMessage");
+    if (!modal || !row || !row._id) return;
+    pendingClearAssignment = row;
+    var materia = row.materia || "esta materia";
+    var docente = row.docenteId && (row.docenteId.nombre || row.docenteId.email)
+      ? " (" + (row.docenteId.nombre || row.docenteId.email) + ")"
+      : "";
+    message.textContent = "¿Querés quitar el docente de " + materia + docente + "?";
+    setMsg($("#assignmentDeleteMsg"), "", "");
+    openModal("#assignmentDeleteModal");
+  }
+
+  function initClearAssignmentModal() {
+    var modal = $("#assignmentDeleteModal");
+    var confirmBtn = $("#assignmentDeleteConfirm");
+    if (!modal || !confirmBtn) return;
+
+    confirmBtn.addEventListener("click", async function () {
+      var row = pendingClearAssignment;
+      if (!row) return;
+      var msg = $("#asigMsg");
+      var modalMsg = $("#assignmentDeleteMsg");
+      confirmBtn.disabled = true;
+      setMsg(msg, "Quitando docente...", "");
+      setMsg(modalMsg, "Quitando docente...", "");
+      try {
+        await api("/materias-curso/" + encodeURIComponent(row._id) + "/quitar-docente", { method: "PATCH" });
+        await loadAll();
+        closeModal(modal);
+        pendingClearAssignment = null;
+        setMsg(msg, "Docente quitado", "ok");
+      } catch (e) {
+        setMsg(msg, e.message || "Error", "error");
+        setMsg(modalMsg, e.message || "Error", "error");
+      } finally {
+        confirmBtn.disabled = false;
+      }
+    });
   }
 
   function initCreateAnio() {
@@ -2331,7 +2530,9 @@
   initSidebarViews();
   syncHeaderUser();
   initNoticias();
+  initNoticiaDeleteModal();
   initEventos();
+  initEventoDeleteModal();
   initConsultas();
   if (hasCurrentRole("superadmin")) {
     initCreateStaff();
@@ -2348,6 +2549,9 @@
   initCreateDocente();
   initImportDocentes();
   initDocEditModal();
+  initStaffDeleteModal();
+  initClearAssignmentModal();
+  initMateriaDeleteModal();
   var refreshDoc = $("#refreshDocentes");
   if (refreshDoc) refreshDoc.addEventListener("click", loadDocentes);
   loadAll();
