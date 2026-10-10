@@ -29,6 +29,12 @@
     selectedId: ""
   };
 
+  var asignacionesState = {
+    rows: [],
+    curso: "",
+    ciclo: ""
+  };
+
   function selectedEventoRoles() {
     return Array.prototype.slice.call(document.querySelectorAll("input[name='eventoVisibleRol']:checked")).map(function (el) {
       return el.value;
@@ -1857,18 +1863,86 @@
       setSelectedDocente(null);
       fillSelect($("#editAnio"), anios || [], function (a) { return a._id; }, anioLabel);
 
-      renderAsignaciones(mas || []);
+      asignacionesState.rows = mas || [];
+      populateAssignmentFilters(asignacionesState.rows);
+      renderAsignaciones(asignacionesState.rows);
       setMsg(asigMsg, "OK", "ok");
     } catch (e) {
       setMsg(asigMsg, e.message || "Error", "error");
     }
   }
 
+  function populateAssignmentFilters(rows) {
+    var cursoSelect = $("#filterMateriaCurso");
+    var cicloSelect = $("#filterMateriaCiclo");
+    if (!cursoSelect || !cicloSelect) return;
+
+    var cursoActual = asignacionesState.curso;
+    var cicloActual = asignacionesState.ciclo;
+    var cursos = {};
+    var ciclos = {};
+    (rows || []).forEach(function (row) {
+      var curso = row && row.cursoId;
+      var cursoId = curso && curso._id ? String(curso._id) : curso ? String(curso) : "";
+      if (cursoId) cursos[cursoId] = curso;
+      if (row && row.cicloLectivo) ciclos[String(row.cicloLectivo)] = true;
+    });
+
+    cursoSelect.innerHTML = '<option value="">Todos los cursos</option>';
+    Object.keys(cursos).sort(function (a, b) {
+      return anioLabel(cursos[a]).localeCompare(anioLabel(cursos[b]), "es", { numeric: true });
+    }).forEach(function (id) {
+      var option = document.createElement("option");
+      option.value = id;
+      option.textContent = anioLabel(cursos[id]);
+      cursoSelect.appendChild(option);
+    });
+
+    cicloSelect.innerHTML = '<option value="">Todos los ciclos</option>';
+    Object.keys(ciclos).sort(function (a, b) { return Number(b) - Number(a); }).forEach(function (ciclo) {
+      var option = document.createElement("option");
+      option.value = ciclo;
+      option.textContent = ciclo;
+      cicloSelect.appendChild(option);
+    });
+
+    if (cursoActual && cursos[cursoActual]) {
+      cursoSelect.value = cursoActual;
+    } else {
+      asignacionesState.curso = "";
+    }
+    if (cicloActual && ciclos[cicloActual]) {
+      cicloSelect.value = cicloActual;
+    } else {
+      asignacionesState.ciclo = "";
+    }
+  }
+
+  function initAssignmentFilters() {
+    var cursoSelect = $("#filterMateriaCurso");
+    var cicloSelect = $("#filterMateriaCiclo");
+    if (cursoSelect) cursoSelect.addEventListener("change", function () {
+      asignacionesState.curso = cursoSelect.value;
+      renderAsignaciones(asignacionesState.rows);
+    });
+    if (cicloSelect) cicloSelect.addEventListener("change", function () {
+      asignacionesState.ciclo = cicloSelect.value;
+      renderAsignaciones(asignacionesState.rows);
+    });
+  }
+
   function renderAsignaciones(rows) {
     var assignedTbody = $("#asigTbody");
     var pendingTbody = $("#pendingAsigTbody");
-    var assigned = (rows || []).filter(function (r) { return !!(r && r.docenteId); });
-    var pending = (rows || []).filter(function (r) { return !(r && r.docenteId); });
+    var filteredRows = (rows || []).filter(function (r) {
+      var curso = r && r.cursoId;
+      var cursoId = curso && curso._id ? String(curso._id) : curso ? String(curso) : "";
+      var matchesCurso = !asignacionesState.curso || cursoId === asignacionesState.curso;
+      var matchesCiclo = !asignacionesState.ciclo || String(r.cicloLectivo || "") === asignacionesState.ciclo;
+      return matchesCurso && matchesCiclo;
+    });
+    var assigned = filteredRows.filter(function (r) { return !!(r && r.docenteId); });
+    var pending = filteredRows.filter(function (r) { return !(r && r.docenteId); });
     var assignedCount = $("#conDocenteCount");
     var pendingCount = $("#sinDocenteCount");
     if (assignedCount) assignedCount.textContent = String(assigned.length);
@@ -2544,6 +2618,7 @@
   initCreateAnio();
   initCreateMateriaCurso();
   initRefresh();
+  initAssignmentFilters();
   initEditModal();
   initCsvImport();
   initCreateDocente();

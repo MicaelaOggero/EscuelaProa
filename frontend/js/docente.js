@@ -478,6 +478,10 @@
     $("#acadId").value = "";
     $("#acadTitle").textContent = "Crear publicación para estudiantes";
     $("#acadSubmit").textContent = "Publicar";
+    $("#acadCurrentFile").textContent = "";
+    $("#acadCurrentFile").hidden = true;
+    $("#acadRemoveFile").checked = false;
+    $("#acadRemoveFileWrap").hidden = true;
     setMsg($("#acadFormMsg"), "", "");
   }
 
@@ -488,6 +492,15 @@
     $("#acadResumen").value = row.resumen || "";
     $("#acadContenido").value = row.contenido || "";
     $("#acadAdjunto").value = "";
+    var publicationFiles = Array.isArray(row.archivos) ? row.archivos.filter(function (file) {
+      return !!(file && file.name);
+    }) : [];
+    $("#acadCurrentFile").textContent = publicationFiles.length
+      ? "Archivo actual: " + publicationFiles.map(function (file) { return file.name; }).join(", ")
+      : "Esta publicación no tiene un archivo adjunto actualmente.";
+    $("#acadCurrentFile").hidden = false;
+    $("#acadRemoveFile").checked = false;
+    $("#acadRemoveFileWrap").hidden = !publicationFiles.length;
     $("#acadTitle").textContent = "Editar publicación para estudiantes";
     $("#acadSubmit").textContent = "Guardar cambios";
     openModal("#modalPublicacionAcademica");
@@ -1332,6 +1345,10 @@
     $("#matId").value = "";
     $("#matTitle").textContent = "Subir material";
     $("#matSubmit").textContent = "Publicar";
+    $("#matCurrentFile").textContent = "";
+    $("#matCurrentFile").hidden = true;
+    $("#matRemoveFile").checked = false;
+    $("#matRemoveFileWrap").hidden = true;
     setMsg($("#matMsg"), "", "");
   }
 
@@ -1341,6 +1358,15 @@
     $("#matTitulo").value = row.titulo || "";
     $("#matDesc").value = row.resumen || row.contenido || "";
     $("#matFile").value = "";
+    var materialFiles = Array.isArray(row.archivos) ? row.archivos.filter(function (file) {
+      return !!(file && file.name);
+    }) : [];
+    $("#matCurrentFile").textContent = materialFiles.length
+      ? "Archivo actual: " + materialFiles.map(function (file) { return file.name; }).join(", ")
+      : "Este material no tiene un archivo adjunto actualmente.";
+    $("#matCurrentFile").hidden = false;
+    $("#matRemoveFile").checked = false;
+    $("#matRemoveFileWrap").hidden = !materialFiles.length;
     $("#matTitle").textContent = "Editar material";
     $("#matSubmit").textContent = "Guardar cambios";
     openModal("#modalMaterial");
@@ -1372,6 +1398,7 @@
         payload.append("contenido", desc);
         if (!id) payload.append("fecha", new Date().toISOString());
         payload.append("publicado", "true");
+        if ($("#matRemoveFile").checked) payload.append("archivos", "[]");
         if (file) payload.append("archivos", file);
 
         await api(id ? "/contenidos/" + encodeURIComponent(id) : "/contenidos", {
@@ -1396,6 +1423,10 @@
     $("#actId").value = "";
     $("#actTitle").textContent = "Crear actividad";
     $("#actSubmit").textContent = "Publicar";
+    $("#actCurrentFile").textContent = "";
+    $("#actCurrentFile").hidden = true;
+    $("#actRemoveFile").checked = false;
+    $("#actRemoveFileWrap").hidden = true;
     setMsg($("#actMsg"), "", "");
   }
 
@@ -1406,6 +1437,15 @@
     $("#actInicio").value = toDatetimeLocalValue(row.fecha);
     $("#actDesc").value = row.resumen || row.contenido || "";
     $("#actAdjunto").value = "";
+    var activityFiles = Array.isArray(row.archivos) ? row.archivos.filter(function (file) {
+      return !!(file && file.name);
+    }) : [];
+    $("#actCurrentFile").textContent = activityFiles.length
+      ? "Archivo actual: " + activityFiles.map(function (file) { return file.name; }).join(", ")
+      : "Esta actividad no tiene un archivo adjunto actualmente.";
+    $("#actCurrentFile").hidden = false;
+    $("#actRemoveFile").checked = false;
+    $("#actRemoveFileWrap").hidden = !activityFiles.length;
     $("#actTitle").textContent = "Editar actividad";
     $("#actSubmit").textContent = "Guardar cambios";
     openModal("#modalActividad");
@@ -1438,6 +1478,7 @@
         payload.append("contenido", desc);
         payload.append("fecha", new Date(inicio).toISOString());
         payload.append("publicado", "true");
+        if ($("#actRemoveFile").checked) payload.append("archivos", "[]");
         if (file) payload.append("archivos", file);
 
         await api(id ? "/contenidos/" + encodeURIComponent(id) : "/contenidos", {
@@ -1481,6 +1522,7 @@
         payload.append("contenido", contenido);
         if (!id) payload.append("fecha", new Date().toISOString());
         payload.append("publicado", "true");
+        if ($("#acadRemoveFile").checked) payload.append("archivos", "[]");
         if (file) payload.append("archivos", file);
 
         await api(id ? "/contenidos/" + encodeURIComponent(id) : "/contenidos", {

@@ -798,19 +798,22 @@ function initAuthHeader() {
   var roles = (user && (user.roles || (user.role ? [user.role] : []))) || [];
   if (!Array.isArray(roles)) roles = [];
   var isStaff = roles.indexOf("superadmin") !== -1 || roles.indexOf("directivo") !== -1 || roles.indexOf("docente") !== -1;
+  var isStudent = roles.indexOf("estudiante") !== -1;
+  var hasPanel = isStaff || isStudent;
   var lastPanelPath = sessionStorage.getItem(STORAGE_LAST_PANEL) || "";
 
   function defaultPanelPath() {
     if (roles.indexOf("docente") !== -1) return "pages/docente.html";
     if (roles.indexOf("superadmin") !== -1) return "pages/directivo.html#staff";
     if (roles.indexOf("directivo") !== -1) return "pages/directivo.html";
+    if (roles.indexOf("estudiante") !== -1) return "pages/estudiante.html";
     return "pages/directivo.html";
   }
 
   if (loginLink) loginLink.hidden = isLoggedIn;
   if (logoutBtn) logoutBtn.hidden = !isLoggedIn;
-  if (panelLink) panelLink.hidden = !isStaff;
-  if (panelLink && isStaff) panelLink.href = lastPanelPath || defaultPanelPath();
+  if (panelLink) panelLink.hidden = !hasPanel;
+  if (panelLink && hasPanel) panelLink.href = lastPanelPath || defaultPanelPath();
 
   if (logoutBtn) {
     logoutBtn.addEventListener("click", function () {
