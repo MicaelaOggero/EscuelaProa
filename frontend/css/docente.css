@@ -209,6 +209,13 @@
   flex-wrap: wrap;
 }
 
+.calendar-month-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: nowrap;
+}
+
 .view-cta--primary-actions {
   flex-wrap: nowrap;
   align-items: center;
@@ -622,6 +629,22 @@
   font-size: 0.92rem;
 }
 
+.content-summary-item {
+  cursor: pointer;
+}
+
+.content-detail-text {
+  white-space: pre-wrap;
+  line-height: 1.65;
+}
+
+.content-detail-files {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-top: 1rem;
+}
+
 .switch {
   display: inline-flex;
   align-items: center;
@@ -817,3 +840,28 @@
     font-size: 0.62rem;
   }
 }
+.panel-head-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+}
+
+.inline-filter {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.inline-filter label {
+  color: var(--muted-2);
+  font-size: 0.82rem;
+  font-weight: 850;
+}
+
+.inline-filter select {
+  min-width: 130px;
+  padding: 0.55rem 0.65rem;
+}
+

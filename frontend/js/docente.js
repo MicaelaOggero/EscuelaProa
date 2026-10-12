@@ -11,6 +11,8 @@
     canAccessSuperadminPanel: false,
     mySubjects: [],
     myContents: [],
+    publicNewsVisibility: "",
+    publicEventsVisibility: "",
     filters: {
       materials: { materia: "", curso: "", ciclo: "" },
       activities: { materia: "", curso: "", ciclo: "" }
@@ -21,6 +23,8 @@
     monthCursor: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
     selectedId: ""
   };
+
+  var pendingDeleteAction = null;
 
   function $(sel) {
     return document.querySelector(sel);
@@ -427,9 +431,20 @@
     }
   }
 
-  async function deleteContenido(row) {
+  function requestDeleteConfirmation(message, action) {
+    pendingDeleteAction = action;
+    $("#deleteConfirmMessage").textContent = message;
+    openModal("#deleteConfirmModal");
+  }
+
+  async function deleteContenido(row, confirmed) {
     var kind = row && row.tipo === "actividad" ? "actividad" : row && row.tipo === "publicacion" ? "publicacion" : "material";
-    if (!confirm("Eliminar " + kind + " '" + ((row && row.titulo) || "") + "'?")) return;
+    if (!confirmed) {
+      requestDeleteConfirmation("¿Querés eliminar " + kind + " '" + ((row && row.titulo) || "") + "'?", function () {
+        return deleteContenido(row, true);
+      });
+      return;
+    }
     var msg = kind === "actividad" ? $("#actMsg") : kind === "publicacion" ? $("#academicMsg") : $("#matMsg");
     setMsg(msg, "Eliminando...", "");
     try {
@@ -507,6 +522,37 @@
     setMsg($("#acadFormMsg"), "Editando publicación...", "");
   }
 
+  function openContentDetail(kind, row) {
+    if (!row) return;
+    var title = row.titulo || (kind === "actividad" ? "Actividad" : kind === "material" ? "Material" : "PublicaciÃ³n");
+    var meta = kind === "evento"
+      ? [row.tipo || "Evento", formatFechaHora(row.inicio), row.ubicacion].filter(Boolean).join(" Â· ")
+      : [materiaCursoLabel(row.materiaCursoId), row.categoria, formatFechaHora(row.fecha || row.createdAt)].filter(Boolean).join(" Â· ");
+    var content = kind === "evento"
+      ? row.descripcion
+      : [row.resumen, row.contenido].filter(Boolean).join("\n\n");
+
+    $("#contentDetailTitle").textContent = title;
+    $("#contentDetailMeta").textContent = meta || "";
+    $("#contentDetailBody").textContent = content || "Sin contenido adicional.";
+    var files = Array.isArray(row.archivos) ? row.archivos.filter(function (file) {
+      return !!(file && file.url);
+    }) : [];
+    var filesWrap = $("#contentDetailFiles");
+    filesWrap.innerHTML = "";
+    files.forEach(function (file) {
+      var link = document.createElement("a");
+      link.className = "file-link";
+      link.href = contentFileUrl(file);
+      link.target = "_blank";
+      link.rel = "noreferrer noopener";
+      link.textContent = file.name || "Adjunto";
+      filesWrap.appendChild(link);
+    });
+    filesWrap.hidden = !files.length;
+    openModal("#contentDetailModal");
+  }
+
   function renderAcademicPosts(items, events) {
     var list = $("#academicPostsList");
     if (!list) return;
@@ -534,6 +580,11 @@
       var row = entry.row;
       var div = document.createElement("div");
       div.className = "item";
+      div.classList.add("content-summary-item");
+      div.addEventListener("click", function () {
+        if (entry.kind === "evento") openDocenteEventoDetalle(row);
+        else openContentDetail("publicacion", row);
+      });
       var left = document.createElement("div");
       var t = document.createElement("div");
       t.className = "item-title";
@@ -545,6 +596,7 @@
         : [materiaCursoLabel(row.materiaCursoId), row.resumen || row.contenido || "Sin contenido"].filter(Boolean).join(" · ");
       left.appendChild(t);
       left.appendChild(s);
+      s.hidden = true;
 
       var meta = document.createElement("div");
       meta.className = "item-meta";
@@ -557,7 +609,8 @@
         edit.type = "button";
         edit.className = "btn btn-ghost btn-sm";
         edit.textContent = "Editar";
-        edit.addEventListener("click", function () {
+        edit.addEventListener("click", function (event) {
+          event.stopPropagation();
           openAcademicEventEdit(row);
         });
         actions.appendChild(edit);
@@ -566,7 +619,8 @@
         editPost.type = "button";
         editPost.className = "btn btn-ghost btn-sm";
         editPost.textContent = "Editar";
-        editPost.addEventListener("click", function () {
+        editPost.addEventListener("click", function (event) {
+          event.stopPropagation();
           openAcademicPostEdit(row);
         });
         actions.appendChild(editPost);
@@ -575,7 +629,8 @@
       del.type = "button";
       del.className = "btn btn-secondary btn-sm";
       del.textContent = "Eliminar";
-      del.addEventListener("click", function () {
+      del.addEventListener("click", function (event) {
+        event.stopPropagation();
         if (entry.kind === "evento") deleteEvent(row);
         else deleteContenido(row);
       });
@@ -659,13 +714,25 @@
       m.addEventListener("click", function (e) {
         var t = e.target;
         if (!(t instanceof Element)) return;
-        if (t.getAttribute("data-close") === "true") closeModal(m);
+        if (t.getAttribute("data-close") === "true") {
+          if (m.id === "deleteConfirmModal") pendingDeleteAction = null;
+          closeModal(m);
+        }
       });
+    });
+
+    var deleteConfirm = $("#deleteConfirmConfirm");
+    if (deleteConfirm) deleteConfirm.addEventListener("click", async function () {
+      var action = pendingDeleteAction;
+      pendingDeleteAction = null;
+      closeModal($("#deleteConfirmModal"));
+      if (action) await action();
     });
 
     document.addEventListener("keydown", function (e) {
       if (e.key !== "Escape") return;
       $$(".modal.is-open").forEach(function (m) {
+        if (m.id === "deleteConfirmModal") pendingDeleteAction = null;
         closeModal(m);
       });
     });
@@ -779,6 +846,8 @@
       tr.appendChild(td1);
       tr.appendChild(td2);
       tr.appendChild(td3);
+      tr.classList.add("content-summary-item");
+      tr.addEventListener("click", function () { openContentDetail("publicacion", p); });
       tbody.appendChild(tr);
     });
   }
@@ -799,6 +868,8 @@
     rows.slice(0, 5).forEach(function (row) {
       var item = document.createElement("div");
       item.className = "item";
+      item.classList.add("content-summary-item");
+      item.addEventListener("click", function () { openContentDetail("publicacion", row); });
       var left = document.createElement("div");
       var title = document.createElement("div");
       title.className = "item-title";
@@ -811,6 +882,7 @@
       meta.textContent = formatFecha(row.fecha);
       left.appendChild(title);
       left.appendChild(sub);
+      sub.hidden = true;
       item.appendChild(left);
       item.appendChild(meta);
       list.appendChild(item);
@@ -977,27 +1049,32 @@
     rows.slice(0, 4).forEach(function (row) {
       var div = document.createElement("div");
       div.className = "item";
-      var left = document.createElement("div");
       var t = document.createElement("div");
       t.className = "item-title";
       t.textContent = row.title;
-      var s = document.createElement("div");
-      s.className = "item-sub";
-      s.textContent = row.sub;
-      var meta = document.createElement("div");
-      meta.className = "item-meta";
-      meta.textContent = row.meta ? formatFechaHora(row.meta) : "Reciente";
-      left.appendChild(t);
-      left.appendChild(s);
-      div.appendChild(left);
-      div.appendChild(meta);
+      div.appendChild(t);
       list.appendChild(div);
+    });
+  }
+
+  function filterPublicNewsRows(rows) {
+    var visibility = state.publicNewsVisibility;
+    return (rows || []).filter(function (row) {
+      return !visibility || (row && row.tipo ? row.tipo : "publica") === visibility;
+    });
+  }
+
+  function filterPublicEventRows(rows) {
+    var visibility = state.publicEventsVisibility;
+    return (rows || []).filter(function (row) {
+      return !visibility || (row && row.visibilidad ? row.visibilidad : "publico") === visibility;
     });
   }
 
   function renderMyPosts(rows) {
     var tbody = $("#postsTbody");
     if (!tbody) return;
+    rows = filterPublicNewsRows(rows);
     tbody.innerHTML = "";
 
     if (!rows.length) {
@@ -1026,7 +1103,7 @@
       edit.textContent = "Editar";
       edit.style.padding = "0.5rem 0.7rem";
       edit.style.fontSize = "0.9rem";
-      edit.addEventListener("click", function () {
+      edit.addEventListener("click", function (event) {
         openNewsEdit(p);
       });
       var del = document.createElement("button");
@@ -1035,7 +1112,7 @@
       del.textContent = "Eliminar";
       del.style.padding = "0.5rem 0.7rem";
       del.style.fontSize = "0.9rem";
-      del.addEventListener("click", function () {
+      del.addEventListener("click", function (event) {
         deletePost(p);
       });
       td4.appendChild(edit);
@@ -1045,12 +1122,21 @@
       tr.appendChild(td2);
       tr.appendChild(td3);
       tr.appendChild(td4);
+      tr.classList.add("content-summary-item");
+      tr.addEventListener("click", function () { openContentDetail("publicacion", p); });
+      edit.addEventListener("click", function (event) { event.stopPropagation(); });
+      del.addEventListener("click", function (event) { event.stopPropagation(); });
       tbody.appendChild(tr);
     });
   }
 
-  async function deletePost(row) {
-    if (!confirm("Eliminar novedad publica '" + (row.titulo || "") + "'?")) return;
+  async function deletePost(row, confirmed) {
+    if (!confirmed) {
+      requestDeleteConfirmation("¿Querés eliminar la novedad pública '" + (row.titulo || "") + "'?", function () {
+        return deletePost(row, true);
+      });
+      return;
+    }
     var msg = $("#postsMsg");
     setMsg(msg, "Eliminando...", "");
     try {
@@ -1080,6 +1166,8 @@
     items.forEach(function (m) {
       var div = document.createElement("div");
       div.className = "item";
+      div.classList.add("content-summary-item");
+      div.addEventListener("click", function () { openContentDetail("material", m); });
       var left = document.createElement("div");
       var t = document.createElement("div");
       t.className = "item-title";
@@ -1089,6 +1177,7 @@
       s.textContent = [materiaCursoLabel(m.materiaCursoId), m.resumen || m.contenido || "Sin descripcion"].filter(Boolean).join(" · ");
       left.appendChild(t);
       left.appendChild(s);
+      s.hidden = true;
       var meta = document.createElement("div");
       meta.className = "item-meta";
       meta.textContent = renderArchivosMeta(m);
@@ -1098,7 +1187,8 @@
       edit.type = "button";
       edit.className = "btn btn-ghost btn-sm";
       edit.textContent = "Editar";
-      edit.addEventListener("click", function () {
+      edit.addEventListener("click", function (event) {
+        event.stopPropagation();
         openMaterialEdit(m);
       });
       actions.appendChild(edit);
@@ -1106,7 +1196,8 @@
       del.type = "button";
       del.className = "btn btn-secondary btn-sm";
       del.textContent = "Eliminar";
-      del.addEventListener("click", function () {
+      del.addEventListener("click", function (event) {
+        event.stopPropagation();
         deleteContenido(m);
       });
       actions.appendChild(del);
@@ -1131,6 +1222,8 @@
     items.forEach(function (a) {
       var div = document.createElement("div");
       div.className = "item";
+      div.classList.add("content-summary-item");
+      div.addEventListener("click", function () { openContentDetail("actividad", a); });
       var left = document.createElement("div");
       var t = document.createElement("div");
       t.className = "item-title";
@@ -1140,6 +1233,7 @@
       s.textContent = [materiaCursoLabel(a.materiaCursoId), a.resumen || a.contenido || "Sin descripcion"].filter(Boolean).join(" · ");
       left.appendChild(t);
       left.appendChild(s);
+      s.hidden = true;
       var meta = document.createElement("div");
       meta.className = "item-meta";
       meta.textContent = formatFechaHora(a.fecha || a.createdAt);
@@ -1149,7 +1243,8 @@
       edit.type = "button";
       edit.className = "btn btn-ghost btn-sm";
       edit.textContent = "Editar";
-      edit.addEventListener("click", function () {
+      edit.addEventListener("click", function (event) {
+        event.stopPropagation();
         openActivityEdit(a);
       });
       actions.appendChild(edit);
@@ -1157,7 +1252,8 @@
       del.type = "button";
       del.className = "btn btn-secondary btn-sm";
       del.textContent = "Eliminar";
-      del.addEventListener("click", function () {
+      del.addEventListener("click", function (event) {
+        event.stopPropagation();
         deleteContenido(a);
       });
       actions.appendChild(del);
@@ -1168,8 +1264,60 @@
     });
   }
 
+  function renderPublicEventList(items) {
+    var list = $("#calendarList");
+    if (!list) return;
+    list.innerHTML = "";
+    if (!items.length) {
+      var empty = document.createElement("div");
+      empty.className = "empty";
+      empty.textContent = "No hay eventos con este filtro.";
+      list.appendChild(empty);
+      return;
+    }
+    items.forEach(function (row) {
+      var item = document.createElement("div");
+      item.className = "item";
+      item.classList.add("content-summary-item");
+      item.addEventListener("click", function () { openDocenteEventoDetalle(row); });
+      var left = document.createElement("div");
+      var title = document.createElement("div");
+      title.className = "item-title";
+      title.textContent = row.titulo || "Evento";
+      var sub = document.createElement("div");
+      sub.className = "item-sub";
+      sub.textContent = [row.visibilidad === "privado" ? "Privado" : "Público", row.tipo || "Evento", row.ubicacion || "Sin ubicación"].join(" · ");
+      left.appendChild(title);
+      left.appendChild(sub);
+      sub.hidden = true;
+      var meta = document.createElement("div");
+      meta.className = "item-meta";
+      meta.textContent = formatFechaHora(row.inicio);
+      var actions = document.createElement("div");
+      actions.className = "item-actions";
+      var edit = document.createElement("button");
+      edit.type = "button";
+      edit.className = "btn btn-ghost btn-sm";
+      edit.textContent = "Editar";
+      edit.addEventListener("click", function (event) { event.stopPropagation(); openEventEdit(row); });
+      var del = document.createElement("button");
+      del.type = "button";
+      del.className = "btn btn-secondary btn-sm";
+      del.textContent = "Eliminar";
+      del.addEventListener("click", function (event) { event.stopPropagation(); deleteEvent(row); });
+      actions.appendChild(edit);
+      actions.appendChild(del);
+      item.appendChild(left);
+      item.appendChild(meta);
+      item.appendChild(actions);
+      list.appendChild(item);
+    });
+  }
+
   function renderPublicEvents(items) {
-    renderDocenteCalendar(items);
+    var filtered = filterPublicEventRows(items);
+    renderDocenteCalendar(filtered);
+    renderPublicEventList(filtered);
   }
 
   async function refreshPublicNews() {
@@ -1178,9 +1326,9 @@
       state.publicNews = Array.isArray(news) ? news : [];
       renderRecentPosts(state.publicNews);
       renderMyPosts(state.publicNews);
-      renderDocenteNews(state.publicNews);
+      renderDocenteNews(filterPublicNewsRows(state.publicNews));
       if ($("#kpiPosts")) $("#kpiPosts").textContent = String(state.publicNews.length);
-      setMsg($("#postsMsg"), "OK", "ok");
+      setMsg($("#postsMsg"), "", "");
     } catch (e) {
       state.publicNews = [];
       renderRecentPosts([]);
@@ -1200,7 +1348,7 @@
           })
         : [];
       renderPublicEvents(state.publicEvents);
-      setMsg($("#calMsg"), "OK", "ok");
+      setMsg($("#calMsg"), "", "");
     } catch (err) {
       state.publicEvents = [];
       renderPublicEvents([]);
@@ -1208,9 +1356,14 @@
     }
   }
 
-  async function deleteEvent(row) {
+  async function deleteEvent(row, confirmed) {
     var isAcademic = isAcademicEvent(row);
-    if (!confirm("Eliminar " + (isAcademic ? "evento para estudiantes" : "evento publico") + " '" + (row.titulo || "") + "'?")) return;
+    if (!confirmed) {
+      requestDeleteConfirmation("¿Querés eliminar " + (isAcademic ? "el evento para estudiantes" : "el evento público") + " '" + (row.titulo || "") + "'?", function () {
+        return deleteEvent(row, true);
+      });
+      return;
+    }
     var msg = isAcademic ? $("#academicMsg") : $("#calMsg");
     setMsg(msg, "Eliminando...", "");
     try {
@@ -1261,10 +1414,15 @@
     var kpiMats = $("#kpiMats");
     var kpiActs = $("#kpiActs");
     var kpiEventos = $("#kpiEventos");
+    var now = Date.now();
+    var upcomingEvents = state.publicEvents.filter(function (row) {
+      var timestamp = new Date(row.inicio || row.createdAt || 0).getTime();
+      return !isNaN(timestamp) && timestamp >= now;
+    });
     if (kpiCursos) kpiCursos.textContent = String(state.mySubjects.length);
     if (kpiMats) kpiMats.textContent = String(mats.length);
     if (kpiActs) kpiActs.textContent = String(acts.length);
-    if (kpiEventos) kpiEventos.textContent = String(state.publicEvents.slice(0, 7).length);
+    if (kpiEventos) kpiEventos.textContent = String(upcomingEvents.slice(0, 7).length);
 
     renderFilteredContent();
     renderAcademicPosts(pubs, academicEvents);
@@ -1635,8 +1793,18 @@
   function initRefreshButtons() {
     var btn = $("#refreshPosts");
     if (btn) btn.addEventListener("click", refreshAll);
+    var postsVisibility = $("#postsVisibilityFilter");
+    if (postsVisibility) postsVisibility.addEventListener("change", function () {
+      state.publicNewsVisibility = postsVisibility.value;
+      renderDocenteNews(filterPublicNewsRows(state.publicNews));
+    });
     var refreshEvents = $("#refreshPublicEvents");
     if (refreshEvents) refreshEvents.addEventListener("click", refreshPublicEvents);
+    var eventsVisibility = $("#eventsVisibilityFilter");
+    if (eventsVisibility) eventsVisibility.addEventListener("change", function () {
+      state.publicEventsVisibility = eventsVisibility.value;
+      renderPublicEvents(state.publicEvents);
+    });
     var prevMes = $("#prevDocenteMes");
     if (prevMes) {
       prevMes.addEventListener("click", function () {

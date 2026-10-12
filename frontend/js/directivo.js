@@ -534,7 +534,7 @@
       renderNoticiasDirectivo(rows.filter(function (row) {
         return row && row.tipo === "privada" && Array.isArray(row.visibleParaRoles) && row.visibleParaRoles.indexOf("directivo") !== -1;
       }));
-      setMsg(msg, "OK", "ok");
+      setMsg(msg, "", "");
     } catch (e) {
       renderNoticias([]);
       renderNoticiasDirectivo([]);
@@ -921,7 +921,7 @@
       renderEventosDirectivo(rows.filter(function (row) {
         return row && row.visibilidad === "privado" && Array.isArray(row.visibleParaRoles) && row.visibleParaRoles.indexOf("directivo") !== -1;
       }));
-      setMsg(msg, "OK", "ok");
+      setMsg(msg, "", "");
     } catch (e) {
       eventoCalendarState.rows = [];
       renderEventos([]);
@@ -1256,7 +1256,7 @@
       var rows = await api("/contacto" + query, { method: "GET" });
       consultasState.rows = Array.isArray(rows) ? rows : [];
       renderConsultas(consultasState.rows);
-      setMsg(msg, "OK", "ok");
+      setMsg(msg, "", "");
       if (consultasState.selectedId) {
         var selected = consultasState.rows.find(function (row) {
           return String(row._id || row.id) === String(consultasState.selectedId);
@@ -1623,7 +1623,7 @@
       var q = filter && filter.value ? "?role=" + encodeURIComponent(filter.value) : "";
       var data = await api("/users/staff" + q, { method: "GET" });
       renderStaffRows(data);
-      setMsg(msgEl, "OK", "ok");
+      setMsg(msgEl, "", "");
     } catch (err) {
       renderStaffRows([]);
       setMsg(msgEl, err.message || "Error", "error");
@@ -1866,7 +1866,7 @@
       asignacionesState.rows = mas || [];
       populateAssignmentFilters(asignacionesState.rows);
       renderAsignaciones(asignacionesState.rows);
-      setMsg(asigMsg, "OK", "ok");
+      setMsg(asigMsg, "", "");
     } catch (e) {
       setMsg(asigMsg, e.message || "Error", "error");
     }
@@ -2404,7 +2404,7 @@
         });
         setMsg(
           msg,
-          "OK · creados: " + String(res.created || 0) + " · omitidos: " + String(res.skipped || 0),
+          "Creados: " + String(res.created || 0) + " · omitidos: " + String(res.skipped || 0),
           "ok"
         );
         renderImportDetails(details, res.credentials, res.errors);

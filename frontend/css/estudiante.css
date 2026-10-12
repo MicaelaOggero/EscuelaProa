@@ -36,7 +36,7 @@
 .student-calendar-nav {
   display: flex;
   gap: 0.45rem;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: flex-end;
 }
 
@@ -57,7 +57,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.6rem;
-  margin: 0 1rem 0.5rem;
+  margin: 0.75rem 1rem 0.45rem;
 }
 
 .student-legend-chip {
@@ -84,8 +84,8 @@
 .student-calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 0.28rem;
-  padding: 0 1rem 1rem;
+  gap: 0.22rem;
+  padding: 0 0.9rem 0.9rem;
 }
 
 .student-calendar-weekday,
@@ -96,7 +96,7 @@
 }
 
 .student-calendar-weekday {
-  padding: 0.32rem;
+  padding: 0.28rem;
   text-align: center;
   font-weight: 900;
   color: rgba(23, 19, 32, 0.74);
@@ -105,8 +105,8 @@
 }
 
 .student-calendar-day {
-  min-height: 62px;
-  padding: 0.26rem;
+  min-height: 56px;
+  padding: 0.22rem;
   display: grid;
   align-content: start;
   gap: 0.16rem;
@@ -279,6 +279,49 @@
   gap: 1rem;
 }
 
+.student-content-tabs {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-height: 3.35rem;
+  padding: 0.35rem 0.55rem 0;
+  border-top: 1px solid rgba(23, 19, 32, 0.08);
+  border-bottom: 1px solid rgba(23, 19, 32, 0.08);
+  background: rgba(255, 255, 255, 0.48);
+}
+
+.student-content-tab {
+  position: relative;
+  align-self: stretch;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  padding: 0 1rem;
+  color: var(--muted-2);
+  background: transparent;
+  font: inherit;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.student-content-tab:hover,
+.student-content-tab.is-active {
+  color: rgba(46, 21, 80, 0.96);
+}
+
+.student-content-tab.is-active {
+  border-bottom-color: #6d2ccf;
+}
+
+.student-type-filter {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
 .student-focus-panel {
   overflow: hidden;
 }
@@ -299,14 +342,39 @@
 
 .cards {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.95rem;
+  grid-template-columns: 1fr;
+  gap: 0.65rem;
+  padding: 0.1rem 1rem 1rem;
 }
 
 .card {
-  padding: 1rem;
+  padding: 0.85rem 1rem;
   overflow: hidden;
   position: relative;
+}
+
+.student-content-item {
+  cursor: pointer;
+  transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.student-content-item:hover {
+  transform: translateY(-1px);
+  border-color: rgba(109, 44, 207, 0.28);
+  box-shadow: 0 12px 26px rgba(109, 44, 207, 0.1);
+}
+
+.student-content-item .files {
+  display: none;
+}
+
+.student-content-item .byline {
+  display: none;
+}
+
+.student-content-detail-text {
+  white-space: pre-wrap;
+  line-height: 1.65;
 }
 
 .card::before {
@@ -541,8 +609,8 @@
   }
 
   .student-calendar-day {
-    min-height: 54px;
-    padding: 0.2rem;
+    min-height: 50px;
+    padding: 0.18rem;
     gap: 0.12rem;
     border-radius: 10px;
   }
@@ -568,6 +636,16 @@
 }
 
 @media (max-width: 640px) {
+  .student-content-tabs {
+    overflow-x: auto;
+  }
+
+  .student-content-tab {
+    flex: 0 0 auto;
+    padding-inline: 0.7rem;
+    white-space: nowrap;
+  }
+
   .student-calendar-grid {
     grid-template-columns: repeat(7, minmax(0, 1fr));
     gap: 0.14rem;
@@ -580,8 +658,8 @@
   }
 
   .student-calendar-day {
-    min-height: 44px;
-    padding: 0.16rem;
+    min-height: 42px;
+    padding: 0.14rem;
     border-radius: 8px;
   }
 

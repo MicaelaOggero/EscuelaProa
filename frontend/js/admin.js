@@ -209,7 +209,7 @@
       var q = filter && filter.value ? "?role=" + encodeURIComponent(filter.value) : "";
       var data = await api("/users/staff" + q, { method: "GET" });
       renderStaffRows(data);
-      setMsg(msgEl, "OK", "ok");
+      setMsg(msgEl, "", "");
     } catch (err) {
       setMsg(msgEl, err.message || "Error", "error");
     }

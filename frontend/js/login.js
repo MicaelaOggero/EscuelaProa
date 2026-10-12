@@ -104,7 +104,7 @@
           setToken(data.token);
           setUser(data.user);
         }
-        setMsg(msgEl, "OK", "ok");
+        setMsg(msgEl, "", "");
 
         var role = data.user && data.user.role;
         var roles = (data.user && (data.user.roles || (role ? [role] : []))) || [];

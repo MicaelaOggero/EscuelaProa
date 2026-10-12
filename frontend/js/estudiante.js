@@ -252,6 +252,9 @@
   function renderStudentNews(rows) {
     var wrap = $("#studentNewsList");
     if (!wrap) return;
+    rows = (rows || []).filter(function (row) {
+      return row && row.tipo === "privada";
+    });
     wrap.innerHTML = "";
 
     if (!rows.length) {
@@ -265,6 +268,10 @@
     rows.slice(0, 4).forEach(function (row) {
       var card = document.createElement("article");
       card.className = "card" + (row.tipo === "privada" ? " student-news-card-private" : "");
+      card.classList.add("student-content-item");
+      card.addEventListener("click", function () {
+        openStudentContentDetail(row);
+      });
       var meta = document.createElement("div");
       meta.className = "meta";
       var chip = document.createElement("div");
@@ -275,6 +282,7 @@
       date.textContent = formatFecha(row.fecha);
       meta.appendChild(chip);
       meta.appendChild(date);
+      meta.hidden = true;
 
       var title = document.createElement("div");
       title.className = "title";
@@ -283,9 +291,11 @@
       var text = document.createElement("p");
       text.className = "text";
       text.textContent = row.resumen || row.contenido || "Sin resumen disponible.";
+      text.hidden = true;
 
       var by = document.createElement("div");
       by.className = "byline";
+      by.hidden = true;
       by.textContent = [row.categoria || "Institucional", visibilityLabel(row)].join(" · ");
 
       card.appendChild(meta);
@@ -319,7 +329,10 @@
 
     rows.slice(0, 4).forEach(function (row) {
       var card = document.createElement("article");
-      card.className = "card";
+      card.className = "card student-content-item";
+      card.addEventListener("click", function () {
+        openStudentContentDetail(row);
+      });
       var meta = document.createElement("div");
       meta.className = "meta";
       var chip = document.createElement("div");
@@ -330,6 +343,7 @@
       date.textContent = formatFecha(row.fecha || row.createdAt);
       meta.appendChild(chip);
       meta.appendChild(date);
+      meta.hidden = true;
 
       var title = document.createElement("div");
       title.className = "title";
@@ -338,6 +352,7 @@
       var text = document.createElement("p");
       text.className = "text";
       text.textContent = row.resumen || row.contenido || "Sin contenido disponible.";
+      text.hidden = true;
 
       var files = Array.isArray(row.archivos) ? row.archivos.filter(function (file) {
         return !!(file && file.url);
@@ -393,6 +408,13 @@
 
   function closeStudentEventDetail() {
     var modal = $("#studentEventoDetalleModal");
+    if (!modal) return;
+    modal.classList.remove("is-open");
+    modal.setAttribute("aria-hidden", "true");
+  }
+
+  function closeStudentContentDetail() {
+    var modal = $("#studentContentDetailModal");
     if (!modal) return;
     modal.classList.remove("is-open");
     modal.setAttribute("aria-hidden", "true");
@@ -467,7 +489,7 @@
       var rows = await api("/calendario", { method: "GET" });
       state.eventos = Array.isArray(rows) ? rows : [];
       renderStudentCalendar(state.eventos);
-      setMsg(msg, "OK", "ok");
+      setMsg(msg, "", "");
     } catch (e) {
       state.eventos = [];
       renderStudentCalendar([]);
@@ -491,8 +513,20 @@
       });
     }
 
+    var contentModal = $("#studentContentDetailModal");
+    if (contentModal) {
+      contentModal.addEventListener("click", function (e) {
+        var target = e.target;
+        if (!(target instanceof Element)) return;
+        if (target.getAttribute("data-close") === "true") closeStudentContentDetail();
+      });
+    }
+
     document.addEventListener("keydown", function (e) {
-      if (e.key === "Escape") closeStudentEventDetail();
+      if (e.key === "Escape") {
+        closeStudentEventDetail();
+        closeStudentContentDetail();
+      }
     });
 
     var prev = $("#prevStudentMes");
@@ -518,7 +552,7 @@
       var rows = await api("/noticias", { method: "GET" });
       state.noticias = Array.isArray(rows) ? rows : [];
       renderStudentNews(state.noticias);
-      setMsg(msg, "OK", "ok");
+      setMsg(msg, "", "");
     } catch (e) {
       state.noticias = [];
       renderStudentNews([]);
@@ -540,7 +574,7 @@
       var rows = await api("/contenidos?materiaCursoId=" + encodeURIComponent(state.selectedMateriaId) + "&tipo=publicacion", { method: "GET" });
       state.academicas = Array.isArray(rows) ? rows : [];
       renderAcademicPosts(state.academicas);
-      setMsg(msg, "OK", "ok");
+      setMsg(msg, "", "");
     } catch (e) {
       state.academicas = [];
       renderAcademicPosts([]);
@@ -565,6 +599,37 @@
     }
   }
 
+  function openStudentContentDetail(row) {
+    if (!row) return;
+    $("#studentContentDetailTitle").textContent = row.titulo || "Detalle del contenido";
+    $("#studentContentDetailMeta").textContent = [
+      row.tipo,
+      formatFecha(row.fecha || row.createdAt),
+      materiaConAnioLabel(row.materiaCursoId)
+    ].filter(Boolean).join(" · ");
+    $("#studentContentDetailBody").textContent = [row.resumen, row.contenido].filter(Boolean).join("\n\n") || "Sin contenido adicional.";
+
+    var filesWrap = $("#studentContentDetailFiles");
+    filesWrap.innerHTML = "";
+    var files = Array.isArray(row.archivos) ? row.archivos.filter(function (file) {
+      return !!(file && file.url);
+    }) : [];
+    files.forEach(function (file) {
+      var link = document.createElement("a");
+      link.className = "file-link";
+      link.href = fileUrl(file);
+      link.target = "_blank";
+      link.rel = "noreferrer noopener";
+      link.textContent = file.name || "Adjunto";
+      filesWrap.appendChild(link);
+    });
+    filesWrap.hidden = !files.length;
+
+    var modal = $("#studentContentDetailModal");
+    modal.classList.add("is-open");
+    modal.setAttribute("aria-hidden", "false");
+  }
+
   function renderCards(rows) {
     var wrap = $("#cards");
     if (!wrap) return;
@@ -580,7 +645,10 @@
     }
     rows.forEach(function (r) {
       var card = document.createElement("article");
-      card.className = "card";
+      card.className = "card student-content-item";
+      card.addEventListener("click", function () {
+        openStudentContentDetail(r);
+      });
       var meta = document.createElement("div");
       meta.className = "meta";
       var chip = document.createElement("div");
@@ -591,6 +659,7 @@
       date.textContent = formatFecha(r.fecha || r.createdAt);
       meta.appendChild(chip);
       meta.appendChild(date);
+      meta.hidden = true;
 
       var h = document.createElement("div");
       h.className = "title";
@@ -599,6 +668,7 @@
       var p = document.createElement("p");
       p.className = "text";
       p.textContent = r.resumen || r.contenido || "";
+      p.hidden = true;
 
       var by = document.createElement("div");
       by.className = "byline";
@@ -629,6 +699,7 @@
         card.appendChild(links);
       }
       card.appendChild(by);
+      by.hidden = true;
       wrap.appendChild(card);
     });
   }
@@ -644,7 +715,7 @@
         if (tipo) q.push("tipo=" + encodeURIComponent(tipo));
       var data = await api("/contenidos" + (q.length ? "?" + q.join("&") : ""), { method: "GET" });
       renderCards(Array.isArray(data) ? data : []);
-      setMsg(msg, "OK", "ok");
+      setMsg(msg, "", "");
     } catch (e) {
       setMsg(msg, e.message || "Error", "error");
     }
@@ -669,11 +740,27 @@
   }
 
   function initFilters() {
-    $("#tipo").addEventListener("change", loadContenido);
-    $("#refresh").addEventListener("click", function () {
-      loadMaterias().then(function () {
-        return Promise.all([loadAcademicPosts(), loadContenido()]);
+    var typeFilter = $("#tipo");
+    if (typeFilter) typeFilter.addEventListener("change", function () {
+      syncContentTabs(typeFilter.value);
+      loadContenido();
+    });
+
+    Array.prototype.slice.call(document.querySelectorAll("[data-student-filter]")).forEach(function (tab) {
+      tab.addEventListener("click", function () {
+        if (!typeFilter) return;
+        typeFilter.value = tab.getAttribute("data-student-filter") || "";
+        syncContentTabs(typeFilter.value);
+        loadContenido();
       });
+    });
+  }
+
+  function syncContentTabs(value) {
+    Array.prototype.slice.call(document.querySelectorAll("[data-student-filter]")).forEach(function (tab) {
+      var active = (tab.getAttribute("data-student-filter") || "") === (value || "");
+      tab.classList.toggle("is-active", active);
+      tab.setAttribute("aria-selected", active ? "true" : "false");
     });
   }
 

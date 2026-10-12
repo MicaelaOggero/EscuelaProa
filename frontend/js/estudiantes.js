@@ -439,7 +439,7 @@
     try {
       var rows = await api(buildStudentQuery(), { method: "GET" });
       renderStudents(Array.isArray(rows) ? rows : []);
-      setMsg(msg, "OK", "ok");
+      setMsg(msg, "", "");
     } catch (e) {
       renderStudents([]);
       setMsg(msg, e.message || "Error", "error");
@@ -653,7 +653,7 @@
           method: "POST",
           body: JSON.stringify({ csv: text })
         });
-        setMsg(msg, "OK · creados: " + String(res.created || 0) + " · omitidos: " + String(res.skipped || 0), "ok");
+        setMsg(msg, "Creados: " + String(res.created || 0) + " · omitidos: " + String(res.skipped || 0), "ok");
         if (res && Array.isArray(res.credentials) && res.credentials.length) {
           renderCredentials(details, "Passwords generados", res.credentials, "password");
         }

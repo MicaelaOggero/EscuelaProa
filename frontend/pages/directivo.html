@@ -569,7 +569,6 @@
               <div class="modal-head">
                 <div>
                   <div id="docEditTitle" class="modal-title">Editar docente</div>
-                  <div class="modal-sub">PUT <span class="mono">/users/staff/:id</span></div>
                 </div>
                 <button class="btn btn-ghost btn-sm" type="button" data-close="true">Cerrar</button>
               </div>
@@ -690,9 +689,11 @@
                   <div class="panel-sub">Visualiza eventos publicos y privados en un calendario mensual interactivo.</div>
                 </div>
                 <div class="view-cta">
-                  <button id="prevEventosMes" class="btn btn-secondary" type="button">Mes anterior</button>
-                  <div id="eventosMesLabel" class="calendar-month-label">-</div>
-                  <button id="nextEventosMes" class="btn btn-secondary" type="button">Mes siguiente</button>
+                  <div class="calendar-month-nav">
+                    <button id="prevEventosMes" class="btn btn-secondary" type="button" aria-label="Mes anterior" title="Mes anterior">‹</button>
+                    <div id="eventosMesLabel" class="calendar-month-label">-</div>
+                    <button id="nextEventosMes" class="btn btn-secondary" type="button" aria-label="Mes siguiente" title="Mes siguiente">›</button>
+                  </div>
                   <button id="refreshEventos" class="btn btn-secondary" type="button">Actualizar</button>
                 </div>
               </div>

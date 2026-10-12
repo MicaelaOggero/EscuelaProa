@@ -212,6 +212,13 @@
   flex-wrap: wrap;
 }
 
+.calendar-month-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: nowrap;
+}
+
 .role-check-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));

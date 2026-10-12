@@ -40,7 +40,7 @@
         <div class="container">
           <div class="section-head reveal">
             <div>
-              <h1 class="section-title">Aula por materias</h1>
+              <h1 class="section-title">Mi aula virtual</h1>
               <p id="anioLabel" class="section-subtitle">-</p>
             </div>
           </div>
@@ -63,9 +63,8 @@
               <div class="panel-head panel-head--student">
                 <div>
                   <div class="panel-title">Novedades para ti</div>
-                  <div class="panel-sub">Comunicados publicos y privados visibles para estudiantes.</div>
+                  <div class="panel-sub">Comunicados privados dirigidos a estudiantes.</div>
                 </div>
-                <a class="btn btn-ghost" href="../index.html#novedades">Sitio publico</a>
               </div>
               <div id="studentNewsMsg" class="msg" role="status" aria-live="polite"></div>
               <div id="studentNewsList" class="student-news-list" aria-label="Listado de noticias para estudiantes">
@@ -77,12 +76,11 @@
               <div class="panel-head panel-head--student">
                 <div>
                   <div class="panel-title">Agenda institucional</div>
-                  <div class="panel-sub">Eventos publicos y privados visibles para estudiantes.</div>
                 </div>
                 <div class="student-calendar-nav">
-                  <button id="prevStudentMes" class="btn btn-secondary" type="button">Mes anterior</button>
+                  <button id="prevStudentMes" class="btn btn-secondary" type="button" aria-label="Mes anterior" title="Mes anterior">‹</button>
                   <div id="studentMesLabel" class="student-calendar-label">-</div>
-                  <button id="nextStudentMes" class="btn btn-secondary" type="button">Mes siguiente</button>
+                  <button id="nextStudentMes" class="btn btn-secondary" type="button" aria-label="Mes siguiente" title="Mes siguiente">›</button>
                 </div>
               </div>
               <div class="student-calendar-legend" aria-label="Referencias de eventos">
@@ -111,15 +109,20 @@
                     <div id="selectedMateriaTitle" class="panel-title">Selecciona una materia</div>
                     <div id="selectedMateriaMeta" class="panel-sub">El contenido se filtra automáticamente por tu curso.</div>
                   </div>
-                  <button id="refresh" class="btn btn-secondary" type="button">Actualizar</button>
+                </div>
+
+                <div class="student-content-tabs" role="tablist" aria-label="Filtrar contenido">
+                  <button class="student-content-tab is-active" type="button" role="tab" aria-selected="true" data-student-filter="publicacion">Publicaciones</button>
+                  <button class="student-content-tab" type="button" role="tab" aria-selected="false" data-student-filter="material">Materiales</button>
+                  <button class="student-content-tab" type="button" role="tab" aria-selected="false" data-student-filter="actividad">Actividades</button>
                 </div>
 
                 <div class="student-toolbar">
-                  <div class="field">
+                  <div class="field student-type-filter">
                     <label for="tipo">Tipo</label>
                     <select id="tipo">
-                      <option value="">Todos</option>
-                      <option value="publicacion">Publicaciones</option>
+                      <option value="" disabled>Seleccionar tipo</option>
+                      <option value="publicacion" selected>Publicaciones</option>
                       <option value="material">Materiales</option>
                       <option value="actividad">Actividades</option>
                     </select>
@@ -127,9 +130,8 @@
                 </div>
 
                 <div id="msg" class="msg" role="status" aria-live="polite"></div>
+                <div id="cards" class="cards" aria-label="Listado contenidos"></div>
               </div>
-
-              <div id="cards" class="cards" aria-label="Listado contenidos"></div>
             </section>
           </div>
         </div>
@@ -147,6 +149,23 @@
     <script src="../js/auth-session.js" defer></script>
     <script src="../js/script.js" defer></script>
     <script src="../js/estudiante.js" defer></script>
+
+    <div id="studentContentDetailModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="studentContentDetailTitle">
+      <div class="modal-backdrop" data-close="true"></div>
+      <div class="modal-panel" role="document">
+        <div class="modal-head">
+          <div>
+            <div id="studentContentDetailTitle" class="modal-title">Detalle del contenido</div>
+            <div id="studentContentDetailMeta" class="modal-sub"></div>
+          </div>
+          <button class="btn btn-ghost btn-sm" type="button" data-close="true">Cerrar</button>
+        </div>
+        <div class="modal-body">
+          <div id="studentContentDetailBody" class="student-content-detail-text"></div>
+          <div id="studentContentDetailFiles" class="files" hidden></div>
+        </div>
+      </div>
+    </div>
 
     <div id="studentEventoDetalleModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="studentEventoTitle">
       <div class="modal-backdrop" data-close="true"></div>

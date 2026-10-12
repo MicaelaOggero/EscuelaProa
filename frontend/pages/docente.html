@@ -64,11 +64,6 @@
           </button>
         </nav>
 
-        <div class="side-footer">
-          <div class="pill">Institucional</div>
-          <div class="pill">Tecnologico</div>
-          <div class="pill">Seguro</div>
-        </div>
       </aside>
 
       <div class="main">
@@ -142,12 +137,21 @@
                 <div class="panel-head">
                   <div>
                     <div class="panel-title">Agenda institucional</div>
-                    <div class="panel-sub">Eventos publicos y privados visibles para tu rol, organizados en un almanaque mensual.</div>
                   </div>
-                  <div class="view-cta">
-                    <button id="prevDocenteMes" class="btn btn-secondary" type="button">Mes anterior</button>
+                  <div class="panel-head-actions">
+                    <div class="inline-filter">
+                      <label for="eventsVisibilityFilter">Visibilidad</label>
+                      <select id="eventsVisibilityFilter">
+                        <option value="">Todos</option>
+                        <option value="publico">Públicos</option>
+                        <option value="privado">Privados</option>
+                      </select>
+                    </div>
+                    <div class="view-cta calendar-month-nav">
+                      <button id="prevDocenteMes" class="btn btn-secondary" type="button" aria-label="Mes anterior" title="Mes anterior">‹</button>
                     <div id="docenteMesLabel" class="calendar-month-label">-</div>
-                    <button id="nextDocenteMes" class="btn btn-secondary" type="button">Mes siguiente</button>
+                      <button id="nextDocenteMes" class="btn btn-secondary" type="button" aria-label="Mes siguiente" title="Mes siguiente">›</button>
+                    </div>
                   </div>
                 </div>
                 <div class="calendar-legend" aria-label="Referencias de eventos">
@@ -188,6 +192,14 @@
                     <div class="panel-title">Comunicados para ti</div>
                     <div class="panel-sub">Noticias publicas y privadas visibles para tu rol docente.</div>
                   </div>
+                <div class="inline-filter">
+                  <label for="postsVisibilityFilter">Visibilidad</label>
+                  <select id="postsVisibilityFilter">
+                    <option value="">Todas</option>
+                    <option value="publica">Públicas</option>
+                    <option value="privada">Privadas</option>
+                  </select>
+                </div>
               </div>
               <div id="docenteNewsList" class="list compact-list" aria-label="Listado de noticias para docente">
                 <div class="empty">Todavia no hay comunicados disponibles.</div>
@@ -223,7 +235,7 @@
               <div class="panel-head">
                 <div>
                   <div class="panel-title">Registro de novedades</div>
-                  <div class="panel-sub">Se guardan localmente para tu seguimiento y tambien se publican en `/noticias`</div>
+                  <div class="panel-sub">Se guardan localmente para tu seguimiento y tambien se publican en el sitio publico.</div>
                 </div>
                 <button id="refreshPosts" class="btn btn-secondary" type="button">Actualizar</button>
               </div>
@@ -391,7 +403,6 @@
         <div class="modal-head">
           <div>
             <div id="crearTitle" class="modal-title">Publicar novedad</div>
-            <div class="modal-sub">POST <span class="mono">/noticias</span></div>
           </div>
           <button class="btn btn-ghost btn-sm" type="button" data-close="true">Cerrar</button>
         </div>
@@ -442,7 +453,6 @@
         <div class="modal-head">
           <div>
             <div id="eventoTitle" class="modal-title">Crear evento publico</div>
-            <div class="modal-sub">POST <span class="mono">/calendario</span></div>
           </div>
           <button class="btn btn-ghost btn-sm" type="button" data-close="true">Cerrar</button>
         </div>
@@ -510,13 +520,49 @@
       </div>
     </div>
 
+    <div id="deleteConfirmModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="deleteConfirmTitle">
+      <div class="modal-backdrop" data-close="true"></div>
+      <div class="modal-panel" role="document">
+        <div class="modal-head">
+          <div>
+            <div id="deleteConfirmTitle" class="modal-title">Confirmar eliminación</div>
+            <div class="modal-sub">Esta acción no se puede deshacer.</div>
+          </div>
+          <button class="btn btn-ghost btn-sm" type="button" data-close="true">Cerrar</button>
+        </div>
+        <div class="modal-body">
+          <div id="deleteConfirmMessage" class="panel-note"></div>
+          <div class="modal-actions">
+            <button id="deleteConfirmConfirm" class="btn btn-primary" type="button">Eliminar</button>
+            <button class="btn btn-secondary" type="button" data-close="true">Cancelar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="contentDetailModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="contentDetailTitle">
+      <div class="modal-backdrop" data-close="true"></div>
+      <div class="modal-panel" role="document">
+        <div class="modal-head">
+          <div>
+            <div id="contentDetailTitle" class="modal-title">Detalle</div>
+            <div id="contentDetailMeta" class="modal-sub"></div>
+          </div>
+          <button class="btn btn-ghost btn-sm" type="button" data-close="true">Cerrar</button>
+        </div>
+        <div class="modal-body">
+          <div id="contentDetailBody" class="content-detail-text"></div>
+          <div id="contentDetailFiles" class="files content-detail-files" hidden></div>
+        </div>
+      </div>
+    </div>
+
     <div id="modalPublicacionAcademica" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="acadTitle">
       <div class="modal-backdrop" data-close="true"></div>
       <div class="modal-panel" role="document">
         <div class="modal-head">
           <div>
             <div id="acadTitle" class="modal-title">Crear publicación para estudiantes</div>
-            <div class="modal-sub">POST <span class="mono">/contenidos</span></div>
           </div>
           <button class="btn btn-ghost btn-sm" type="button" data-close="true">Cerrar</button>
         </div>
@@ -565,7 +611,6 @@
         <div class="modal-head">
           <div>
             <div id="acadEventTitle" class="modal-title">Crear evento para estudiantes</div>
-            <div class="modal-sub">POST <span class="mono">/calendario</span></div>
           </div>
           <button class="btn btn-ghost btn-sm" type="button" data-close="true">Cerrar</button>
         </div>
@@ -623,7 +668,6 @@
         <div class="modal-head">
           <div>
             <div id="matTitle" class="modal-title">Subir material</div>
-            <div class="modal-sub">POST <span class="mono">/contenidos</span></div>
           </div>
           <button class="btn btn-ghost btn-sm" type="button" data-close="true">Cerrar</button>
         </div>
@@ -669,7 +713,6 @@
         <div class="modal-head">
           <div>
             <div id="actTitle" class="modal-title">Crear actividad</div>
-            <div class="modal-sub">POST <span class="mono">/contenidos</span></div>
           </div>
           <button class="btn btn-ghost btn-sm" type="button" data-close="true">Cerrar</button>
         </div>

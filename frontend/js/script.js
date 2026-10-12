@@ -1,3 +1,5 @@
+var propuestaItems = [];
+
 function initYear() {
   var yearEl = document.getElementById("year");
   if (!yearEl) return;
@@ -324,6 +326,13 @@ function initPropuestaView() {
     });
   }
 
+  var yearFilter = document.getElementById("propuestaYearFilter");
+  if (yearFilter) {
+    yearFilter.addEventListener("change", function () {
+      renderPropuesta(propuestaItems);
+    });
+  }
+
 }
 
 function initNewsCards() {
@@ -516,43 +525,44 @@ function renderEvents(items) {
 }
 
 function propuestaCourseNumber(row) {
-  var curso = row && row.cursoId;
+  var curso = row && row.cursoId ? row.cursoId : row;
   return Number(curso && curso.numero) || 0;
 }
 
 function propuestaCourseLabel(curso) {
   if (!curso) return "Año";
-  var base = curso.nombre || (curso.numero ? String(curso.numero) + "° año" : "Año");
-  var extras = [];
-  if (curso.division) extras.push(curso.division);
-  if (curso.turno) extras.push(curso.turno);
-  return extras.length ? base + " · " + extras.join(" · ") : base;
+  return curso.numero ? String(curso.numero) + "° año" : (curso.nombre || "Año");
 }
 
 function renderPropuesta(items) {
   var root = document.getElementById("propuestaGrid");
-  var yearsCount = document.getElementById("propuestaYearsCount");
-  var subjectsCount = document.getElementById("propuestaSubjectsCount");
   if (!root) return;
 
   var rows = Array.isArray(items) ? items.slice() : [];
   var groups = {};
   rows.forEach(function (row) {
     var curso = row && row.cursoId;
-    var key = curso && curso._id ? String(curso._id) : "sin-curso";
+    var key = curso && curso.numero
+      ? "anio-" + String(curso.numero)
+      : curso && curso.nombre
+        ? "anio-" + String(curso.nombre).toLowerCase().replace(/\s+[ab]$/i, "")
+        : "sin-curso";
     if (!groups[key]) {
       groups[key] = {
         curso: curso,
-        materias: []
+        materias: {}
       };
     }
-    groups[key].materias.push(String(row.materia || "").trim());
+    var materia = String(row.materia || "").trim();
+    if (materia) groups[key].materias[materia.toLowerCase()] = materia;
   });
 
-  var cards = Object.keys(groups)
+  var allCards = Object.keys(groups)
     .map(function (key) {
       var group = groups[key];
-      var materias = group.materias.filter(Boolean).sort(function (a, b) {
+      var materias = Object.keys(group.materias).map(function (subjectKey) {
+        return group.materias[subjectKey];
+      }).sort(function (a, b) {
         return a.localeCompare(b, "es", { sensitivity: "base" });
       });
       return {
@@ -564,14 +574,27 @@ function renderPropuesta(items) {
       return propuestaCourseNumber(a.curso) - propuestaCourseNumber(b.curso);
     });
 
-  if (yearsCount) yearsCount.textContent = String(cards.length);
-  if (subjectsCount) {
-    subjectsCount.textContent = String(
-      cards.reduce(function (total, card) {
-        return total + card.materias.length;
-      }, 0)
-    );
+  var yearFilter = document.getElementById("propuestaYearFilter");
+  var selectedYear = yearFilter ? yearFilter.value : "";
+  if (yearFilter) {
+    var currentOptions = {};
+    Array.prototype.slice.call(yearFilter.options).forEach(function (option) {
+      currentOptions[option.value] = true;
+    });
+    allCards.forEach(function (card) {
+      var year = String(propuestaCourseNumber(card.curso) || "");
+      if (!year || currentOptions[year]) return;
+      var option = document.createElement("option");
+      option.value = year;
+      option.textContent = year + "° año";
+      yearFilter.appendChild(option);
+    });
+    yearFilter.value = selectedYear;
   }
+
+  var cards = allCards.filter(function (card) {
+    return !selectedYear || String(propuestaCourseNumber(card.curso)) === selectedYear;
+  });
 
   if (!cards.length) {
     root.innerHTML =
@@ -608,9 +631,11 @@ async function loadPropuesta() {
 
   try {
     var data = await api("/materias-curso/public");
-    renderPropuesta(Array.isArray(data) ? data : []);
+    propuestaItems = Array.isArray(data) ? data : [];
+    renderPropuesta(propuestaItems);
     setStatus(status, "", "");
   } catch (e) {
+    propuestaItems = [];
     renderPropuesta([]);
     setStatus(status, "No pudimos cargar la propuesta académica. Revisa la conexión con el backend.", "error");
   }
