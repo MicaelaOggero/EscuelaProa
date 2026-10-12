@@ -255,9 +255,19 @@
     }
 
     var staffLink = $("#staffLink");
-    var docenteLink = $("#docenteLink");
-    if (staffLink) staffLink.hidden = !hasRole("superadmin");
-    if (docenteLink) docenteLink.hidden = !hasRole("docente");
+    if (staffLink) {
+      var isSuperadmin = hasRole("superadmin");
+      var hasManagementRole = isSuperadmin || hasRole("directivo");
+      var canSwitchPanel = hasRole("docente") && hasManagementRole;
+      staffLink.hidden = !canSwitchPanel;
+      if (canSwitchPanel && state.docenteContext) {
+        staffLink.href = isSuperadmin ? "directivo.html#staff" : "directivo.html#docentes";
+        staffLink.textContent = isSuperadmin ? "Panel superadmin" : "Panel directivo";
+      } else if (canSwitchPanel) {
+        staffLink.href = "docente.html";
+        staffLink.textContent = "Panel docente";
+      }
+    }
 
     var nombreEl = $("#directivoNombre");
     if (nombreEl && state.user) {
