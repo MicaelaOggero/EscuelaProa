@@ -8,6 +8,13 @@ function hasRole(user, role) {
   return roles.indexOf(role) !== -1;
 }
 
+async function createdByDirectivo(createdBy) {
+  if (!createdBy) return false;
+  const creator = await Usuario.findById(createdBy).select("roles role").lean();
+  const roles = (creator && (creator.roles || (creator.role ? [creator.role] : []))) || [];
+  return roles.indexOf("directivo") !== -1;
+}
+
 function contenidoPopulate(query) {
   return query
     .populate("cursoId", "numero nombre division turno")
@@ -103,6 +110,13 @@ exports.list = async (req, res, next) => {
     if (materiaCursoId) filter.materiaCursoId = materiaCursoId;
     if (tipo) filter.tipo = tipo;
 
+    if (hasRole(req.user, "directivo") && !hasRole(req.user, "superadmin")) {
+      const directivoIds = await Usuario.find({
+        $or: [{ roles: "directivo" }, { role: "directivo" }]
+      }).distinct("_id");
+      filter.createdBy = { $in: directivoIds };
+    }
+
     const rows = await contenidoPopulate(Contenido.find(filter))
       .sort({ fecha: -1, createdAt: -1 });
     res.json(rows);
@@ -171,7 +185,9 @@ exports.update = async (req, res, next) => {
     const row = await Contenido.findById(id);
     if (!row) return res.status(404).json({ message: "Not found" });
 
-    const isPrivileged = hasRole(req.user, "superadmin") || hasRole(req.user, "directivo");
+    const isPrivileged = hasRole(req.user, "superadmin") || (
+      hasRole(req.user, "directivo") && await createdByDirectivo(row.createdBy)
+    );
     const isOwner = String(row.createdBy) === String(req.user.id);
     if (!isPrivileged && !isOwner) return res.status(403).json({ message: "Forbidden" });
 
@@ -203,7 +219,9 @@ exports.remove = async (req, res, next) => {
     const row = await Contenido.findById(id);
     if (!row) return res.status(404).json({ message: "Not found" });
 
-    const isPrivileged = hasRole(req.user, "superadmin") || hasRole(req.user, "directivo");
+    const isPrivileged = hasRole(req.user, "superadmin") || (
+      hasRole(req.user, "directivo") && await createdByDirectivo(row.createdBy)
+    );
     const isOwner = String(row.createdBy) === String(req.user.id);
     if (!isPrivileged && !isOwner) return res.status(403).json({ message: "Forbidden" });
 

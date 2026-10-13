@@ -68,6 +68,13 @@ function hasRole(user, role) {
   return !!(user && Array.isArray(user.roles) && user.roles.indexOf(role) !== -1);
 }
 
+async function createdByDirectivo(createdBy) {
+  if (!createdBy) return false;
+  const creator = await Usuario.findById(createdBy).select("roles role").lean();
+  const roles = (creator && (creator.roles || (creator.role ? [creator.role] : []))) || [];
+  return roles.indexOf("directivo") !== -1;
+}
+
 exports.list = async (req, res, next) => {
   try {
     const user = req.user || parseOptionalUser(req);
@@ -75,8 +82,13 @@ exports.list = async (req, res, next) => {
 
     if (!user || !Array.isArray(user.roles) || !user.roles.length) {
       query = { visibilidad: "publico", materiaCursoId: null };
-    } else if (user.roles.indexOf("superadmin") !== -1 || user.roles.indexOf("directivo") !== -1) {
+    } else if (user.roles.indexOf("superadmin") !== -1) {
       query = {};
+    } else if (user.roles.indexOf("directivo") !== -1) {
+      const directivoIds = await Usuario.find({
+        $or: [{ roles: "directivo" }, { role: "directivo" }]
+      }).distinct("_id");
+      query = { createdBy: { $in: directivoIds } };
     } else if (user.roles.indexOf("docente") !== -1) {
       query = {
         $or: [
@@ -113,6 +125,8 @@ exports.create = async (req, res, next) => {
     if (payload.inicio && isNaN(payload.inicio.getTime())) return res.status(400).json({ message: "Fecha de inicio invalida" });
     if (payload.fin && isNaN(payload.fin.getTime())) return res.status(400).json({ message: "Fecha de fin invalida" });
 
+    payload.createdBy = req.user.id;
+
     if (payload.materiaCursoId) {
       const materia = await MateriaCurso.findById(payload.materiaCursoId).select("_id cursoId docenteId");
       if (!materia) return res.status(404).json({ message: "MateriaCurso not found" });
@@ -140,7 +154,11 @@ exports.update = async (req, res, next) => {
     const evento = await Evento.findById(req.params.id);
     if (!evento) return res.status(404).json({ message: "Evento not found" });
 
-    if (evento.materiaCursoId && hasRole(req.user, "docente") && String(evento.createdBy) !== String(req.user.id)) {
+    if (hasRole(req.user, "directivo") && !hasRole(req.user, "superadmin")) {
+      if (!(await createdByDirectivo(evento.createdBy))) {
+        return res.status(403).json({ message: "No tienes acceso a eventos creados por docentes" });
+      }
+    } else if (evento.materiaCursoId && hasRole(req.user, "docente") && String(evento.createdBy) !== String(req.user.id)) {
       return res.status(403).json({ message: "Forbidden" });
     }
 
@@ -187,7 +205,11 @@ exports.remove = async (req, res, next) => {
     const evento = await Evento.findById(req.params.id);
     if (!evento) return res.status(404).json({ message: "Evento not found" });
 
-    if (evento.materiaCursoId && hasRole(req.user, "docente") && String(evento.createdBy) !== String(req.user.id)) {
+    if (hasRole(req.user, "directivo") && !hasRole(req.user, "superadmin")) {
+      if (!(await createdByDirectivo(evento.createdBy))) {
+        return res.status(403).json({ message: "No tienes acceso a eventos creados por docentes" });
+      }
+    } else if (evento.materiaCursoId && hasRole(req.user, "docente") && String(evento.createdBy) !== String(req.user.id)) {
       return res.status(403).json({ message: "Forbidden" });
     }
 
