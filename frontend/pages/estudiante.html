@@ -43,54 +43,11 @@
               <h1 class="section-title">Mi aula virtual</h1>
               <p id="anioLabel" class="section-subtitle">-</p>
             </div>
+            <div class="student-agenda-trigger" aria-label="Agenda institucional">
+              <span class="student-agenda-trigger-title">Agenda institucional</span>
+              <button id="studentCalendarExpand" class="btn btn-ghost btn-sm" type="button" aria-label="Expandir agenda institucional" title="Expandir agenda institucional">⛶</button>
+            </div>
           </div>
-
-          <section class="student-overview reveal" aria-label="Novedades y agenda para estudiantes">
-            <section class="student-news-panel" aria-label="Publicaciones de tu materia">
-              <div class="panel-head panel-head--student">
-                <div>
-                  <div class="panel-title">Publicaciones de tu materia</div>
-                  <div class="panel-sub">Avisos y mensajes enviados por tu docente para la materia seleccionada.</div>
-                </div>
-              </div>
-              <div id="studentAcademicMsg" class="msg" role="status" aria-live="polite"></div>
-              <div id="studentAcademicList" class="student-news-list" aria-label="Listado de publicaciones académicas">
-                <div class="card">Selecciona una materia para ver publicaciones.</div>
-              </div>
-            </section>
-
-            <section class="student-news-panel" aria-label="Novedades para estudiantes">
-              <div class="panel-head panel-head--student">
-                <div>
-                  <div class="panel-title">Novedades para ti</div>
-                  <div class="panel-sub">Comunicados privados dirigidos a estudiantes.</div>
-                </div>
-              </div>
-              <div id="studentNewsMsg" class="msg" role="status" aria-live="polite"></div>
-              <div id="studentNewsList" class="student-news-list" aria-label="Listado de noticias para estudiantes">
-                <div class="card">Todavia no hay novedades disponibles.</div>
-              </div>
-            </section>
-
-            <section class="student-news-panel" aria-label="Agenda para estudiantes">
-              <div class="panel-head panel-head--student">
-                <div>
-                  <div class="panel-title">Agenda institucional</div>
-                </div>
-                <div class="student-calendar-nav">
-                  <button id="prevStudentMes" class="btn btn-secondary" type="button" aria-label="Mes anterior" title="Mes anterior">‹</button>
-                  <div id="studentMesLabel" class="student-calendar-label">-</div>
-                  <button id="nextStudentMes" class="btn btn-secondary" type="button" aria-label="Mes siguiente" title="Mes siguiente">›</button>
-                </div>
-              </div>
-              <div class="student-calendar-legend" aria-label="Referencias de eventos">
-                <span class="student-legend-chip student-legend-chip--publico">Publico</span>
-                <span class="student-legend-chip student-legend-chip--privado">Privado</span>
-              </div>
-              <div id="studentEventsMsg" class="msg" role="status" aria-live="polite"></div>
-              <div id="studentCalendar" class="student-calendar-grid" aria-label="Calendario de eventos para estudiantes"></div>
-            </section>
-          </section>
 
           <div class="student-shell reveal">
             <aside class="student-sidebar" aria-label="Menú de materias">
@@ -133,6 +90,19 @@
                 <div id="cards" class="cards" aria-label="Listado contenidos"></div>
               </div>
             </section>
+
+            <section class="student-news-panel student-directive-news" aria-label="Comunicados de directivos">
+              <div class="panel-head panel-head--student">
+                <div>
+                  <div class="panel-title">Comunicados de directivos</div>
+                  <div class="panel-sub">Comunicados privados dirigidos a estudiantes.</div>
+                </div>
+              </div>
+              <div id="studentNewsMsg" class="msg" role="status" aria-live="polite"></div>
+              <div id="studentNewsList" class="student-news-list" aria-label="Listado de comunicados de directivos">
+<div class="card">Todavía no hay comunicados disponibles.</div>
+              </div>
+            </section>
           </div>
         </div>
       </section>
@@ -149,6 +119,26 @@
     <script src="../js/auth-session.js" defer></script>
     <script src="../js/script.js" defer></script>
     <script src="../js/estudiante.js" defer></script>
+
+    <div id="studentCalendarExpandModal" class="modal student-calendar-expand-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="studentCalendarExpandTitle">
+      <div class="modal-backdrop" data-close="true"></div>
+      <div class="modal-panel student-calendar-expand-panel" role="document">
+        <div class="modal-head">
+          <div id="studentCalendarExpandTitle" class="modal-title">Agenda institucional</div>
+          <button class="btn btn-ghost btn-sm" type="button" data-close="true">Cerrar</button>
+        </div>
+        <div class="student-calendar-expand-nav">
+          <button id="prevStudentMesExpanded" class="btn btn-secondary" type="button" aria-label="Mes anterior" title="Mes anterior">‹</button>
+          <div id="studentMesLabelExpanded" class="student-calendar-label">-</div>
+          <button id="nextStudentMesExpanded" class="btn btn-secondary" type="button" aria-label="Mes siguiente" title="Mes siguiente">›</button>
+        </div>
+        <div class="student-calendar-legend" aria-label="Referencias de eventos">
+<span class="student-legend-chip student-legend-chip--publico">Público</span>
+          <span class="student-legend-chip student-legend-chip--privado">Privado</span>
+        </div>
+        <div id="studentCalendarExpanded" class="student-calendar-grid student-calendar-grid--expanded" aria-label="Calendario de eventos ampliado"></div>
+      </div>
+    </div>
 
     <div id="studentContentDetailModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="studentContentDetailTitle">
       <div class="modal-backdrop" data-close="true"></div>
@@ -181,7 +171,7 @@
           <div class="profile" role="list">
             <div class="kv" role="listitem"><div class="kv-k">Visibilidad</div><div id="studentEventoVisibilidad" class="kv-v">-</div></div>
             <div class="kv" role="listitem"><div class="kv-k">Materia</div><div id="studentEventoMateria" class="kv-v">-</div></div>
-            <div class="kv" role="listitem"><div class="kv-k">Ubicacion</div><div id="studentEventoUbicacion" class="kv-v">-</div></div>
+            <div class="kv" role="listitem"><div class="kv-k">Ubicación</div><div id="studentEventoUbicacion" class="kv-v">-</div></div>
             <div class="kv" role="listitem"><div class="kv-k">Roles</div><div id="studentEventoRoles" class="kv-v">-</div></div>
           </div>
           <div id="studentEventoDescripcion" class="panel-note">-</div>

@@ -403,6 +403,13 @@
   white-space: nowrap;
 }
 
+.item-created {
+  color: var(--muted-2);
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 .panel-head--compact {
   margin-top: 1rem;
 }
@@ -720,6 +727,16 @@ select {
   background: rgba(255, 255, 255, 0.72);
 }
 
+.table.students-table--readonly {
+  min-width: 0;
+  table-layout: fixed;
+}
+
+.students-table--readonly th,
+.students-table--readonly td {
+  width: 20%;
+}
+
 .table th,
 .table td {
   text-align: left;
@@ -984,6 +1001,7 @@ select {
 
 .consultas-grid {
   align-items: start;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .consultas-status-card {

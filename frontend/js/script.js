@@ -350,7 +350,7 @@ function renderNewsCards(targetId, items) {
 
   if (!items.length) {
     grid.innerHTML =
-      '<article class="card status-card reveal is-visible"><h3 class="card-title">Todavia no hay noticias publicadas</h3><p class="card-text">Cuando el equipo institucional cargue novedades, van a aparecer aca automaticamente.</p></article>';
+      '<article class="card status-card reveal is-visible"><h3 class="card-title">Todavía no hay noticias publicadas</h3><p class="card-text">Cuando el equipo institucional cargue novedades, van a aparecer acá automáticamente.</p></article>';
     return;
   }
 
@@ -365,7 +365,7 @@ function renderNewsCards(targetId, items) {
             '<div class="chip">' + escapeHtml(item.categoria || "Institucional") + '</div>' +
             '<time class="card-date" datetime="' + escapeHtml(item.fecha || "") + '">' + escapeHtml(formatLongDate(item.fecha)) + '</time>' +
           '</div>' +
-          '<h3 class="card-title"><button class="card-link card-link--title" type="button" data-open-news="' + escapeHtml(key) + '">' + escapeHtml(item.titulo || "Sin titulo") + '</button></h3>' +
+          '<h3 class="card-title"><button class="card-link card-link--title" type="button" data-open-news="' + escapeHtml(key) + '">' + escapeHtml(item.titulo || "Sin título") + '</button></h3>' +
           '<p class="card-text">' + escapeHtml(resumen) + '</p>' +
         '</article>'
       );
@@ -437,18 +437,18 @@ function openEventModal(item) {
 
   homeCalendarState.selectedId = String(item._id || item.id || "");
   title.textContent = item.titulo || "Detalle del evento";
-  kicker.textContent = item.tipo || "Evento publico";
+  kicker.textContent = item.tipo || "Evento público";
   body.innerHTML =
     '<div class="event-modal-meta">' +
-      '<span class="event-modal-chip">Publico</span>' +
+      '<span class="event-modal-chip">Público</span>' +
       '<span class="event-modal-chip">' + escapeHtml(formatDateTime(item.inicio)) + '</span>' +
       (item.fin ? '<span class="event-modal-chip">Hasta ' + escapeHtml(formatDateTime(item.fin)) + '</span>' : '') +
     '</div>' +
     '<div class="event-modal-details">' +
-      '<div class="event-modal-row"><strong>Ubicacion</strong><span>' + escapeHtml(item.ubicacion || "A confirmar") + '</span></div>' +
+      '<div class="event-modal-row"><strong>Ubicación</strong><span>' + escapeHtml(item.ubicacion || "A confirmar") + '</span></div>' +
       '<div class="event-modal-row"><strong>Tipo</strong><span>' + escapeHtml(item.tipo || "Evento institucional") + '</span></div>' +
     '</div>' +
-    '<div class="news-modal-content">' + escapeHtml(item.descripcion || "Sin descripcion disponible.").replace(/\n/g, "<br>") + '</div>';
+      '<div class="news-modal-content">' + escapeHtml(item.descripcion || "Sin descripción disponible.").replace(/\n/g, "<br>") + '</div>';
   modal.classList.add("is-open");
   modal.setAttribute("aria-hidden", "false");
 }
@@ -466,7 +466,7 @@ function renderEvents(items) {
     if (isNaN(date.getTime())) return false;
     return date.getFullYear() === homeCalendarState.monthCursor.getFullYear() && date.getMonth() === homeCalendarState.monthCursor.getMonth();
   }).length;
-  setStatus(status, visibleRowsInMonth ? "" : "No hay eventos publicos cargados para este mes.", "");
+  setStatus(status, visibleRowsInMonth ? "" : "No hay eventos públicos cargados para este mes.", "");
 
   ["Lun", "Mar", "Mie", "Jue", "Vie", "Sab", "Dom"].forEach(function (day) {
     var head = document.createElement("div");
@@ -650,7 +650,7 @@ async function loadNoticias() {
     renderNews(Array.isArray(data) ? data : []);
   } catch (e) {
     grid.innerHTML =
-      '<article class="card status-card reveal is-visible"><h3 class="card-title">No pudimos cargar las novedades</h3><p class="card-text">Verifica que el backend este levantado y que la API responda correctamente.</p></article>';
+      '<article class="card status-card reveal is-visible"><h3 class="card-title">No pudimos cargar las novedades</h3><p class="card-text">Verificá que el backend esté levantado y que la API responda correctamente.</p></article>';
     var allGrid = document.getElementById("allNewsGrid");
     if (allGrid) allGrid.innerHTML = grid.innerHTML;
   }
@@ -670,7 +670,7 @@ async function loadCalendario() {
   } catch (e) {
     homeCalendarState.eventos = [];
     renderEvents([]);
-    setStatus(status, "No pudimos cargar la agenda publica. Revisa la conexion con el backend.", "error");
+    setStatus(status, "No pudimos cargar la agenda pública. Revisá la conexión con el backend.", "error");
   }
 }
 
@@ -734,7 +734,7 @@ function initContactForm() {
         body: JSON.stringify(payload)
       });
       form.reset();
-      setStatus(msg, "Consulta enviada. Te responderan por los canales institucionales.", "ok");
+      setStatus(msg, "Consulta enviada. Te responderán por los canales institucionales.", "ok");
     } catch (err) {
       setStatus(msg, err.message || "No se pudo enviar la consulta.", "error");
     }

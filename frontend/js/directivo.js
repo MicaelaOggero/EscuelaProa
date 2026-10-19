@@ -271,7 +271,7 @@
     if (!noticiaDraft.existingImages.length) {
       var empty = document.createElement("div");
       empty.className = "empty";
-      empty.textContent = "Todavia no hay imagenes cargadas.";
+      empty.textContent = "Todavía no hay imágenes cargadas.";
       root.appendChild(empty);
       return;
     }
@@ -319,7 +319,7 @@
     if (!files.length) {
       var empty = document.createElement("div");
       empty.className = "empty";
-      empty.textContent = "Selecciona una o varias imagenes para agregarlas.";
+      empty.textContent = "Selecciona una o varias imágenes para agregarlas.";
       root.appendChild(empty);
       return;
     }
@@ -451,9 +451,9 @@
       var tdCategoria = document.createElement("td");
       tdCategoria.textContent = row.categoria || "Institucional";
       var tdTipo = document.createElement("td");
-      tdTipo.textContent = row.tipo === "privada" ? "Privada" : "Publica";
-      var tdFecha = document.createElement("td");
-      tdFecha.textContent = formatFecha(row.fecha);
+      tdTipo.textContent = row.tipo === "privada" ? "Privada" : "Pública";
+      var tdCreado = document.createElement("td");
+      tdCreado.textContent = formatFechaHora(row.createdAt || row.fecha);
       var tdAcciones = document.createElement("td");
 
       var btnEdit = document.createElement("button");
@@ -481,7 +481,7 @@
       tr.appendChild(tdTitulo);
       tr.appendChild(tdCategoria);
       tr.appendChild(tdTipo);
-      tr.appendChild(tdFecha);
+      tr.appendChild(tdCreado);
       tr.appendChild(tdAcciones);
       tbody.appendChild(tr);
     });
@@ -517,9 +517,13 @@
       var meta = document.createElement("div");
       meta.className = "item-meta";
       meta.textContent = formatFecha(row.fecha);
+      var created = document.createElement("div");
+      created.className = "item-created";
+      created.textContent = "Creado: " + formatFechaHora(row.createdAt || row.fecha);
 
       item.appendChild(left);
       item.appendChild(meta);
+      item.appendChild(created);
       list.appendChild(item);
     });
   }
@@ -727,7 +731,7 @@
       $("#eventoDetalleVisibilidad").textContent = "-";
       $("#eventoDetalleUbicacion").textContent = "-";
       $("#eventoDetalleRoles").textContent = "-";
-      $("#eventoDetalleDescripcion").textContent = "Selecciona un evento para ver su descripcion.";
+      $("#eventoDetalleDescripcion").textContent = "Selecciona un evento para ver su descripción.";
       if (editBtn) editBtn.disabled = true;
       if (deleteBtn) deleteBtn.disabled = true;
       return;
@@ -735,12 +739,12 @@
     eventoCalendarState.selectedId = String(row._id || row.id || "");
     $("#eventoDetalleTitle").textContent = row.titulo || "Detalle del evento";
     $("#eventoDetalleMeta").textContent = [row.tipo || "Evento", formatFechaHora(row.inicio)].filter(Boolean).join(" · ");
-    $("#eventoDetalleVisibilidad").textContent = row.visibilidad === "privado" ? "Privado" : "Publico";
-    $("#eventoDetalleUbicacion").textContent = row.ubicacion || "Sin ubicacion definida";
+    $("#eventoDetalleVisibilidad").textContent = row.visibilidad === "privado" ? "Privado" : "Público";
+    $("#eventoDetalleUbicacion").textContent = row.ubicacion || "Sin ubicación definida";
     $("#eventoDetalleRoles").textContent = row.visibilidad === "privado"
       ? ((row.visibleParaRoles || []).length ? row.visibleParaRoles.join(", ") : "Sin roles asignados")
       : "Toda la comunidad";
-    $("#eventoDetalleDescripcion").textContent = row.descripcion || "Sin descripcion adicional.";
+    $("#eventoDetalleDescripcion").textContent = row.descripcion || "Sin descripción adicional.";
     if (editBtn) editBtn.disabled = false;
     if (deleteBtn) deleteBtn.disabled = false;
   }
@@ -796,7 +800,7 @@
         var btn = document.createElement("button");
         btn.type = "button";
         btn.className = "calendar-event-pill calendar-event-pill--" + (row.visibilidad === "privado" ? "privado" : "publico");
-        btn.innerHTML = '<span class="calendar-event-time">' + escapeHtml(timeLabel(row.inicio) || "Todo el dia") + '</span><span class="calendar-event-title">' + escapeHtml(row.titulo || "Evento") + '</span>';
+      btn.innerHTML = '<span class="calendar-event-time">' + escapeHtml(timeLabel(row.inicio) || "Todo el día") + '</span><span class="calendar-event-title">' + escapeHtml(row.titulo || "Evento") + '</span>';
         btn.addEventListener("click", function () {
           openEventoDetalle(row);
         });
@@ -841,14 +845,18 @@
       title.textContent = row.titulo || "Evento";
       var sub = document.createElement("div");
       sub.className = "item-sub";
-      sub.textContent = [row.tipo || "Evento", row.visibilidad === "privado" ? "Privado" : "Publico", row.ubicacion || "Sin ubicacion"].join(" · ");
+      sub.textContent = [row.tipo || "Evento", row.visibilidad === "privado" ? "Privado" : "Público", row.ubicacion || "Sin ubicación"].join(" · ");
       var meta = document.createElement("div");
       meta.className = "item-meta";
       meta.textContent = formatFechaHora(row.inicio);
+      var created = document.createElement("div");
+      created.className = "item-created";
+      created.textContent = "Creado: " + formatFechaHora(row.createdAt || row.inicio);
       left.appendChild(title);
       left.appendChild(sub);
       item.appendChild(left);
       item.appendChild(meta);
+      item.appendChild(created);
       item.addEventListener("click", function () {
         openEventoDetalle(row);
       });
@@ -887,14 +895,18 @@
       title.textContent = row.titulo || "Evento privado";
       var sub = document.createElement("div");
       sub.className = "item-sub";
-      sub.textContent = [row.tipo || "Evento", row.ubicacion || "Sin ubicacion", "Privado para directivos"].join(" · ");
+      sub.textContent = [row.tipo || "Evento", row.ubicacion || "Sin ubicación", "Privado para directivos"].join(" · ");
       var meta = document.createElement("div");
       meta.className = "item-meta";
       meta.textContent = formatFechaHora(row.inicio);
+      var created = document.createElement("div");
+      created.className = "item-created";
+      created.textContent = "Creado: " + formatFechaHora(row.createdAt || row.inicio);
       left.appendChild(title);
       left.appendChild(sub);
       item.appendChild(left);
       item.appendChild(meta);
+      item.appendChild(created);
       item.addEventListener("click", function () {
         openEventoDetalle(row);
       });
@@ -1219,30 +1231,6 @@
     });
   }
 
-  async function loadMailConfig() {
-    var badge = $("#consultasMailBadge");
-    var summary = $("#consultasMailSummary");
-    var meta = $("#consultasMailMeta");
-    if (!badge || !summary || !meta) return;
-
-    try {
-      var data = await api("/contacto/mail-config", { method: "GET" });
-      badge.className = "status-badge " + (data.enabled ? "status-badge--enabled" : "status-badge--disabled");
-      badge.textContent = data.enabled ? "Configurado" : "Incompleto";
-      summary.textContent = data.enabled
-        ? "Las nuevas consultas enviarán notificaciones mediante Resend."
-        : "Faltan las variables de Resend o los destinatarios para enviar avisos automáticos.";
-      meta.textContent = data.enabled
-        ? "Desde: " + (data.from || "-") + " · Para: " + ((data.to || []).join(", ") || "-")
-        : "Configura RESEND_API_KEY, RESEND_FROM y CONTACTO_NOTIF_TO en el backend.";
-    } catch (err) {
-      badge.className = "status-badge status-badge--pending";
-      badge.textContent = "Error";
-      summary.textContent = err.message || "No se pudo verificar la configuración de correo.";
-      meta.textContent = "";
-    }
-  }
-
   async function loadConsultas() {
     var msg = $("#consultasMsg");
     var estado = $("#consultaEstadoFiltro");
@@ -1322,7 +1310,7 @@
     var roles = rolesOf(user);
     var isSuperadmin = roles.indexOf("superadmin") !== -1;
     var label = [user.nombre, user.apellido].filter(Boolean).join(" ");
-    nameEl.textContent = label || user.email || "Gestion academica";
+    nameEl.textContent = label || user.email || "Gestión académica";
     if (kickerEl) kickerEl.textContent = isSuperadmin ? "Superadmin" : "Directivo";
     if (sideTitleEl) sideTitleEl.textContent = isSuperadmin ? "Panel Superadmin" : "Panel Directivo";
     if (sideSubEl) sideSubEl.textContent = isSuperadmin ? "Acceso completo institucional" : "Escuela Experimental Porteña";
@@ -2634,6 +2622,5 @@
   if (hasCurrentRole("superadmin")) loadStaff();
   loadNoticias();
   loadEventos();
-  loadMailConfig();
   loadConsultas();
 })();

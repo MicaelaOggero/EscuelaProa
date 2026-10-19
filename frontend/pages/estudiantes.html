@@ -29,7 +29,7 @@
           </div>
         </a>
 
-        <nav id="studentsSideNav" class="side-nav" aria-label="Navegacion de estudiantes">
+<nav id="studentsSideNav" class="side-nav" aria-label="Navegación de estudiantes">
           <a id="studentsNavInicio" class="side-link" href="docente.html#inicio">
             <span class="ico" aria-hidden="true">{home}</span>
             Inicio
@@ -80,7 +80,7 @@
           </a>
           <button id="logout" class="side-link side-link--danger" type="button">
             <span class="ico" aria-hidden="true">{logout}</span>
-            Cerrar sesion
+Cerrar sesión
           </button>
         </nav>
 
@@ -93,16 +93,16 @@
           </button>
           <div class="topbar-title">
             <div id="studentsTopbarKicker" class="topbar-kicker">Docente</div>
-            <div id="directivoNombre" class="topbar-name">Gestion de estudiantes</div>
+<div id="directivoNombre" class="topbar-name">Gestión de estudiantes</div>
           </div>
           <div class="topbar-actions">
-            <a class="btn btn-ghost" href="../index.html">Sitio publico</a>
+<a class="btn btn-ghost" href="../index.html">Sitio público</a>
             <a id="staffLink" class="btn btn-secondary" href="directivo.html#docentes" hidden>Panel directivo</a>
           </div>
         </header>
 
         <main id="contenido" class="content" role="main">
-          <section class="view is-visible" aria-label="Gestion de estudiantes">
+<section class="view is-visible" aria-label="Gestión de estudiantes">
             <div class="view-head">
               <div>
                 <h1 class="view-title">Estudiantes</h1>
@@ -193,9 +193,8 @@
             <div class="panel-head">
               <div>
                 <div class="panel-title">Filtros</div>
-                <div class="panel-sub">Por curso y busqueda general</div>
+<div class="panel-sub">Por curso y búsqueda general</div>
               </div>
-              <button id="studentsRefresh" class="btn btn-secondary" type="button">Actualizar</button>
             </div>
 
             <div class="cols">
@@ -210,10 +209,6 @@
                 <input id="filterSearch" type="text" placeholder="Nombre, apellido, email o DNI" />
               </div>
             </div>
-            <div class="modal-actions">
-              <button id="applyFilters" class="btn btn-primary" type="button">Aplicar filtros</button>
-              <button id="clearFilters" class="btn btn-secondary" type="button">Limpiar</button>
-            </div>
           </div>
 
           <div class="panel reveal" style="--reveal-delay: 120ms" aria-label="Listado de estudiantes">
@@ -226,7 +221,7 @@
             <div id="studentsListMsg" class="msg" role="status" aria-live="polite"></div>
 
             <div class="table-wrap">
-              <table class="table" aria-label="Tabla estudiantes">
+              <table id="studentsTable" class="table" aria-label="Tabla estudiantes">
                 <thead>
                   <tr>
                     <th>Nombre</th>
@@ -234,7 +229,7 @@
                     <th>DNI</th>
                     <th>Curso</th>
                     <th>Email</th>
-                    <th>Acciones</th>
+                    <th id="studentsActionsHeader">Acciones</th>
                   </tr>
                 </thead>
                 <tbody id="studentsTbody">

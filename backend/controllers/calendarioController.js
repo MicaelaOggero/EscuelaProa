@@ -51,7 +51,7 @@ function payloadFromRequest(req) {
 }
 
 function validateEventPayload(payload) {
-  if (!payload.titulo) return "El titulo es requerido";
+  if (!payload.titulo) return "El título es requerido";
   if (!payload.inicio) return "La fecha de inicio es requerida";
   if (payload.fin && payload.fin < payload.inicio) return "La fecha de fin no puede ser anterior al inicio";
   return null;
@@ -77,22 +77,53 @@ async function createdByDirectivo(createdBy) {
 
 exports.list = async (req, res, next) => {
   try {
-    const user = req.user || parseOptionalUser(req);
+    let user = req.user || parseOptionalUser(req);
+    if (user && user.id) {
+      const currentUser = await Usuario.findById(user.id).select("roles role").lean();
+      if (currentUser) {
+        user = {
+          id: user.id,
+          roles: normalizeRoles(
+            currentUser.roles && currentUser.roles.length
+              ? currentUser.roles
+              : currentUser.role
+          )
+        };
+      }
+    }
     let query;
+    const docenteContext = !!(
+      user &&
+      Array.isArray(user.roles) &&
+      user.roles.indexOf("docente") !== -1 &&
+      String(req.query.context || "").toLowerCase() === "docente"
+    );
 
     if (!user || !Array.isArray(user.roles) || !user.roles.length) {
       query = { visibilidad: "publico", materiaCursoId: null };
-    } else if (user.roles.indexOf("superadmin") !== -1) {
+    } else if (user.roles.indexOf("superadmin") !== -1 && !docenteContext) {
       query = {};
-    } else if (user.roles.indexOf("directivo") !== -1) {
+    } else if (user.roles.indexOf("directivo") !== -1 && !docenteContext) {
       const directivoIds = await Usuario.find({
         $or: [{ roles: "directivo" }, { role: "directivo" }]
       }).distinct("_id");
-      query = { createdBy: { $in: directivoIds } };
+      query = {
+        $or: [
+          { createdBy: { $in: directivoIds } },
+          { createdBy: null }
+        ]
+      };
     } else if (user.roles.indexOf("docente") !== -1) {
       query = {
         $or: [
-          { visibilidad: "publico", materiaCursoId: null },
+          {
+            $or: [
+              { visibilidad: "publico" },
+              { visibilidad: { $exists: false } },
+              { visibilidad: null }
+            ],
+            materiaCursoId: null
+          },
           { visibilidad: "privado", visibleParaRoles: { $in: user.roles }, materiaCursoId: null },
           { createdBy: user.id, materiaCursoId: { $ne: null } }
         ]

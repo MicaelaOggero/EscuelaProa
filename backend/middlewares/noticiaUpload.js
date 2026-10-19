@@ -2,7 +2,7 @@ const multer = require("multer");
 
 function fileFilter(req, file, cb) {
   if (!file.mimetype || file.mimetype.indexOf("image/") !== 0) {
-    cb(new Error("Solo se permiten imagenes."));
+    cb(new Error("Solo se permiten imágenes."));
     return;
   }
   cb(null, true);

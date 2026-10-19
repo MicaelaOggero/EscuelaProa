@@ -171,11 +171,11 @@
   }
 
   function visibilityLabel(noticia) {
-    return noticia && noticia.tipo === "privada" ? "Privada para estudiantes" : "Publica";
+  return noticia && noticia.tipo === "privada" ? "Privada para estudiantes" : "Pública";
   }
 
   function eventVisibilityLabel(evento) {
-    return evento && evento.visibilidad === "privado" ? "Privado para estudiantes" : "Publico";
+  return evento && evento.visibilidad === "privado" ? "Privado para estudiantes" : "Público";
   }
 
   function initLogout() {
@@ -260,7 +260,7 @@
     if (!rows.length) {
       var empty = document.createElement("div");
       empty.className = "card";
-      empty.textContent = "Todavia no hay novedades disponibles.";
+    empty.textContent = "Todavía no hay novedades disponibles.";
       wrap.appendChild(empty);
       return;
     }
@@ -314,7 +314,7 @@
     if (!state.selectedMateriaId) {
       var emptyMateria = document.createElement("div");
       emptyMateria.className = "card";
-      emptyMateria.textContent = "Selecciona una materia para ver publicaciones.";
+    emptyMateria.textContent = "Seleccioná una materia para ver publicaciones.";
       wrap.appendChild(emptyMateria);
       return;
     }
@@ -322,7 +322,7 @@
     if (!rows.length) {
       var empty = document.createElement("div");
       empty.className = "card";
-      empty.textContent = "Todavia no hay publicaciones para esta materia.";
+    empty.textContent = "Todavía no hay publicaciones para esta materia.";
       wrap.appendChild(empty);
       return;
     }
@@ -337,7 +337,7 @@
       meta.className = "meta";
       var chip = document.createElement("div");
       chip.className = "chip";
-      chip.textContent = "Publicacion docente";
+    chip.textContent = "Publicación docente";
       var date = document.createElement("div");
       date.className = "date";
       date.textContent = formatFecha(row.fecha || row.createdAt);
@@ -392,13 +392,13 @@
     $("#studentEventoMeta").textContent = [row.tipo || "Evento", formatFechaHora(row.inicio)].filter(Boolean).join(" · ");
     $("#studentEventoVisibilidad").textContent = row.materiaCursoId ? "Para tu materia" : eventVisibilityLabel(row);
     $("#studentEventoMateria").textContent = row.materiaCursoId ? materiaConAnioLabel(row.materiaCursoId) : "Institucional";
-    $("#studentEventoUbicacion").textContent = row.ubicacion || "Sin ubicacion definida";
+    $("#studentEventoUbicacion").textContent = row.ubicacion || "Sin ubicación definida";
     $("#studentEventoRoles").textContent = row.materiaCursoId
       ? "Estudiantes de esta materia"
       : row.visibilidad === "privado"
         ? ((row.visibleParaRoles || []).length ? row.visibleParaRoles.join(", ") : "Sin roles asignados")
         : "Toda la comunidad";
-    $("#studentEventoDescripcion").textContent = row.descripcion || "Sin descripcion adicional.";
+    $("#studentEventoDescripcion").textContent = row.descripcion || "Sin descripción adicional.";
     var modal = $("#studentEventoDetalleModal");
     if (modal) {
       modal.classList.add("is-open");
@@ -420,9 +420,9 @@
     modal.setAttribute("aria-hidden", "true");
   }
 
-  function renderStudentCalendar(rows) {
-    var root = $("#studentCalendar");
-    var label = $("#studentMesLabel");
+  function renderStudentCalendar(rows, rootSelector, labelSelector) {
+    var root = $(rootSelector || "#studentCalendar");
+    var label = $(labelSelector || "#studentMesLabel");
     if (!root) return;
     root.innerHTML = "";
     if (label) label.textContent = monthLabel(eventCalendarState.monthCursor);
@@ -482,22 +482,60 @@
     }
   }
 
+  function renderStudentCalendars(rows) {
+    renderStudentCalendar(rows, "#studentCalendar", "#studentMesLabel");
+    renderStudentCalendar(rows, "#studentCalendarExpanded", "#studentMesLabelExpanded");
+  }
+
+  function openStudentCalendarExpanded() {
+    renderStudentCalendars(state.eventos);
+    var modal = $("#studentCalendarExpandModal");
+    if (!modal) return;
+    modal.classList.add("is-open");
+    modal.setAttribute("aria-hidden", "false");
+  }
+
+  function closeStudentCalendarExpanded() {
+    var modal = $("#studentCalendarExpandModal");
+    if (!modal) return;
+    modal.classList.remove("is-open");
+    modal.setAttribute("aria-hidden", "true");
+  }
+
   async function loadEventos() {
     var msg = $("#studentEventsMsg");
     setMsg(msg, "Cargando agenda...", "");
     try {
       var rows = await api("/calendario", { method: "GET" });
       state.eventos = Array.isArray(rows) ? rows : [];
-      renderStudentCalendar(state.eventos);
+      renderStudentCalendars(state.eventos);
       setMsg(msg, "", "");
     } catch (e) {
       state.eventos = [];
-      renderStudentCalendar([]);
+      renderStudentCalendars([]);
       setMsg(msg, e.message || "Error", "error");
     }
   }
 
   function initEventModal() {
+    Array.prototype.slice.call(document.querySelectorAll("#studentCalendarExpandModal [data-close='true']")).forEach(function (el) {
+      el.addEventListener("click", function () {
+        closeStudentCalendarExpanded();
+      });
+    });
+
+    var calendarExpandModal = $("#studentCalendarExpandModal");
+    if (calendarExpandModal) {
+      calendarExpandModal.addEventListener("click", function (e) {
+        var target = e.target;
+        if (!(target instanceof Element)) return;
+        if (target.getAttribute("data-close") === "true") closeStudentCalendarExpanded();
+      });
+    }
+
+    var expandButton = $("#studentCalendarExpand");
+    if (expandButton) expandButton.addEventListener("click", openStudentCalendarExpanded);
+
     Array.prototype.slice.call(document.querySelectorAll("#studentEventoDetalleModal [data-close='true']")).forEach(function (el) {
       el.addEventListener("click", function () {
         closeStudentEventDetail();
@@ -524,23 +562,24 @@
 
     document.addEventListener("keydown", function (e) {
       if (e.key === "Escape") {
+        closeStudentCalendarExpanded();
         closeStudentEventDetail();
         closeStudentContentDetail();
       }
     });
 
-    var prev = $("#prevStudentMes");
-    if (prev) {
-      prev.addEventListener("click", function () {
+    var prevExpanded = $("#prevStudentMesExpanded");
+    if (prevExpanded) {
+      prevExpanded.addEventListener("click", function () {
         eventCalendarState.monthCursor = new Date(eventCalendarState.monthCursor.getFullYear(), eventCalendarState.monthCursor.getMonth() - 1, 1);
-        renderStudentCalendar(state.eventos);
+        renderStudentCalendars(state.eventos);
       });
     }
-    var next = $("#nextStudentMes");
-    if (next) {
-      next.addEventListener("click", function () {
+    var nextExpanded = $("#nextStudentMesExpanded");
+    if (nextExpanded) {
+      nextExpanded.addEventListener("click", function () {
         eventCalendarState.monthCursor = new Date(eventCalendarState.monthCursor.getFullYear(), eventCalendarState.monthCursor.getMonth() + 1, 1);
-        renderStudentCalendar(state.eventos);
+        renderStudentCalendars(state.eventos);
       });
     }
   }
@@ -663,7 +702,11 @@
 
       var h = document.createElement("div");
       h.className = "title";
-      h.textContent = r.titulo || "(sin titulo)";
+    h.textContent = r.titulo || "(sin título)";
+
+      var createdAt = document.createElement("div");
+      createdAt.className = "student-content-created";
+      createdAt.textContent = "Creado: " + formatFechaHora(r.createdAt || r.fecha);
 
       var p = document.createElement("p");
       p.className = "text";
@@ -683,6 +726,7 @@
 
       card.appendChild(meta);
       card.appendChild(h);
+      card.appendChild(createdAt);
       card.appendChild(p);
       if (files.length) {
         var links = document.createElement("div");

@@ -212,7 +212,12 @@
     var navEventos = $("#studentsNavEventos");
     var navConsultas = $("#studentsNavConsultas");
     var navDocentePanel = $("#studentsNavDocentePanel");
+    var actionsHeader = $("#studentsActionsHeader");
+    var studentsTable = $("#studentsTable");
     var roleIntro = $("#roleIntro");
+
+    if (actionsHeader) actionsHeader.hidden = state.docenteContext || !state.directivoLike;
+    if (studentsTable) studentsTable.classList.toggle("students-table--readonly", state.docenteContext);
 
     if (state.docenteContext && hasRole("docente")) {
       if (sideTitle) sideTitle.textContent = "Panel Docente";
@@ -271,7 +276,7 @@
 
     var nombreEl = $("#directivoNombre");
     if (nombreEl && state.user) {
-      nombreEl.textContent = [state.user.nombre, state.user.apellido].filter(Boolean).join(" ") || state.user.email || "Gestion de estudiantes";
+  nombreEl.textContent = [state.user.nombre, state.user.apellido].filter(Boolean).join(" ") || state.user.email || "Gestión de estudiantes";
     }
 
     var studentForm = $("#studentForm");
@@ -395,7 +400,7 @@
     if (!rows.length) {
       var tr0 = document.createElement("tr");
       var td0 = document.createElement("td");
-      td0.colSpan = 6;
+      td0.colSpan = state.docenteContext ? 5 : 6;
       td0.className = "table-empty";
       td0.textContent = "Sin estudiantes";
       tr0.appendChild(td0);
@@ -411,8 +416,8 @@
         tr.appendChild(td);
       });
 
-      var tdActions = document.createElement("td");
       if (!state.docenteContext && state.directivoLike) {
+        var tdActions = document.createElement("td");
         var btnEdit = document.createElement("button");
         btnEdit.type = "button";
         btnEdit.className = "btn btn-ghost";
@@ -435,10 +440,8 @@
 
         tdActions.appendChild(btnEdit);
         tdActions.appendChild(btnDelete);
-      } else {
-        tdActions.textContent = "Solo lectura";
+        tr.appendChild(tdActions);
       }
-      tr.appendChild(tdActions);
       tbody.appendChild(tr);
     });
   }
@@ -458,24 +461,10 @@
 
   function initFilters() {
     var anio = $("#filterAnio");
-    var apply = $("#applyFilters");
-    var clear = $("#clearFilters");
-    var refresh = $("#studentsRefresh");
+    var search = $("#filterSearch");
 
     if (anio) anio.addEventListener("change", loadStudents);
-    if (apply) apply.addEventListener("click", loadStudents);
-    if (refresh) refresh.addEventListener("click", function () {
-      loadContext().then(loadStudents).catch(function (e) {
-        setMsg($("#studentsListMsg"), e.message || "Error", "error");
-      });
-    });
-    if (clear) {
-      clear.addEventListener("click", function () {
-        if (anio) anio.value = "";
-        if ($("#filterSearch")) $("#filterSearch").value = "";
-        loadStudents();
-      });
-    }
+    if (search) search.addEventListener("input", loadStudents);
   }
 
   function initCreateStudent() {

@@ -12,7 +12,6 @@
     mySubjects: [],
     myContents: [],
     publicNewsVisibility: "",
-    publicEventsVisibility: "",
     filters: {
       materials: { materia: "", curso: "", ciclo: "" },
       activities: { materia: "", curso: "", ciclo: "" }
@@ -524,7 +523,7 @@
 
   function openContentDetail(kind, row) {
     if (!row) return;
-    var title = row.titulo || (kind === "actividad" ? "Actividad" : kind === "material" ? "Material" : "PublicaciÃ³n");
+    var title = row.titulo || (kind === "actividad" ? "Actividad" : kind === "material" ? "Material" : "Publicación");
     var meta = kind === "evento"
       ? [row.tipo || "Evento", formatFechaHora(row.inicio), row.ubicacion].filter(Boolean).join(" Â· ")
       : [materiaCursoLabel(row.materiaCursoId), row.categoria, formatFechaHora(row.fecha || row.createdAt)].filter(Boolean).join(" Â· ");
@@ -571,7 +570,7 @@
     if (!rows.length) {
       var empty = document.createElement("div");
       empty.className = "empty";
-      empty.textContent = "Aun no hay publicaciones ni eventos para estudiantes.";
+      empty.textContent = "Aún no hay publicaciones ni eventos para estudiantes.";
       list.appendChild(empty);
       return;
     }
@@ -601,6 +600,10 @@
       var meta = document.createElement("div");
       meta.className = "item-meta";
       meta.textContent = formatFechaHora(entry.kind === "evento" ? (row.inicio || row.createdAt) : (row.fecha || row.createdAt));
+      var created = document.createElement("div");
+      created.className = "item-created";
+      created.textContent = "Creado: " + formatFechaHora(row.createdAt || (entry.kind === "evento" ? row.inicio : row.fecha));
+      left.appendChild(created);
 
       var actions = document.createElement("div");
       actions.className = "item-actions";
@@ -830,7 +833,7 @@
       var td = document.createElement("td");
       td.colSpan = 3;
       td.className = "table-empty";
-      td.textContent = "Sin novedades publicas aun";
+      td.textContent = "Aún no hay novedades públicas";
       tr.appendChild(td);
       tbody.appendChild(tr);
       return;
@@ -860,7 +863,7 @@
     if (!rows.length) {
       var empty = document.createElement("div");
       empty.className = "empty";
-      empty.textContent = "Todavia no hay comunicados disponibles.";
+      empty.textContent = "Todavía no hay comunicados disponibles.";
       list.appendChild(empty);
       return;
     }
@@ -876,15 +879,15 @@
       title.textContent = row.titulo || "Noticia";
       var sub = document.createElement("div");
       sub.className = "item-sub";
-      sub.textContent = (row.resumen || row.contenido || "Sin resumen disponible.") + (row.tipo === "privada" ? " · Privada para docentes" : " · Publica");
-      var meta = document.createElement("div");
-      meta.className = "item-meta";
-      meta.textContent = formatFecha(row.fecha);
+      sub.textContent = (row.resumen || row.contenido || "Sin resumen disponible.") + (row.tipo === "privada" ? " · Privada para docentes" : " · Pública");
+      var created = document.createElement("div");
+      created.className = "item-created";
+      created.textContent = "Creado: " + formatFechaHora(row.createdAt || row.fecha);
       left.appendChild(title);
       left.appendChild(sub);
       sub.hidden = true;
       item.appendChild(left);
-      item.appendChild(meta);
+      item.appendChild(created);
       list.appendChild(item);
     });
   }
@@ -896,7 +899,7 @@
     if (!items.length) {
       var empty = document.createElement("div");
       empty.className = "empty";
-      empty.textContent = "Todavia no tienes materias asignadas.";
+      empty.textContent = "Todavía no tienes materias asignadas.";
       list.appendChild(empty);
       return;
     }
@@ -942,14 +945,14 @@
     eventCalendarState.selectedId = String(row._id || row.id || "");
     $("#docenteEventoTitle").textContent = row.titulo || "Evento";
     $("#docenteEventoMeta").textContent = [row.tipo || "Evento", formatFechaHora(row.inicio)].filter(Boolean).join(" · ");
-    $("#docenteEventoVisibilidad").textContent = isAcademicEvent(row) ? "Para estudiantes" : row.visibilidad === "privado" ? "Privado" : "Publico";
-    $("#docenteEventoUbicacion").textContent = row.ubicacion || "Sin ubicacion definida";
+    $("#docenteEventoVisibilidad").textContent = isAcademicEvent(row) ? "Para estudiantes" : row.visibilidad === "privado" ? "Privado" : "Público";
+    $("#docenteEventoUbicacion").textContent = row.ubicacion || "Sin ubicación definida";
     $("#docenteEventoRoles").textContent = isAcademicEvent(row)
       ? materiaCursoLabel(row.materiaCursoId)
       : row.visibilidad === "privado"
         ? ((row.visibleParaRoles || []).length ? row.visibleParaRoles.join(", ") : "Sin roles asignados")
         : "Toda la comunidad";
-    $("#docenteEventoDescripcion").textContent = row.descripcion || "Sin descripcion adicional.";
+    $("#docenteEventoDescripcion").textContent = row.descripcion || "Sin descripción adicional.";
     openModal("#docenteEventoDetalleModal");
   }
 
@@ -1041,7 +1044,7 @@
     if (!rows.length) {
       var empty = document.createElement("div");
       empty.className = "empty";
-      empty.textContent = "Todavia no hay materiales ni actividades cargadas.";
+      empty.textContent = "Todavía no hay materiales ni actividades cargadas.";
       list.appendChild(empty);
       return;
     }
@@ -1061,13 +1064,6 @@
     var visibility = state.publicNewsVisibility;
     return (rows || []).filter(function (row) {
       return !visibility || (row && row.tipo ? row.tipo : "publica") === visibility;
-    });
-  }
-
-  function filterPublicEventRows(rows) {
-    var visibility = state.publicEventsVisibility;
-    return (rows || []).filter(function (row) {
-      return !visibility || (row && row.visibilidad ? row.visibilidad : "publico") === visibility;
     });
   }
 
@@ -1097,6 +1093,8 @@
       var td3 = document.createElement("td");
       td3.textContent = formatFecha(p.fecha);
       var td4 = document.createElement("td");
+      td4.textContent = formatFechaHora(p.createdAt || p.fecha);
+      var td5 = document.createElement("td");
       var edit = document.createElement("button");
       edit.type = "button";
       edit.className = "btn btn-ghost";
@@ -1115,13 +1113,14 @@
       del.addEventListener("click", function (event) {
         deletePost(p);
       });
-      td4.appendChild(edit);
-      td4.appendChild(del);
+      td5.appendChild(edit);
+      td5.appendChild(del);
 
       tr.appendChild(td1);
       tr.appendChild(td2);
       tr.appendChild(td3);
       tr.appendChild(td4);
+      tr.appendChild(td5);
       tr.classList.add("content-summary-item");
       tr.addEventListener("click", function () { openContentDetail("publicacion", p); });
       edit.addEventListener("click", function (event) { event.stopPropagation(); });
@@ -1159,7 +1158,7 @@
     if (!items.length) {
       var e = document.createElement("div");
       e.className = "empty";
-      e.textContent = "Aun no hay materiales.";
+      e.textContent = "Aún no hay materiales.";
       list.appendChild(e);
       return;
     }
@@ -1174,7 +1173,7 @@
       t.textContent = m.titulo;
       var s = document.createElement("div");
       s.className = "item-sub";
-      s.textContent = [materiaCursoLabel(m.materiaCursoId), m.resumen || m.contenido || "Sin descripcion"].filter(Boolean).join(" · ");
+      s.textContent = [materiaCursoLabel(m.materiaCursoId), m.resumen || m.contenido || "Sin descripción"].filter(Boolean).join(" · ");
       left.appendChild(t);
       left.appendChild(s);
       s.hidden = true;
@@ -1215,7 +1214,7 @@
     if (!items.length) {
       var empty = document.createElement("div");
       empty.className = "empty";
-      empty.textContent = "Aun no hay actividades.";
+      empty.textContent = "Aún no hay actividades.";
       list.appendChild(empty);
       return;
     }
@@ -1230,7 +1229,7 @@
       t.textContent = a.titulo;
       var s = document.createElement("div");
       s.className = "item-sub";
-      s.textContent = [materiaCursoLabel(a.materiaCursoId), a.resumen || a.contenido || "Sin descripcion"].filter(Boolean).join(" · ");
+      s.textContent = [materiaCursoLabel(a.materiaCursoId), a.resumen || a.contenido || "Sin descripción"].filter(Boolean).join(" · ");
       left.appendChild(t);
       left.appendChild(s);
       s.hidden = true;
@@ -1293,6 +1292,9 @@
       var meta = document.createElement("div");
       meta.className = "item-meta";
       meta.textContent = formatFechaHora(row.inicio);
+      var created = document.createElement("div");
+      created.className = "item-created";
+      created.textContent = "Creado: " + formatFechaHora(row.createdAt || row.inicio);
       var actions = document.createElement("div");
       actions.className = "item-actions";
       var edit = document.createElement("button");
@@ -1309,15 +1311,15 @@
       actions.appendChild(del);
       item.appendChild(left);
       item.appendChild(meta);
+      item.appendChild(created);
       item.appendChild(actions);
       list.appendChild(item);
     });
   }
 
   function renderPublicEvents(items) {
-    var filtered = filterPublicEventRows(items);
-    renderDocenteCalendar(filtered);
-    renderPublicEventList(filtered);
+    renderDocenteCalendar(items);
+    renderPublicEventList(items);
   }
 
   async function refreshPublicNews() {
@@ -1341,7 +1343,7 @@
 
   async function refreshPublicEvents() {
     try {
-      var data = await api("/calendario", { method: "GET" });
+      var data = await api("/calendario?context=docente", { method: "GET" });
       state.publicEvents = Array.isArray(data)
         ? data.slice().sort(function (a, b) {
             return new Date(a.inicio).getTime() - new Date(b.inicio).getTime();
@@ -1544,7 +1546,7 @@
       var desc = $("#matDesc").value;
       var file = $("#matFile").files && $("#matFile").files[0];
       if (!materiaCursoId) return setMsg(msgEl, "Selecciona una materia", "error");
-      if (!String(desc || "").trim() && !file) return setMsg(msgEl, "Agrega una descripcion o un archivo", "error");
+    if (!String(desc || "").trim() && !file) return setMsg(msgEl, "Agrega una descripción o un archivo", "error");
 
       try {
         var id = $("#matId").value;
@@ -1800,11 +1802,6 @@
     });
     var refreshEvents = $("#refreshPublicEvents");
     if (refreshEvents) refreshEvents.addEventListener("click", refreshPublicEvents);
-    var eventsVisibility = $("#eventsVisibilityFilter");
-    if (eventsVisibility) eventsVisibility.addEventListener("change", function () {
-      state.publicEventsVisibility = eventsVisibility.value;
-      renderPublicEvents(state.publicEvents);
-    });
     var prevMes = $("#prevDocenteMes");
     if (prevMes) {
       prevMes.addEventListener("click", function () {

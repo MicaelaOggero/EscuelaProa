@@ -574,6 +574,13 @@
   white-space: nowrap;
 }
 
+.item-created {
+  color: var(--muted-2);
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 .item-actions {
   display: flex;
   align-items: center;

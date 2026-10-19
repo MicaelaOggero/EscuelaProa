@@ -18,7 +18,7 @@ function fileFilter(req, file, cb) {
   ];
 
   if (!file.mimetype || allowed.indexOf(file.mimetype) === -1) {
-    cb(new Error("Solo se permiten archivos PDF, Office, imagenes o ZIP."));
+    cb(new Error("Solo se permiten archivos PDF, Office, imágenes o ZIP."));
     return;
   }
 

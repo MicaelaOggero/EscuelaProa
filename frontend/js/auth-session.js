@@ -26,7 +26,7 @@
     var text = String(message || "").trim();
     var exact = {
       "Request failed": "No se pudo completar la solicitud.",
-      "Missing token": "Tu sesion no es valida o ya vencio.",
+      "Missing token": "Tu sesión no es válida o ya venció.",
       "Invalid credentials": "Credenciales invalidas.",
       "Email already in use": "El email ya esta en uso.",
       "DNI already in use": "El DNI ya esta en uso.",
@@ -36,7 +36,7 @@
       "MateriaCurso not found": "Materia no encontrada.",
       "MateriaCurso already exists": "La materia ya existe para ese curso y ciclo lectivo.",
       "Not found": "No encontrado.",
-      "Forbidden": "No tienes permisos para realizar esta accion.",
+      "Forbidden": "No tienes permisos para realizar esta acción.",
       "Staff only": "Solo el personal autorizado puede ingresar aqui.",
       "Bootstrap disabled": "La inicializacion esta deshabilitada.",
       "BOOTSTRAP_TOKEN not set": "Falta configurar el token de inicializacion.",
@@ -50,8 +50,8 @@
     };
 
     if (!text) {
-      if (status === 401) return "Tu sesion vencio o las credenciales no son validas.";
-      if (status === 403) return "No tienes permisos para realizar esta accion.";
+      if (status === 401) return "Tu sesión venció o las credenciales no son válidas.";
+      if (status === 403) return "No tienes permisos para realizar esta acción.";
       if (status === 404) return "No se encontro el recurso solicitado.";
       if (status >= 500) return "Ocurrio un error en el servidor.";
       return "Ocurrio un error inesperado.";

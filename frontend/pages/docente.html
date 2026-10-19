@@ -29,7 +29,7 @@
           </div>
         </a>
 
-        <nav class="side-nav" aria-label="Navegacion docente">
+<nav class="side-nav" aria-label="Navegación docente">
           <a class="side-link is-active" href="#inicio" data-view="inicio">
             <span class="ico" aria-hidden="true">{home}</span>
             Inicio
@@ -115,7 +115,7 @@
               </div>
               <div class="kpi">
                 <div class="kpi-top">
-                  <div class="kpi-label">Proximos eventos</div>
+<div class="kpi-label">Próximos eventos</div>
                   <div class="kpi-ico" aria-hidden="true">{calendar}</div>
                 </div>
                 <div id="kpiEventos" class="kpi-value">-</div>
@@ -138,14 +138,6 @@
                     <div class="panel-title">Agenda institucional</div>
                   </div>
                   <div class="panel-head-actions">
-                    <div class="inline-filter">
-                      <label for="eventsVisibilityFilter">Visibilidad</label>
-                      <select id="eventsVisibilityFilter">
-                        <option value="">Todos</option>
-                        <option value="publico">Públicos</option>
-                        <option value="privado">Privados</option>
-                      </select>
-                    </div>
                     <div class="view-cta calendar-month-nav">
                       <button id="prevDocenteMes" class="btn btn-secondary" type="button" aria-label="Mes anterior" title="Mes anterior">‹</button>
                     <div id="docenteMesLabel" class="calendar-month-label">-</div>
@@ -154,7 +146,7 @@
                   </div>
                 </div>
                 <div class="calendar-legend" aria-label="Referencias de eventos">
-                  <span class="legend-chip legend-chip--publico">Publico</span>
+<span class="legend-chip legend-chip--publico">Público</span>
                   <span class="legend-chip legend-chip--privado">Privado</span>
                 </div>
                 <div id="docenteCalendar" class="calendar-grid" aria-label="Calendario docente"></div>
@@ -164,7 +156,7 @@
                 <div class="panel-head">
                   <div>
                     <div class="panel-title">Panorama docente</div>
-                    <div class="panel-sub">Tus materias asignadas y el trabajo mas reciente</div>
+<div class="panel-sub">Tus materias asignadas y el trabajo más reciente</div>
                   </div>
                   <a class="link-pill" href="#perfil" data-viewlink="perfil">Ver perfil</a>
                 </div>
@@ -172,13 +164,13 @@
                   <div>
                     <div class="micro-title">Materias asignadas</div>
                     <div id="assignedSubjects" class="list compact-list" aria-label="Lista de materias asignadas">
-                      <div class="empty">Todavia no tienes materias asignadas.</div>
+<div class="empty">Todavía no tienes materias asignadas.</div>
                     </div>
                   </div>
                   <div>
                     <div class="micro-title">Ultimos movimientos</div>
                     <div id="recentWork" class="list compact-list" aria-label="Actividad reciente docente">
-                      <div class="empty">Todavia no hay materiales ni actividades cargadas.</div>
+<div class="empty">Todavía no hay materiales ni actividades cargadas.</div>
                     </div>
                   </div>
                 </div>
@@ -189,7 +181,7 @@
               <div class="panel-head">
                   <div>
                     <div class="panel-title">Comunicados para ti</div>
-                    <div class="panel-sub">Noticias publicas y privadas visibles para tu rol docente.</div>
+                    <div class="panel-sub">Noticias públicas y privadas visibles para tu rol docente.</div>
                   </div>
                 <div class="inline-filter">
                   <label for="postsVisibilityFilter">Visibilidad</label>
@@ -201,7 +193,7 @@
                 </div>
               </div>
               <div id="docenteNewsList" class="list compact-list" aria-label="Listado de noticias para docente">
-                <div class="empty">Todavia no hay comunicados disponibles.</div>
+                <div class="empty">Todavía no hay comunicados disponibles.</div>
               </div>
             </section>
 
@@ -213,17 +205,17 @@
                 </div>
               </div>
               <div id="academicPostsList" class="list" aria-label="Lista de publicaciones académicas">
-                <div class="empty">Aun no hay publicaciones ni eventos para estudiantes.</div>
+                <div class="empty">Aún no hay publicaciones ni eventos para estudiantes.</div>
               </div>
               <div id="academicMsg" class="msg" role="status" aria-live="polite"></div>
             </section>
           </section>
 
-          <section id="publicaciones" class="view" data-view="publicaciones" aria-label="Novedades publicas">
+          <section id="publicaciones" class="view" data-view="publicaciones" aria-label="Novedades públicas">
             <div class="view-head">
               <div>
-                <h2 class="view-title">Novedades publicas</h2>
-                <p class="view-sub">Publicaciones institucionales que se muestran en el sitio publico.</p>
+                <h2 class="view-title">Novedades públicas</h2>
+<p class="view-sub">Publicaciones institucionales que se muestran en el sitio público.</p>
               </div>
               <div class="view-cta">
                 <button id="publicarNovedadBtn" class="btn btn-primary" type="button" data-open="crear">Publicar novedad</button>
@@ -234,7 +226,7 @@
               <div class="panel-head">
                 <div>
                   <div class="panel-title">Registro de novedades</div>
-                  <div class="panel-sub">Se guardan localmente para tu seguimiento y tambien se publican en el sitio publico.</div>
+<div class="panel-sub">Se guardan localmente para tu seguimiento y también se publican en el sitio público.</div>
                 </div>
                 <button id="refreshPosts" class="btn btn-secondary" type="button">Actualizar</button>
               </div>
@@ -242,9 +234,10 @@
                 <table class="table" aria-label="Tabla mis publicaciones">
                   <thead>
                     <tr>
-                      <th>Titulo</th>
-                      <th>Categoria</th>
+<th>Título</th>
+<th>Categoría</th>
                       <th>Fecha</th>
+                      <th>Creado</th>
                       <th>Acciones</th>
                     </tr>
                   </thead>
@@ -272,7 +265,7 @@
               <div class="panel-head">
                 <div>
                   <div class="panel-title">Material publicado</div>
-                  <div class="panel-sub">Contenido academico visible solo para estudiantes de la materia y curso seleccionados.</div>
+<div class="panel-sub">Contenido académico visible solo para estudiantes de la materia y curso seleccionados.</div>
                 </div>
               </div>
               <div class="content-filters" aria-label="Filtros de materiales">
@@ -296,7 +289,7 @@
                 </div>
               </div>
               <div id="materialsList" class="list" aria-label="Lista de materiales">
-                <div class="empty">Aun no hay materiales.</div>
+<div class="empty">Aún no hay materiales.</div>
               </div>
             </div>
           </section>
@@ -305,7 +298,7 @@
             <div class="view-head">
               <div>
                 <h2 class="view-title">Actividades</h2>
-                <p class="view-sub">Actividades y consignas para estudiantes. No se muestran en el sitio publico.</p>
+<p class="view-sub">Actividades y consignas para estudiantes. No se muestran en el sitio público.</p>
               </div>
               <div class="view-cta">
                 <button class="btn btn-secondary" type="button" data-open="actividad">Crear actividad</button>
@@ -315,7 +308,7 @@
             <div class="panel">
               <div class="panel-head">
                 <div>
-                  <div class="panel-title">Proximas</div>
+<div class="panel-title">Próximas</div>
                   <div class="panel-sub">Consignas y actividades visibles solo para estudiantes de esa materia.</div>
                 </div>
               </div>
@@ -340,19 +333,19 @@
                 </div>
               </div>
               <div id="activitiesList" class="list" aria-label="Lista de actividades">
-                <div class="empty">Aun no hay actividades.</div>
+                <div class="empty">Aún no hay actividades.</div>
               </div>
             </div>
           </section>
 
-          <section id="calendario" class="view" data-view="calendario" aria-label="Eventos publicos">
+          <section id="calendario" class="view" data-view="calendario" aria-label="Eventos públicos">
             <div class="view-head">
               <div>
-                <h2 class="view-title">Eventos publicos</h2>
-                <p class="view-sub">Agenda institucional visible para cualquier persona en el sitio publico.</p>
+<h2 class="view-title">Eventos públicos</h2>
+<p class="view-sub">Agenda institucional visible para cualquier persona en el sitio público.</p>
               </div>
               <div class="view-cta">
-                <button id="crearEventoBtn" class="btn btn-primary" type="button" data-open="evento-publico">Crear evento publico</button>
+<button id="crearEventoBtn" class="btn btn-primary" type="button" data-open="evento-publico">Crear evento público</button>
                 <button id="refreshPublicEvents" class="btn btn-secondary" type="button">Actualizar</button>
               </div>
             </div>
@@ -360,12 +353,12 @@
             <div class="panel">
               <div class="panel-head">
                 <div>
-                  <div class="panel-title">Agenda publica</div>
+<div class="panel-title">Agenda pública</div>
                   <div class="panel-sub">Eventos ordenados por fecha</div>
                 </div>
               </div>
               <div id="calendarList" class="list" aria-label="Lista calendario">
-                <div class="empty">Sin eventos publicos.</div>
+<div class="empty">Sin eventos públicos.</div>
               </div>
               <div id="calMsg" class="msg" role="status" aria-live="polite"></div>
             </div>
@@ -375,7 +368,7 @@
             <div class="view-head">
               <div>
                 <h2 class="view-title">Perfil</h2>
-                <p class="view-sub">Datos de la sesion actual.</p>
+<p class="view-sub">Datos de la sesión actual.</p>
               </div>
             </div>
 
@@ -395,7 +388,7 @@
       </div>
     </div>
 
-    <!-- Modal: Crear novedad publica -->
+    <!-- Modal: Crear novedad pública -->
     <div id="modalCrear" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="crearTitle">
       <div class="modal-backdrop" data-close="true"></div>
       <div class="modal-panel" role="document">
@@ -405,14 +398,14 @@
           </div>
           <button class="btn btn-ghost btn-sm" type="button" data-close="true">Cerrar</button>
         </div>
-        <form id="crearForm" class="modal-body" aria-label="Formulario crear publicacion publica">
+        <form id="crearForm" class="modal-body" aria-label="Formulario crear publicación pública">
           <input id="pubId" type="hidden" />
           <div class="field">
-            <label for="pubTitulo">Titulo</label>
+<label for="pubTitulo">Título</label>
             <input id="pubTitulo" type="text" required />
           </div>
           <div class="field">
-            <label for="pubCategoria">Categoria</label>
+<label for="pubCategoria">Categoría</label>
             <select id="pubCategoria" required>
               <option value="Institucional">Institucional</option>
               <option value="Proyectos">Proyectos</option>
@@ -422,7 +415,7 @@
           </div>
           <div class="field">
             <label for="pubResumen">Resumen</label>
-            <input id="pubResumen" type="text" placeholder="Breve descripcion" />
+<input id="pubResumen" type="text" placeholder="Breve descripción" />
           </div>
           <div class="field">
             <label for="pubContenido">Contenido</label>
@@ -440,25 +433,25 @@
             <button class="btn btn-secondary" type="button" data-close="true">Cerrar</button>
           </div>
           <div id="crearMsg" class="msg" role="status" aria-live="polite"></div>
-          <div class="panel-note">Las novedades publicas se muestran en la home del sitio y no forman parte del contenido academico estudiantil.</div>
+<div class="panel-note">Las novedades públicas se muestran en la home del sitio y no forman parte del contenido académico estudiantil.</div>
         </form>
       </div>
     </div>
 
-    <!-- Modal: Crear evento publico -->
+    <!-- Modal: Crear evento público -->
     <div id="modalEventoPublico" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="eventoTitle">
       <div class="modal-backdrop" data-close="true"></div>
       <div class="modal-panel" role="document">
         <div class="modal-head">
           <div>
-            <div id="eventoTitle" class="modal-title">Crear evento publico</div>
+<div id="eventoTitle" class="modal-title">Crear evento público</div>
           </div>
           <button class="btn btn-ghost btn-sm" type="button" data-close="true">Cerrar</button>
         </div>
-        <form id="eventoForm" class="modal-body" aria-label="Formulario crear evento publico">
+        <form id="eventoForm" class="modal-body" aria-label="Formulario crear evento público">
           <input id="eventoId" type="hidden" />
           <div class="field">
-            <label for="eventoTitulo">Titulo</label>
+<label for="eventoTitulo">Título</label>
             <input id="eventoTitulo" type="text" required />
           </div>
           <div class="cols-2">
@@ -477,12 +470,12 @@
               <input id="eventoTipo" type="text" placeholder="Acto, reunion, jornada..." />
             </div>
             <div class="field">
-              <label for="eventoUbicacion">Ubicacion</label>
-              <input id="eventoUbicacion" type="text" placeholder="Salon de actos" />
+<label for="eventoUbicacion">Ubicación</label>
+<input id="eventoUbicacion" type="text" placeholder="Salón de actos" />
             </div>
           </div>
           <div class="field">
-            <label for="eventoDesc">Descripcion</label>
+<label for="eventoDesc">Descripción</label>
             <textarea id="eventoDesc" rows="4" placeholder="Detalle del evento"></textarea>
           </div>
           <div class="modal-actions">
@@ -508,7 +501,7 @@
         <div class="modal-body">
           <div class="profile" role="list">
             <div class="kv" role="listitem"><div class="kv-k">Visibilidad</div><div id="docenteEventoVisibilidad" class="kv-v">-</div></div>
-            <div class="kv" role="listitem"><div class="kv-k">Ubicacion</div><div id="docenteEventoUbicacion" class="kv-v">-</div></div>
+            <div class="kv" role="listitem"><div class="kv-k">Ubicación</div><div id="docenteEventoUbicacion" class="kv-v">-</div></div>
             <div class="kv" role="listitem"><div class="kv-k">Roles</div><div id="docenteEventoRoles" class="kv-v">-</div></div>
           </div>
           <div id="docenteEventoDescripcion" class="panel-note">-</div>
@@ -679,11 +672,11 @@
             </select>
           </div>
           <div class="field">
-            <label for="matTitulo">Titulo</label>
+<label for="matTitulo">Título</label>
             <input id="matTitulo" type="text" required />
           </div>
           <div class="field">
-            <label for="matDesc">Descripcion</label>
+<label for="matDesc">Descripción</label>
             <textarea id="matDesc" rows="4" placeholder="Tema, curso, observaciones"></textarea>
           </div>
           <div class="field">
@@ -724,7 +717,7 @@
             </select>
           </div>
           <div class="field">
-            <label for="actTitulo">Titulo</label>
+<label for="actTitulo">Título</label>
             <input id="actTitulo" type="text" required />
           </div>
           <div class="field">
@@ -732,7 +725,7 @@
             <input id="actInicio" type="datetime-local" required />
           </div>
           <div class="field">
-            <label for="actDesc">Descripcion</label>
+<label for="actDesc">Descripción</label>
             <textarea id="actDesc" rows="4" placeholder="Detalle de la actividad"></textarea>
           </div>
           <div class="field">

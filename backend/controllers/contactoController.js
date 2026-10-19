@@ -27,7 +27,7 @@ exports.create = async (req, res, next) => {
       return res.status(400).json({ message: "nombre, email, motivo y mensaje son requeridos" });
     }
     if (!isValidEmail(payload.email)) {
-      return res.status(400).json({ message: "El email no es valido" });
+      return res.status(400).json({ message: "El email no es válido" });
     }
     if (payload.nombre.length > 120 || payload.email.length > 254 || payload.motivo.length > 160 || payload.mensaje.length > 5000) {
       return res.status(400).json({ message: "La consulta supera el limite permitido" });

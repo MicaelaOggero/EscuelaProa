@@ -81,11 +81,11 @@ app.use((err, req, res, next) => {
     res.status(403).json({ message: err.message });
     return;
   }
-  if (err && err.message === "Solo se permiten imagenes.") {
+  if (err && err.message === "Solo se permiten imágenes.") {
     res.status(400).json({ message: err.message });
     return;
   }
-  if (err && err.message === "Solo se permiten archivos PDF, Office, imagenes o ZIP.") {
+  if (err && err.message === "Solo se permiten archivos PDF, Office, imágenes o ZIP.") {
     res.status(400).json({ message: err.message });
     return;
   }
@@ -94,7 +94,7 @@ app.use((err, req, res, next) => {
     return;
   }
   if (err && err.code === "LIMIT_FILE_COUNT") {
-    res.status(400).json({ message: "Solo puedes subir hasta 8 imagenes por noticia." });
+    res.status(400).json({ message: "Solo puedes subir hasta 8 imágenes por noticia." });
     return;
   }
   res.status(500).json({ message: "Server error" });
