@@ -502,12 +502,39 @@
     modal.setAttribute("aria-hidden", "true");
   }
 
+  function actividadComoEvento(row) {
+    return Object.assign({}, row, {
+      inicio: row.fecha || row.createdAt,
+      fin: null,
+      descripcion: row.resumen || row.contenido || "",
+      tipo: "Actividad",
+      visibilidad: "privado",
+      origen: "actividad"
+    });
+  }
+
   async function loadEventos() {
     var msg = $("#studentEventsMsg");
     setMsg(msg, "Cargando agenda...", "");
     try {
-      var rows = await api("/calendario", { method: "GET" });
-      state.eventos = Array.isArray(rows) ? rows : [];
+      var responses = await Promise.all([
+        api("/calendario", { method: "GET" }),
+        api("/contenidos?tipo=actividad", { method: "GET" })
+      ]);
+      var rows = Array.isArray(responses[0]) ? responses[0].slice() : [];
+      var activityIds = new Set(rows
+        .filter(function (row) { return row && row.origen === "actividad"; })
+        .map(function (row) { return String(row._id || row.id); }));
+      (Array.isArray(responses[1]) ? responses[1] : [])
+        .filter(function (row) {
+          return row && row.tipo === "actividad" && !activityIds.has(String(row._id || row.id));
+        })
+        .forEach(function (row) {
+          rows.push(actividadComoEvento(row));
+        });
+      state.eventos = rows.sort(function (a, b) {
+        return new Date(a.inicio || a.createdAt || 0).getTime() - new Date(b.inicio || b.createdAt || 0).getTime();
+      });
       renderStudentCalendars(state.eventos);
       setMsg(msg, "", "");
     } catch (e) {

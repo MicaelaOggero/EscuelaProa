@@ -437,7 +437,9 @@
   }
 
   async function deleteContenido(row, confirmed) {
-    var kind = row && row.tipo === "actividad" ? "actividad" : row && row.tipo === "publicacion" ? "publicacion" : "material";
+    var kind = row && (row.tipo === "actividad" || row.origen === "actividad")
+      ? "actividad"
+      : row && row.tipo === "publicacion" ? "publicacion" : "material";
     if (!confirmed) {
       requestDeleteConfirmation("¿Querés eliminar " + kind + " '" + ((row && row.titulo) || "") + "'?", function () {
         return deleteContenido(row, true);
@@ -525,8 +527,8 @@
     if (!row) return;
     var title = row.titulo || (kind === "actividad" ? "Actividad" : kind === "material" ? "Material" : "Publicación");
     var meta = kind === "evento"
-      ? [row.tipo || "Evento", formatFechaHora(row.inicio), row.ubicacion].filter(Boolean).join(" Â· ")
-      : [materiaCursoLabel(row.materiaCursoId), row.categoria, formatFechaHora(row.fecha || row.createdAt)].filter(Boolean).join(" Â· ");
+      ? [row.tipo || "Evento", formatFechaHora(row.inicio), row.ubicacion].filter(Boolean).join(" · ")
+      : [materiaCursoLabel(row.materiaCursoId), row.categoria, formatFechaHora(row.fecha || row.createdAt)].filter(Boolean).join(" · ");
     var content = kind === "evento"
       ? row.descripcion
       : [row.resumen, row.contenido].filter(Boolean).join("\n\n");
@@ -597,9 +599,6 @@
       left.appendChild(s);
       s.hidden = true;
 
-      var meta = document.createElement("div");
-      meta.className = "item-meta";
-      meta.textContent = formatFechaHora(entry.kind === "evento" ? (row.inicio || row.createdAt) : (row.fecha || row.createdAt));
       var created = document.createElement("div");
       created.className = "item-created";
       created.textContent = "Creado: " + formatFechaHora(row.createdAt || (entry.kind === "evento" ? row.inicio : row.fecha));
@@ -640,7 +639,6 @@
       actions.appendChild(del);
 
       div.appendChild(left);
-      div.appendChild(meta);
       div.appendChild(actions);
       list.appendChild(div);
     });
@@ -1297,16 +1295,25 @@
       created.textContent = "Creado: " + formatFechaHora(row.createdAt || row.inicio);
       var actions = document.createElement("div");
       actions.className = "item-actions";
+      var isActivity = row.origen === "actividad";
       var edit = document.createElement("button");
       edit.type = "button";
       edit.className = "btn btn-ghost btn-sm";
       edit.textContent = "Editar";
-      edit.addEventListener("click", function (event) { event.stopPropagation(); openEventEdit(row); });
+      edit.addEventListener("click", function (event) {
+        event.stopPropagation();
+        if (isActivity) openActivityEdit(row);
+        else openEventEdit(row);
+      });
       var del = document.createElement("button");
       del.type = "button";
       del.className = "btn btn-secondary btn-sm";
       del.textContent = "Eliminar";
-      del.addEventListener("click", function (event) { event.stopPropagation(); deleteEvent(row); });
+      del.addEventListener("click", function (event) {
+        event.stopPropagation();
+        if (isActivity) deleteContenido(row);
+        else deleteEvent(row);
+      });
       actions.appendChild(edit);
       actions.appendChild(del);
       item.appendChild(left);
@@ -1320,6 +1327,16 @@
   function renderPublicEvents(items) {
     renderDocenteCalendar(items);
     renderPublicEventList(items);
+  }
+
+  function activityAsCalendarRow(row) {
+    return Object.assign({}, row, {
+      inicio: row.fecha || row.createdAt,
+      fin: null,
+      tipo: "Actividad",
+      visibilidad: "privado",
+      origen: "actividad"
+    });
   }
 
   async function refreshPublicNews() {
@@ -1344,11 +1361,20 @@
   async function refreshPublicEvents() {
     try {
       var data = await api("/calendario?context=docente", { method: "GET" });
-      state.publicEvents = Array.isArray(data)
-        ? data.slice().sort(function (a, b) {
-            return new Date(a.inicio).getTime() - new Date(b.inicio).getTime();
-          })
-        : [];
+      var rows = Array.isArray(data) ? data.slice() : [];
+      var calendarActivityIds = new Set(rows
+        .filter(function (row) { return row && row.origen === "actividad"; })
+        .map(function (row) { return String(row._id || row.id); }));
+      state.myContents
+        .filter(function (row) {
+          return row && row.tipo === "actividad" && !calendarActivityIds.has(String(row._id || row.id));
+        })
+        .forEach(function (row) {
+          rows.push(activityAsCalendarRow(row));
+        });
+      state.publicEvents = rows.sort(function (a, b) {
+        return new Date(a.inicio || a.createdAt || 0).getTime() - new Date(b.inicio || b.createdAt || 0).getTime();
+      });
       renderPublicEvents(state.publicEvents);
       setMsg($("#calMsg"), "", "");
     } catch (err) {
@@ -1594,7 +1620,7 @@
     $("#actId").value = row._id || row.id || "";
     $("#actMateriaCurso").value = (row.materiaCursoId && (row.materiaCursoId._id || row.materiaCursoId.id)) || "";
     $("#actTitulo").value = row.titulo || "";
-    $("#actInicio").value = toDatetimeLocalValue(row.fecha);
+    $("#actInicio").value = toDatetimeLocalValue(row.fecha || row.inicio);
     $("#actDesc").value = row.resumen || row.contenido || "";
     $("#actAdjunto").value = "";
     var activityFiles = Array.isArray(row.archivos) ? row.archivos.filter(function (file) {

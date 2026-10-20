@@ -621,6 +621,37 @@ exports.updateStaff = async (req, res, next) => {
   }
 };
 
+exports.changePassword = async (req, res, next) => {
+  try {
+    const password = typeof req.body.password === "string" ? req.body.password : "";
+    if (password.length < 8) {
+      return res.status(400).json({ message: "La contraseña debe tener al menos 8 caracteres" });
+    }
+
+    const user = await Usuario.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
+
+    const targetRoles = normalizeRoles(user.roles && user.roles.length ? user.roles : user.role ? [user.role] : []);
+    if (!isSuperadmin(req.user) && targetRoles.indexOf("directivo") !== -1) {
+      return res.status(403).json({ message: "Un directivo no puede cambiar la contraseña de otro directivo" });
+    }
+    if (!targetRoles.length) {
+      return res.status(400).json({ message: "El usuario no tiene un rol válido" });
+    }
+
+    user.passwordHash = await bcrypt.hash(password, 10);
+    await user.save();
+
+    res.json({
+      message: "Contraseña actualizada correctamente",
+      id: user._id,
+      email: user.email
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 exports.deleteStaff = async (req, res, next) => {
   try {
     const { id } = req.params;

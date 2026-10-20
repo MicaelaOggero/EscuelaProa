@@ -1,4 +1,5 @@
 const Evento = require("../models/Evento");
+const Contenido = require("../models/Contenido");
 const MateriaCurso = require("../models/MateriaCurso");
 const Usuario = require("../models/Usuario");
 const jwt = require("jsonwebtoken");
@@ -64,6 +65,40 @@ function eventoPopulate(query) {
     .populate("createdBy", "nombre apellido email");
 }
 
+function actividadPopulate(query) {
+  return query
+    .populate({
+      path: "materiaCursoId",
+      select: "materia cursoId cicloLectivo docenteId",
+      populate: { path: "cursoId", select: "numero nombre division turno" }
+    })
+    .populate("cursoId", "numero nombre division turno")
+    .populate("createdBy", "nombre apellido email");
+}
+
+function actividadAsEvento(row) {
+  return {
+    _id: row._id,
+    titulo: row.titulo,
+    resumen: row.resumen,
+    contenido: row.contenido,
+    fecha: row.fecha,
+    archivos: row.archivos || [],
+    descripcion: row.resumen || row.contenido || "",
+    inicio: row.fecha || row.createdAt,
+    fin: null,
+    ubicacion: "",
+    tipo: "Actividad",
+    materiaCursoId: row.materiaCursoId,
+    cursoId: row.cursoId,
+    visibilidad: "privado",
+    visibleParaRoles: [],
+    createdBy: row.createdBy,
+    createdAt: row.createdAt,
+    origen: "actividad"
+  };
+}
+
 function hasRole(user, role) {
   return !!(user && Array.isArray(user.roles) && user.roles.indexOf(role) !== -1);
 }
@@ -92,6 +127,7 @@ exports.list = async (req, res, next) => {
       }
     }
     let query;
+    let actividadesQuery = null;
     const docenteContext = !!(
       user &&
       Array.isArray(user.roles) &&
@@ -128,6 +164,7 @@ exports.list = async (req, res, next) => {
           { createdBy: user.id, materiaCursoId: { $ne: null } }
         ]
       };
+      actividadesQuery = { tipo: "actividad", createdBy: user.id };
     } else {
       const me = await Usuario.findById(user.id).select("cursoId");
       const cursoId = me && me.cursoId ? me.cursoId : null;
@@ -139,10 +176,30 @@ exports.list = async (req, res, next) => {
         ]
       };
       query.$or = query.$or.filter(Boolean);
+      if (cursoId) {
+        const materiaCursoIds = await MateriaCurso.find({ cursoId: cursoId }).distinct("_id");
+        actividadesQuery = {
+          tipo: "actividad",
+          publicado: true,
+          $or: [
+            { cursoId: cursoId },
+            { materiaCursoId: { $in: materiaCursoIds } }
+          ]
+        };
+      }
     }
 
     const eventos = await eventoPopulate(Evento.find(query)).sort({ inicio: 1, createdAt: -1 });
-    res.json(eventos);
+    let actividades = [];
+    if (actividadesQuery) {
+      const rows = await actividadPopulate(Contenido.find(actividadesQuery)).sort({ fecha: 1, createdAt: -1 });
+      actividades = rows.map(actividadAsEvento);
+    }
+    res.json(eventos.concat(actividades).sort((a, b) => {
+      const dateA = new Date(a.inicio || a.createdAt || 0).getTime();
+      const dateB = new Date(b.inicio || b.createdAt || 0).getTime();
+      return dateA - dateB;
+    }));
   } catch (err) {
     next(err);
   }

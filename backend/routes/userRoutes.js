@@ -17,6 +17,7 @@ router.post("/staff", authMiddleware, roleMiddleware("superadmin", "directivo"),
 router.post("/staff/import-csv", authMiddleware, roleMiddleware("superadmin", "directivo"), userController.importStaffCsv);
 router.put("/staff/:id", authMiddleware, roleMiddleware("superadmin", "directivo"), userController.updateStaff);
 router.delete("/staff/:id", authMiddleware, roleMiddleware("superadmin", "directivo"), userController.deleteStaff);
+router.patch("/:id/password", authMiddleware, roleMiddleware("superadmin", "directivo"), userController.changePassword);
 
 router.get("/students", authMiddleware, roleMiddleware("superadmin", "directivo", "docente"), userController.listStudents);
 router.post("/students", authMiddleware, roleMiddleware("superadmin", "directivo"), userController.createStudent);
